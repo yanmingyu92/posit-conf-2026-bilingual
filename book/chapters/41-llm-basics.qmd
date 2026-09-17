@@ -1,4 +1,4 @@
----
+﻿---
 title: "4.1 LLM 编程基础（ellmer）· Programming with LLMs"
 objectives: |
   学完本章你能：用 ellmer 建立 LLM 会话；用 system prompt 控制persona与格式；
@@ -35,9 +35,9 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 
 ```mermaid
 flowchart LR
-  A[你的 R 代码] -->|chat$chat msg| B[HTTP 请求\nsystem+历史+新消息]
+  A[你的 R 代码] -->|chat$chat msg| B[HTTP 请求<br/>system+历史+新消息]
   B --> C[LLM]
-  C -->|assistant 消息| D[ellmer 把新消息\nappend 回会话对象]
+  C -->|assistant 消息| D[ellmer 把新消息<br/>append 回会话对象]
 ```
 
 ::: {.callout-example}
@@ -100,7 +100,15 @@ system prompt 不是咒语堆砌，是**写给一个聪明但不了解你上下�
 - 成本 = (输入 token × 单价) + (输出 token × 单价)，输出通常贵 3–5 倍
 
 ::: {.callout-important}
-## Practice Exercise 1（adapt 档）
+## Practice Exercise 1（copy 档）
+
+照抄本章 §2 的会话代码并跑通：建 chat → `set_system()` 设定「统计编辑」人设 →
+问一个问题 → `str(chat$get_messages())` 检查 roles。把输出里 system 消息的位置
+（第几条）写在注释里。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
 
 写 `cost_estimate(n_turns, words_per_turn, in_price, out_price)` 估算一段
 n 轮对话的总输入 token（注意：历史重发！第 k 轮输入 ≈ 前面所有轮之和），
@@ -143,7 +151,7 @@ LLM 的数字是**生成的**不是**查询的**。上例的钠含量必须再�
 ## 6. AI 线自查：本章的禁用环节
 
 ::: {.callout-important}
-## Practice Exercise 2（create 档 · 禁 AI 环节）
+## Practice Exercise 3（create 档 · 禁 AI 环节）
 
 **全程禁用 AI 助手**（这是本章唯一硬性禁用点）：仅凭本章内容 + `?ellmer` 文档，
 写 `translate_labels(labels, target_lang)`——用 LLM 把变量标签向量翻译成目标语言，

@@ -1,0 +1,260 @@
+---
+title: "2.3 Quarto 仪表盘（静态）"
+objectives: |
+  学完本章你能：判断该交付报告还是仪表盘；用 format: dashboard 搭建
+  页面与行列网格；制作 value box、卡片与 tabset；控制尺寸与滚动；
+  用 brand.yml 主题发布静态仪表盘。
+source-note: "教学结构与练习设计改编自 posit::conf(2024) quarto-dashboards 工作坊（Mine Çetinkaya-Rundel 及助教团队 · CC-BY-SA 4.0）；讲义文字为本项目原创"
+---
+
+# 2.3 Quarto 仪表盘（静态）
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **decide** 用「受众 × 更新节奏」两轴判断该交付报告还是仪表盘
+2. **build** 用 `format: dashboard` 把既有 Quarto 文档升级为多页仪表盘
+3. **compose** 用行/列网格、value box、tabset 组织首屏的信息层级
+4. **control** 用高度/宽度百分比、滚动与展开选项驯服排版溢出
+5. **publish** 用 `quarto publish` 发布静态仪表盘到 Quarto Pub / GitHub Pages
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下两问再继续；否则先回补 [L1-B1] 与 1.7/1.8：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 会把任意一个 `.qmd` 渲染成 HTML，并知道在 YAML 里改标题。
+2. 用 ggplot2 画 `palmerpenguins::penguins` 的嘴峰 × 体重散点图（按 `species` 上色）。
+:::
+
+## 1. 什么时候用仪表盘：受众 × 更新节奏
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+报告是「讲一个故事」，仪表盘是「挂一块答案看板」。
+经验法则：**同一个问题被不同的人每周问一遍，就该做成看板**。
+:::
+
+| 维度 | 报告（report） | 仪表盘（dashboard） |
+|---|---|---|
+| 受众读法 | 线性阅读，跟随论证 | 扫一眼，拿走数字 |
+| 更新节奏 | 一次性交付、低频修订 | 数据会变，周期性重渲染 |
+| 首屏责任 | 背景 + 问题 | KPI 数字 + 一张主图 |
+| 典型问题 | 「为什么流失率升了？」 | 「本周流失率是多少？」 |
+
+一句话决策：**读者要「解释」给报告，要「监控」给仪表盘**——本章只做
+静态（static）版，渲染一次、到处可托管；动态交互留给 2.4。
+
+## 2. 最小仪表盘：format: dashboard
+
+dashboard 是 Quarto ≥ 1.4 的内置格式，终端跑 `quarto --version` 先确认。
+
+::: {.callout-example}
+三步搭出第一块板（完整文件 `penguins-dash.qmd`）：
+
+````markdown
+---
+title: "企鹅速览"
+format: dashboard
+---
+
+```{r}
+library(ggplot2)
+penguins <- palmerpenguins::penguins
+```
+
+```{r}
+#| title: 嘴峰 × 体重
+ggplot(penguins, aes(bill_length_mm, body_mass_g, color = species)) +
+  geom_point()
+```
+````
+
+三个要点：`# 一级标题` = 新**页面**（page）；每个有产出的代码块自动
+成为一张**卡片**（card），再贴一个图块就是第二张卡；`#| title:` 命名卡片。
+:::
+
+::: {.callout-warning}
+## 高频误区：以为要装新包
+dashboard 不是独立 R 包，报 `Unknown format` 十有八九是 Quarto < 1.4，
+**升级 Quarto 本体，而不是 `install.packages()`**。
+:::
+
+## 3. 页面、行与列：网格思维
+
+骨架只有三层标题（`orientation:` 决定 `##` 的默认方向，`rows` 为默认）：
+
+- `# 页`（page）→ 导航栏多一个标签；`## 行`（row）→ 横向一整条
+- `### 列`（column）→ 行内分格；行写 `height=`、列写 `width=`（百分比，自动归一）
+
+::: {.callout-example}
+在 §2 的文件上改造出「指标 + 图表」两行布局：
+
+````markdown
+# 企鹅速览
+
+## 指标 {height="25%"}
+
+```{r}
+#| content: valuebox
+#| title: 平均体重 (g)
+list(value = round(mean(penguins$body_mass_g, na.rm = TRUE)))
+```
+
+## 图表 {height="75%"}
+
+### 散点 {width="70%"}
+
+```{r}
+#| title: 嘴峰 × 体重
+ggplot(penguins, aes(bill_length_mm, body_mass_g)) + geom_point()
+```
+
+### 构成 {width="30%"}
+
+```{r}
+#| title: 物种构成
+ggplot(penguins, aes(species, fill = species)) + geom_bar()
+```
+````
+:::
+
+::: {.callout-important}
+## Check In：纸上布局
+
+不运行代码，画出上面文件渲染后的线框草图；再把 `orientation` 改成 `columns` 画第二张，说出两张图差在哪——布局错误都应在这步被发现。
+:::
+
+::: {.callout-warning}
+## 高频错误：行列方向搞反
+`orientation: rows` 下给 `##` 写 `width=` 会被静默忽略——
+**`width` 属于列，`height` 属于行**，写错不报错、只是不生效。
+:::
+
+## 4. Value box 与内容卡片
+
+**Value box（数值框）**是仪表盘的红绿灯：一个数字 + 一个语义色；颜色只用
+语义名（`success`/`danger`/`info` 等），图标用 [Bootstrap Icons](https://icons.getbootstrap.com/) 名。
+
+::: {.callout-example}
+```r
+#| content: valuebox
+#| title: 最重企鹅 (g)
+#| color: success
+list(value = max(penguins$body_mass_g, na.rm = TRUE))
+```
+
+`icon:`（Bootstrap Icons 名）与 `color:` 也可省略或写进 `list()`；另有
+`::: {.valuebox icon="search" color="info"}` 的纯 Markdown 写法，正文可
+与文本、行内 `` `r ` `` 表达式混排（适合「标签 + 数字」）。
+:::
+
+卡片能装的不只是图：`knitr::kable()` 放静态表、`DT::datatable()` 放可排序表（纯前端，静态托管也能用）。**一张卡只讲一件事。**
+
+## 5. Tabset 与尺寸控制
+
+::: {.callout-example}
+````markdown
+## 明细 {.tabset}
+
+### 汇总表
+
+```{r}
+#| title: 各物种均值
+penguins |>
+  dplyr::group_by(species) |>
+  dplyr::summarise(mean_bill = mean(bill_length_mm, na.rm = TRUE)) |>
+  knitr::kable(digits = 1)
+```
+````
+
+第二个标签（`### 散点`）照常放图块即可。
+:::
+
+尺寸三开关（YAML 的 `format: dashboard:` 下，除非另注明）：
+
+- `scrolling: true`：页面可滚动，不再强行塞进一屏（分析场景常开）
+- 单块 `#| expansion: true`：该卡可点开看大图；`expandable: false` 全局关闭
+
+## 6. 主题与品牌：brand.yml 与明暗模式
+
+::: {.callout-example}
+```{.yaml}
+format:
+  dashboard:
+    theme:
+      light: flatly
+      dark: darkly
+brand: _brand.yml   # Quarto ≥ 1.6，与 2.8 章报告共用同一品牌
+```
+
+明暗双主题让读者跟随系统切换；`brand.yml` 把颜色、字体、Logo 一份文件
+管所有交付物。注意 `brand` 配色优先于 `theme`——先定品牌，再微调主题。
+:::
+
+## 7. 发布静态仪表盘
+
+静态仪表盘渲染后就是**纯 HTML + 资源**，任何静态主机都能放：
+
+```{.bash}
+quarto publish quarto-pub   # 一条命令，适合课程作业与原型
+quarto publish gh-pages     # 托管到 GitHub Pages（仓库配套）
+```
+
+数据每天变的看板用 GitHub Actions 定时 `quarto render` + 发布，即得「定时刷新的静态仪表盘」（2.4 §1 的 scheduled 模式）。
+
+::: {.callout-warning}
+## 发布前的三秒检查
+静态托管 = **数据随页面一起公开**：含个人信息的数据先脱敏，
+内部数据走公司内网托管，别上公共主机。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+从空白文件复刻 §2–§4 的企鹅仪表盘：3 个 value box（平均体重、样本量、
+物种数）+ 散点卡 + 条形卡，所有卡片有标题。渲染成功即过关。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把你 1.8 章美化过的一张图搬进仪表盘：两页——第 1 页「概览」（行高
+25%/75%），第 2 页「明细」用 tabset 装汇总表与原图；至少一次 `width=` 分列。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：用 `nycflights13::flights` 设计「航司延误」仪表盘：
+自选 4 个 KPI value box + 1 张主图；先写下「读者 5 秒内应读到的最重要数字」再写代码。
+**第二轮（开放 AI）**：把布局 YAML 与卡片标题贴给 Posit Assistant，只问：
+「读者 5 秒内能否读到那个数字？视线被什么干扰？」记录接受了哪条改动、为什么。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：自选真实数据集（体检 / penguins / nycflights 三选一）做一个
+**两页静态仪表盘**：第 1 页「概览」——3 个 value box + 1 张主图；第 2 页
+「明细」——tabset 装 `kable` 表与分布图；统一 `brand.yml` 主题，发布并提交
+链接（公开数据用 Quarto Pub，内部数据交渲染目录 + 截图）。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 布局 | 两页齐、网格不溢出 | 行列比例服务阅读顺序 | 5 秒法则实测通过（找同学验证） |
+| 内容 | KPI 与主图对应同一问题 | tabset 分组有逻辑 | 每个 KPI 附一行口径说明 |
+| 主题 | 默认主题、明暗可用 | brand.yml 生效 | 与 2.8 章报告共用同一品牌文件 |
+| 发布 | 本地渲染成功 | 已发布且链接可访问 | 写清数据快照日期与更新方式 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §2–§5 卡片/网格/valuebox/tabset | posit::conf(2024) quarto-dashboards `1-hello-dashboards`、`2-dashboard-components`（Mine Çetinkaya-Rundel 及助教团队 · CC-BY-SA 4.0） | 改编 |
+| §6–§7 主题、发布与部署模式 | 同上 `3-theming-styling`、`4-parameters-interactivity-deployment` + Quarto 官方 Dashboards 文档 | 改编/引用 |
+| brand.yml 接法、体检/nycflights 练习、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

@@ -1,0 +1,215 @@
+---
+title: "2.1 交互图形 · Interactive Graphics with plotly"
+objectives: |
+  学完本章你能：区分 explain 与 explore 两种交互目的；用 ggplotly()
+  一行升级既有 ggplot2 图形并说出转换边界；定制 tooltip；用 subplot
+  排布多面板；用 saveWidget 保存网页部件并权衡自包含代价；对
+  「要不要交互」做出克制决策。
+source-note: "本章为 100% 原创，仅引用官方文档：《Interactive web-based data visualization with R, plotly, and shiny》（Carson Sievert，https://plotly-r.com）"
+---
+
+# 2.1 交互图形 · Interactive Graphics with plotly
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **distinguish** 解释（explain）与探索（explore）两种交互目的，把 hover / zoom / filter 对号入座
+2. **convert** 用 `ggplotly()` 把现有 ggplot2 图形升级为交互部件（widget），并说出转换的边界
+3. **customize** 用 `text` 映射 + `tooltip` 参数，把悬停提示做成「随身小表」
+4. **arrange** 用 `subplot()` 与 `layout()` 组织多面板交互图
+5. **persist** 用 `htmlwidgets::saveWidget()` 保存可分享网页，权衡自包含（selfcontained）的代价
+6. **decide** 面对 print / PDF / 无障碍等交付约束，判断何时坚决不交互
+
+## 前置自测（≤5 分钟）
+
+能徒手写出一张三映射的 ggplot2 散点图再继续；否则先回补 1.7：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 不查资料，写出 `ggplot(penguins, aes(...)) + geom_point()` 的骨架：x、y、color 各映射一个变量。
+2. 回忆你最近一次真正用到悬停（hover）或缩放（zoom）看图：当时想回答什么问题？
+:::
+
+## 1. 交互是用来做什么的：explore vs explain
+
+静态图是**作者文体**：你把结论摆好，用颜色和标注把眼睛引到答案。交互图是**读者文体**：把一部分探索权交出去——读者自己悬停、缩放、筛选，问自己的问题。动手前先问目的：
+
+- **explore（探索）**：读者（常是你自己）要找模式、查异常、追个体——交互是效率工具
+- **explain（解释）**：结论已经清楚，交互只是补充上下文（悬停看细节），主角仍是你的叙述
+
+三种核心 affordance（可供性）对号入座：
+
+| affordance | 回答的问题 | 典型场景 |
+|---|---|---|
+| hover 悬停 | 「这个点是谁、值多少」 | 点密、需查 ID 与数值 |
+| zoom 缩放 | 「密集区/长尾里发生了什么」 | 重叠散点、城市热点 |
+| filter / 图例点选 | 「只看这一组呢」 | 分组比较、子集故事 |
+
+三问自检：读者要**查值**吗？**密集区**重要吗？要**自己选子集**吗？——三个都「否」，本章对你到此为止，请用静态图。
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+交互图形不是静态图形的「升级版」，而是另一种文体：静态图像论文，交互图像工具。把工具硬塞进论文、或让论文假装成工具，两头不讨好。**先定文体，再选工具**——多数报告只需要一到两张真正的交互图，其余交给静态。
+:::
+
+## 2. `ggplotly()`：一行代码的入口，与它的边界
+
+::: {.callout-example}
+```r
+library(ggplot2)
+library(plotly)
+
+p <- ggplot(palmerpenguins::penguins,
+            aes(x = bill_length_mm, y = bill_depth_mm, color = species)) +
+  geom_point(size = 2, alpha = 0.8)
+
+ggplotly(p)
+```
+:::
+
+立刻得到：悬停查值、滚轮缩放、拖拽平移、图例点选（内置 filter）；右上工具条（modebar）的相机图标还能一键导出 PNG——给静态场合留了应急出口。
+
+::: {.callout-warning}
+## 高频误区：把 ggplotly 当无损转换器
+`ggplotly()` 是尽力而为的翻译，不是保真复印：主题细节、部分扩展包 geom、复杂 guide 会被丢弃或走样；数据量大时转换本身也变慢（每层都要序列化成 JSON）。**上万个点先 `toWebGL(ggplotly(p))` 切到 WebGL 渲染，或回到聚合后的静态图。**
+:::
+
+::: {.callout-note}
+本书走「ggplot2 资产复用」路线：图先用 ggplot2 画对（1.7–1.8 章），需要交互再 `ggplotly()`。plotly 也有原生 `plot_ly()` 语法可从头写交互图，详见 https://plotly-r.com。
+:::
+
+## 3. 定制 tooltip：把悬停变成「随身小表」
+
+默认 tooltip 是 `x / y / color` 的机器味清单。定制套路：把要展示的信息 `paste0()` 进 `text` 映射，再告诉 `ggplotly()` 只显示它：
+
+::: {.callout-example}
+```r
+p <- ggplot(palmerpenguins::penguins,
+            aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point(aes(
+    color = species,
+    text = paste0(species, " · ", island, "\n",
+                  "喙长 ", bill_length_mm, " mm / 喙深 ",
+                  bill_depth_mm, " mm")
+  ), size = 2)
+
+ggplotly(p, tooltip = "text")
+```
+:::
+
+`tooltip` 取值速查：`"text"` 只显示你的文本；`c("x", "text")` 组合显示；`"none"` 彻底关闭（给装饰性图层降噪）。
+
+::: {.callout-note}
+`text` 是 ggplot2 的正式 aesthetic（映射），静态渲染会安静地忽略它——同一张 `p` 既能出静态图又能出交互图，这正是「先画对、再升级」路线的甜头。
+:::
+
+::: {.callout-important}
+## Check In：tooltip 减法
+
+把上面示例改成悬停**只**显示「物种 · 岛屿」，不含任何数字；再改成 `tooltip = c("x", "text")`。向同桌描述两个版本各自适合什么读者（提示：查身份 vs 核对数值）。
+:::
+
+## 4. subplot 与 layout：多面板排布入门
+
+两张图各自 `ggplotly()` 后，用 `subplot()` 并排，`layout()` 负责整体标题等版面细节：
+
+::: {.callout-example}
+```r
+p1 <- ggplot(palmerpenguins::penguins,
+             aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point(aes(color = species), size = 2)
+
+p2 <- ggplot(palmerpenguins::penguins,
+             aes(x = species, y = flipper_length_mm, fill = species)) +
+  geom_boxplot(show.legend = FALSE)
+
+subplot(ggplotly(p1), ggplotly(p2), nrows = 1,
+        titleX = TRUE, titleY = TRUE, margin = 0.04) |>
+  layout(title = "企鹅度量：关系与分布")
+```
+:::
+
+::: {.callout-warning}
+## 高频误区：拿 subplot 替代 facet
+分面比较首选静态 `facet_wrap()`（1.7 章）——语义清楚、图例统一。subplot 的真正场景是**各面板要独立交互**（各自缩放、各自悬停）。另外 subplot 默认吞掉轴标题，记得 `titleX = TRUE, titleY = TRUE` 找回来。
+:::
+
+## 5. 保存与分享：saveWidget 与自包含的代价
+
+Quarto html 文档里 `ggplotly()` 输出会直接内嵌，不必另存；要**独立分享**（邮件附件、内网页面）时用：
+
+::: {.callout-example}
+```r
+fig <- ggplotly(p)
+
+htmlwidgets::saveWidget(fig, "penguins-scatter.html")          # 自包含单文件
+htmlwidgets::saveWidget(fig, "penguins-scatter-lib.html",
+                        selfcontained = FALSE)                 # html + 依赖目录
+file.size("penguins-scatter.html") / file.size("penguins-scatter-lib.html")
+```
+:::
+
+| 模式 | 产物 | 优点 | 代价 |
+|---|---|---|---|
+| `selfcontained = TRUE`（默认） | 单个 .html | 一个文件走天下 | 依赖 base64 内嵌，体积常大数倍 |
+| `selfcontained = FALSE` | .html + `_files/` 目录 | 体积小、可共享依赖 | 必须整目录一起搬 |
+
+::: {.callout-warning}
+## 高频错误：只拷走 html
+`selfcontained = FALSE` 时只发 .html 不发旁边的依赖目录，对方打开就是白屏。**邮件场景选自包含；网页托管、多个部件共享依赖时选目录模式。**
+:::
+
+## 6. 何时不要交互：一张决策表
+
+| 交付场景 | 建议 | 理由 |
+|---|---|---|
+| 期刊论文 / PDF 报告 | 静态 | PDF 不执行 JavaScript |
+| 打印材料 | 静态 | 纸不响应 hover |
+| 大屏演示 | 静态高分辨率 | 演示节奏不容现场探索 |
+| 网页 / 仪表盘（2.3–2.4 章） | 交互 | 读者有浏览器与时间 |
+| 无障碍要求高 | 静态 + 替代文本 | 画布内容对屏幕阅读器不可见 |
+| 点数 > 5 万 | 先聚合 / WebGL | 浏览器不是数据库 |
+
+兜底原则：重要交互图旁放一张静态缩略或数据表；正文的关键结论**不依赖读者悬停**才成立。
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+复跑 §2 与 §5：做出 penguins 交互散点，`saveWidget()` 存自包含单文件，报告 `file.size()/1e6` 的 MB 数，并把文件发给一位同学实际打开验证（不能只在自己机器上「看起来行」）。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把 §3 的 tooltip 改成「物种 · 岛屿 · 喙长/喙深 mm」的多行文本，且不再出现默认 x/y 噪声；再把 §4 扩成 1×3 subplot（第三面板自选 `flipper_length_mm` 箱线图）。写一句反思：哪两个面板的 y 轴本不该共享尺度？
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁 AI → AI 评审）
+
+**第一轮（禁用 AI）**：从自己领域选一张真实静态图（或用班级数据 nycflights13 任取两变量），先笔答 §6 决策表（该不该交互、给谁、放在哪种交付物里），再实现交互版：定制 tooltip + 图例 filter，点数大时用 `toWebGL()`，最后 `saveWidget()`。
+**第二轮（开放 AI）**：把代码与交互截图贴给 Posit Assistant，只问一个问题：「三个 affordance 里，哪一个是我自我感动？」记录回答并说明你是否同意。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「一次交付，两种文体」。回到你 Unit 1 的报告（或任选三张自己画过的静态图），逐张填写 §6 决策表；选出唯一最值得交互的一张升级为网页部件：定制 tooltip、必要时 `toWebGL()`、两种 `selfcontained` 模式各存一份并报告体积。交付 Quarto 一页：静态图 + 交互 html 链接 + 决策理由。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 决策质量 | 三张图均有明确建议 | 理由引用 affordance 与交付约束 | 对「最想交互」的诱惑图说了不 |
+| 交互实现 | ggplotly 跑通 | tooltip 定制可读 | WebGL / 多面板用得其所 |
+| 工程与体积 | 存出可打开的 html | 两种模式有体积对比 | 按分享场景选定模式并说明 |
+| 诚实边界 | 提供静态 fallback | 说明打印与无障碍限制 | 给交互图配了替代文字或数据表 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| 全章结构、示例、练习、capstone、rubric | 本项目 | 原创 |
+| `ggplotly()` / tooltip 定制 / `subplot()` / `toWebGL()` / 部件保存用法 | plotly for R（Carson Sievert）https://plotly-r.com | 引用 |
+| penguins 数据 | palmerpenguins R 包（仅作练习数据） | 数据 |
+
+本章以 CC-BY-SA 4.0 发布。

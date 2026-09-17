@@ -1,0 +1,260 @@
+---
+title: "2.7 Shiny 反应式设计 · Shiny Reactive Design"
+objectives: |
+  学完本章你能：画出反应式依赖图；用决策表选对
+  reactive()/eventReactive()/observe()；用 isolate() 避开性能
+  陷阱；做可复用模块；golem-lite 组织 app；用 reactlog 调试。
+source-note: "教学结构改编自 posit::conf(2025) shiny-r（Colin Rundel · CC-BY 4.0）Reactivity 幻灯与 posit::conf(2024) level-up-shiny（Garrick Aden-Buie · CC-BY 4.0）modules/slow-app 素材；讲义文字与练习为本项目原创"
+---
+
+# 2.7 Shiny 反应式设计 · Shiny Reactive Design
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **model** 用「UI 讲什么、server 怎么算」两分模型拆解任意 Shiny app
+2. **draw** 手画 inputs → conductors → outputs 的反应式依赖图（reactive graph）
+3. **select** 用决策表在 `reactive()` / `eventReactive()` / `observe()` 中选对
+4. **optimize** 用"单一职责 reactive"+ `isolate()` 拆解性能陷阱
+5. **modularize** 用 `NS()` + `moduleServer()` 把功能打包成可复用模块
+6. **debug** 用 `reactlog` 看见反应式图的失效与重算过程
+
+## 前置自测（≤5 分钟）
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 默写最小 Shiny app 骨架（`selectInput()` + `renderPlot()` + `shinyApp()`）。
+2. server 里读输入用 `input$x` 还是 `input$x()`？（不会？先回补 [2.4]）
+:::
+
+## 1. UI/server 心智模型：前台与后厨
+
+- **ui（前台）**：页面上**有什么**——输入控件、输出占位、布局
+- **server（后厨）**：东西**怎么算**——接收输入、加工、送回输出
+
+关键认知：**server 不是"跑一遍"的脚本，而是一张"声明好的菜谱"**——
+Shiny 每次输入变化只把依赖该输入的菜重炒一遍，哪些菜重炒由 shiny 自动推断。
+
+## 2. 反应式图：sources → conductors → endpoints
+
+| 角色 | 代码形态 | 职责 |
+|---|---|---|
+| source（源） | `input$*` | 只产数据，不消费 |
+| conductor（导体） | `reactive({...})` | 消费上游、产值给下游 |
+| endpoint（端点） | `output$*` / `observe()` | 消费上游、产生副作用 |
+
+::: {.callout-example}
+```r
+server <- function(input, output, session) {
+  d_city <- reactive({                       # conductor：一处计算
+    dplyr::filter(flights, origin == input$origin)
+  })
+  output$plot <- renderPlot({                # endpoint：两处复用
+    ggplot(d_city(), aes(dep_delay)) + geom_histogram(bins = 50)
+  })
+  output$minmax <- renderTable(dplyr::summarise(d_city(), n = dplyr::n()))
+}
+```
+上游 `input$origin` 一变，`d_city()` 失效（invalidate），两个下游随之重算
+——这就是 invalidate-on-dependency 原则。shiny-r 工作坊铁律：
+**每加一段 server 代码就重画一次反应式图；先画图，再写代码。**
+:::
+
+::: {.callout-warning}
+## 高频错误：`closure is not subsettable`
+conductor 要**带括号调用**：`d_city()` 对，`d_city` 错——不带括号拿到的是
+函数对象，随后任何 `$`/`[` 操作都会炸。**排查口诀：见到 closure 报错，
+先查漏写的 `()`。**
+:::
+
+## 3. 决策表：reactive() vs eventReactive() vs observe()
+
+选择只看两个问题：**要不要返回值？要不要每次变化都触发？**
+
+| 工具 | 返回值 | 触发时机 | 一句话用途 |
+|---|---|---|---|
+| `reactive()` | 有 | 任一依赖变化 | 算一个可复用的中间值 |
+| `eventReactive(a, ...)` | 有 | 仅 `a` 变化 | 「点按钮才算」的惰性计算 |
+| `observe()` | 无 | 任一依赖变化 | 副作用（更新 UI、写日志） |
+| `observeEvent(a, ...)` | 无 | 仅 `a` 变化 | 「点按钮才做」的副作用 |
+
+::: {.callout-example}
+```r
+server <- function(input, output, session) {
+  fit <- eventReactive(input$go, {   # 点"拟合"才建模，拖滑块不算
+    lm(mpg ~ poly(wt, input$degree), data = mtcars)
+  })
+  output$coef <- renderPrint(summary(fit()))
+  observe({                          # 副作用：重置滑块，无返回值
+    input$dataset
+    updateSliderInput(session, "degree", value = 1)
+  })
+}
+```
+:::
+
+判断顺序：**先问"有没有返回值"（有 → reactive 族），再问"是否每次都触发"（否 → event 族）**——90% 的纠结在这两问后消失。
+
+## 4. 性能陷阱：一个 reactive 干太多 & 忘了 isolate()
+
+::: {.callout-warning}
+## 高频错误：巨型 reactive + 隐性依赖
+把"读数据 + 建模 + 画图"塞进同一个 `reactive()`：任何一个输入变化
+（哪怕只是改标题文字），整条链全部重跑。**症状：改个标签，图闪三秒。**
+:::
+
+处方两条：**单一职责拆分**（读数据、加工、建模各一个 reactive，失效范围最小）；
+**`isolate()` 挡住次要依赖**（读值但不建立依赖）。
+
+::: {.callout-example}
+```r
+server <- function(input, output, session) {
+  d <- reactive(readRDS(input$dataset))          # 只依赖数据集选择
+  output$plot <- renderPlot({
+    ggplot(d(), aes(x = .data[[input$xvar]])) +  # x 轴变 → 重画，合理
+      geom_histogram(bins = isolate(input$bins)) # bin 数只读不依赖
+  })
+}
+```
+`.data[[input$xvar]]` 是在 ggplot 里用**变量**引用列名的标准姿势
+（rlang 的 `.data` 代词），避开 `{{ }}` 系列复杂性。
+:::
+
+## 5. 模块 = 命名空间：NS() 与 moduleServer()
+
+app 里出现第二个"同款控件"时就该上模块。模块的本质是
+**命名空间（namespacing）**：UI id 与 server 逻辑打包成一个函数对，
+同一模块可实例化 N 次而互不串线。
+
+::: {.callout-example}
+```r
+hist_ui <- function(id) {              # UI 函数取 id
+  ns <- NS(id)                         # 命名空间：所有 id 都过 ns() 一道
+  wellPanel(
+    selectInput(ns("col"), "列", choices = names(mtcars)),
+    plotOutput(ns("hist"))
+  )
+}
+hist_server <- function(id, data) {    # 数据只经参数传入
+  moduleServer(id, function(input, output, session) {
+    output$hist <- renderPlot({
+      ggplot(data, aes(x = .data[[input$col]])) + geom_histogram(bins = 30)
+    })
+  })
+}
+# 复用两次：id 不同 → 命名空间不同 → 互不干扰
+ui <- fluidPage(hist_ui("a"), hist_ui("b"))
+server <- function(input, output, session) {
+  hist_server("a", mtcars)
+  hist_server("b", iris |> dplyr::select(where(is.numeric)))
+}
+shinyApp(ui, server)
+```
+模块契约三要素：**UI 函数取 `id`、server 函数用 `moduleServer()`、
+跨模块数据只经参数传入**（不伸手进别人的 `input`）。
+:::
+
+## 6. golem-lite：给 app 一个能长大的骨架
+
+工程级框架 golem 的目录约定，去掉脚手架后就是"**golem-lite**"：
+
+```text
+myapp/
+├── app.R           # 只做组装：source R/ 后 shinyApp(ui, server)
+├── R/
+│   ├── ui.R        # 页面布局
+│   ├── server.R    # 只做"接线"，逻辑全部下沉
+│   ├── mod_hist.R  # 每个模块一个文件，mod_ 前缀
+│   └── fct_stats.R # 非反应式纯函数，fct_ 前缀
+└── tests/          # Unit 3 预告：shinytest2 就住这里
+```
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+
+我不写超过 100 行的 `app.R`。判断标准很土：**滚动条超过两屏就该拆文件，
+第二个同款控件出现就该拆模块**——golem-lite 不是仪式感，
+是让三个月后的你还能找到东西。
+:::
+
+## 7. 用 reactlog 看见反应式
+
+`reactlog` 把"哪些节点失效、哪些重算、耗时多少"画成可回放的动图。
+
+::: {.callout-example}
+```r
+reactlog::reactlog_enable()   # ① 打开记录（必须在启动 app 前）
+shiny::runApp("myapp/")       # ② 正常使用 app，操作几个输入
+shiny::reactlogShow()         # ③ 关掉 app 后回放依赖图
+```
+口诀：**先 enable 再启动，关掉 app 再 show**。灰化 = 失效，亮起 = 重算。
+:::
+
+::: {.callout-important}
+## Check In：三问速答
+
+对三个需求各选一个工具并说出一行理由：① 每次滑块变化都要重算汇总表；
+② 只有点击"下载"按钮才生成 CSV；③ 每次输入变化都往日志写一行
+（提示：②③ 不同——一个要返回值，一个不要）。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+下面 server 里有两处重复的过滤逻辑：
+
+```r
+server <- function(input, output, session) {
+  output$t1 <- renderTable(dplyr::filter(mtcars, cyl == input$cyl))
+  output$t2 <- renderTable(nrow(dplyr::filter(mtcars, cyl == input$cyl)))
+}
+```
+
+手画它的反应式图（inputs/conductors/outputs 三列），再把重复过滤抽成
+一个 `reactive()`，重画图验证 DRY。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+给 Practice 1 的 app 加 `textInput("title", ...)`，用 `isolate()` 保证改标题时
+**不**重新过滤数据；再用 reactlog 验证：改标题时过滤节点不再亮起。
+提交：改前/改后两张 reactlog 截图。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁用 AI 环节）
+
+**第一轮（禁 AI）**：仅凭本章 + `?moduleServer` 文档（不许问任何 AI 助手），
+把 §5 的 `hist` 模块扩展成 `scatter` 模块：两个列选择器（x/y）+ 一个颜色
+选择器，逻辑全部封进模块，并在同一 app 实例化两次（id 为 `main`/`side`）。
+**第二轮（开放 AI）**：把代码贴给 Posit Assistant，只问：
+"我的模块有没有违反'跨模块数据只经参数传入'的契约？"记录发现。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：接手"事故现场" app（本班提供 `messy_app.R`：单文件 180 行、
+一个巨型 reactive、三处复制粘贴、无模块）。三级重构：① 画出现状反应式图；
+② 按 golem-lite 拆文件、按单一职责拆 reactive、补 `isolate()`；
+③ 重复功能抽成模块并实例化两次。
+交付：重构后项目 + reactlog 改前/改后回放对比 + 一页重构笔记。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 反应式设计 | 图画对、拆出 reactive | 拆分后失效范围明显缩小 | 用 reactlog 量化"重算次数下降" |
+| 模块化 | 抽出一个模块 | 模块可双实例无串线 | 模块契约干净（数据全经参数） |
+| 工程结构 | 按 golem-lite 拆文件 | 命名符合 mod_/fct_ 约定 | server.R 只剩接线，逻辑零残留 |
+| 论证 | 重构笔记完整 | 每刀都引用本章原则 | 给出"下一刀拆什么"的路线图 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§3 sources/conductors/endpoints、`.data` 代词、reactlog | posit::conf(2025) shiny-r `slides/02-Reactivity.qmd`（Colin Rundel · CC-BY 4.0） | 改编 |
+| §4–§6 模块化、慢 app 诊断、app 组织 | posit::conf(2024) level-up-shiny `09_modules`、`12_slow_app`、"Organizing your Shiny apps"（Garrick Aden-Buie · CC-BY 4.0） | 改编 |
+| 决策表、golem-lite 目录、练习与 rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

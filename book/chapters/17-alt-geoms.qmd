@@ -1,0 +1,245 @@
+---
+title: "1.7 非标准几何 · Non-Standard Geometries"
+objectives: |
+  学完本章你能：为分布对比、构成演变、两端变化三类问题选择合适几何；
+  用 geom_tile() 构建热力图；用 ggridges 画山脊图；区分 ribbon 与 area；
+  手工搭建斜率图与哑铃图；用 facet_grid() 放大以上一切。
+source-note: "教学结构与练习设计改编自 posit::conf(2025) ggplot2 workshop（Thomas Lin Pedersen, Teun van den Brand · CC-BY-SA 4.0）；讲义文字与 penguins/gapminder 示例为本项目原创"
+---
+
+# 1.7 非标准几何 · Non-Standard Geometries
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **match** 把"哪类问题"映射到"哪类几何"，而不是逢图就 `geom_point()`
+2. **construct** 用 `geom_tile()` 构建 分类 × 数值 的热力图
+3. **visualize** 用 `ggridges::geom_density_ridges()` 对比多个分布的漂移
+4. **differentiate** `geom_ribbon()`（区间带）与 `geom_area()`（堆叠构成）的分工
+5. **build** 手工搭建斜率图（slope graph）与哑铃图（dumbbell plot），零新依赖
+6. **amplify** 用 `facet_grid()` 把任一几何扩展为小型复式图（small multiples）
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下两问再继续；否则先回补 [L1-B1]：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 画出 `ggplot(penguins, aes(bill_length_mm, species)) + geom_boxplot()`，并说出 x/y 各映射了什么。
+2. 说出 `fill` 与 `color` 两个美学映射的区别（提示：一个管"面"，一个管"线"）。
+:::
+
+## 1. 为什么逃离点线棒：问题决定几何
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+散点、柱状、折线是"通用答案"，通用就意味着**对特定问题低效**。问"分布怎么漂移"却画三个箱线图，问"两端差多少"却画分组柱——不是错，是浪费读者的 5 秒钟。**先锁定问题类型，再选几何**，这是本章唯一的元技能。
+:::
+
+| 问题类型 | 典型问法 | 首选几何 | 反例（别用） |
+|---|---|---|---|
+| 网格上的强度 | "哪个组合高/低？" | `geom_tile()` 热力图 | 30 根柱子 |
+| 多分布对比 | "分布整体怎么移？" | `geom_density_ridges()` | 一排箱线图 |
+| 区间与构成 | "带宽多少？占比怎么变？" | `geom_ribbon()` / `geom_area()` | 误差棒硬凑 / 饼图序列 |
+| 两端变化 | "从 A 到 B 谁变了多少？" | 斜率图 / 哑铃图（手工） | 分组柱状图 |
+| 以上全部 × 再分组 | "分组内部还成立吗？" | `facet_grid()` | 挤进一张图 |
+
+选择标准只有一条：**读者要回答的问题，应该由图形结构直接给出，不需要心算**。
+
+## 2. `geom_tile()`：热力图
+
+两个分类轴 + 一个连续值（fill），热力图把"查表"变成"看色块"。
+
+::: {.callout-example}
+```r
+library(ggplot2)
+library(dplyr)
+
+gapminder::gapminder |>
+  filter(year %in% c(1952, 1972, 1992, 2007)) |>
+  group_by(continent, year) |>
+  summarise(mean_life = mean(lifeExp), .groups = "drop") |>
+  ggplot(aes(x = factor(year), y = continent, fill = mean_life)) +
+  geom_tile(color = "white", linewidth = 1) +   # 白缝让色块不粘连
+  scale_fill_viridis_c() +                      # 连续值配感知均匀色标
+  labs(x = NULL, y = NULL, fill = "预期寿命",
+       title = "各大洲预期寿命：五十年的阶梯")
+```
+:::
+
+::: {.callout-note}
+`geom_tile()` 与 `geom_raster()` 几乎同义——网格规整等距时 `geom_raster()` 渲染更快。分类 × 分类（如物种 × 岛屿的计数）同样适用：把 `fill` 换成 `n` 即可。
+:::
+
+## 3. `ggridges::geom_density_ridges()`：山脊图
+
+对比"同一变量在多个组/多个时期的分布"，山脊图让分布**纵向错位堆叠**，漂移一目了然——这是箱线图给不了的"形状感"。
+
+::: {.callout-example}
+```r
+# install.packages("ggridges")   # 本章唯一需要新装的包
+library(ggridges)
+
+gapminder::gapminder |>
+  filter(year %in% seq(1952, 2007, by = 5)) |>
+  ggplot(aes(x = lifeExp, y = factor(year), fill = year)) +
+  geom_density_ridges(scale = 1.2, show.legend = FALSE) +
+  scale_fill_viridis_c(option = "mako", begin = 0.2, end = 0.9) +
+  labs(x = "预期寿命", y = NULL,
+       title = "全球预期寿命分布：右移，且左尾收窄")
+```
+:::
+
+两个必知参数：`scale` 控制脊的压叠程度（1 = 轻微接触，>1 = 故意压叠）；`rel_min_height`（如 0.01）裁掉两端长尾去噪。
+
+::: {.callout-warning}
+## 高频错误：组顺序默认字母序
+`y` 轴是分类变量时，山脊顺序默认按字母序——时间序列会乱。**先 `factor(year, levels = ...)` 固定顺序再画**，让"最早"稳居一端。
+:::
+
+## 4. `geom_ribbon()` 与 `geom_area()`：带与堆叠
+
+两者都画"面"，但回答的问题不同：**ribbon 答"不确定区间/极差"，area 答"构成如何变化"**。
+
+::: {.callout-example}
+```r
+# ribbon：全球预期寿命的中位数与 10%–90% 分位带
+gapminder::gapminder |>
+  group_by(year) |>
+  summarise(
+    med = median(lifeExp),
+    lo  = quantile(lifeExp, 0.10),
+    hi  = quantile(lifeExp, 0.90)
+  ) |>
+  ggplot(aes(year, med)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.25, fill = "steelblue") +
+  geom_line(linewidth = 1)
+
+# area：各大洲人口构成的堆叠演变
+gapminder::gapminder |>
+  filter(continent != "Oceania") |>
+  count(year, continent, wt = pop, name = "pop") |>
+  ggplot(aes(year, pop / 1e9, fill = continent)) +
+  geom_area(alpha = 0.85) +
+  labs(y = "人口（十亿）", fill = NULL)
+```
+:::
+
+::: {.callout-note}
+堆叠面积图只适合**总量有意义且关注构成**的场景；若只比较各洲增速，`position = "fill"`（归一化）或直接分面更诚实。
+:::
+
+## 5. 斜率图与哑铃图：手工搭建
+
+两者回答"两个时点/两种状态间的变化"。`ggalt`、`ggdist` 能一行出图，但**手动搭建只需 base ggplot2**，还换来完全的控制权——少一个依赖，多一份理解。
+
+::: {.callout-example}
+```r
+# 斜率图：欧洲 1952 → 2007 预期寿命（高亮增幅最大的国家）
+top_gain <- gapminder::gapminder |>
+  filter(continent == "Europe", year %in% c(1952, 2007)) |>
+  select(country, year, lifeExp) |>
+  tidyr::pivot_wider(names_from = year, values_from = lifeExp,
+                     names_prefix = "y") |>
+  mutate(gain = y2007 - y1952)
+
+champion <- top_gain |> slice_max(gain, n = 1) |> pull(country)
+
+gapminder::gapminder |>
+  filter(country %in% top_gain$country, year %in% c(1952, 2007)) |>
+  ggplot(aes(x = factor(year), y = lifeExp, group = country)) +
+  geom_line(color = "grey75", linewidth = 0.6) +    # 底层：所有国家
+  geom_point(color = "grey75") +
+  geom_line(                                         # 高亮：增幅冠军
+    data = \(d) filter(d, country == champion),
+    color = "#D55E00", linewidth = 1.2
+  ) +
+  labs(x = NULL, y = "预期寿命",
+       title = paste(champion, "：欧洲半个世纪预期寿命增幅第一"))
+```
+
+```r
+# 哑铃图：三物种雌雄平均体重（两球一线，距离即差异）
+palmerpenguins::penguins |>
+  drop_na(sex) |>
+  group_by(species, sex) |>
+  summarise(mass = mean(body_mass_g), .groups = "drop") |>
+  tidyr::pivot_wider(names_from = sex, values_from = mass) |>
+  ggplot(aes(y = species)) +
+  geom_segment(aes(x = female, xend = male, yend = species),
+               color = "grey70", linewidth = 2) +
+  geom_point(aes(x = female), color = "#0072B2", size = 3.2) +
+  geom_point(aes(x = male),    color = "#E69F00", size = 3.2) +
+  labs(x = "平均体重 (g)", y = NULL,
+       title = "每个物种雄性都更重，差距却大不相同")
+```
+:::
+
+::: {.callout-important}
+## Check In：动手 3 分钟
+
+把哑铃图改成 `bill_length_mm` 的雌雄对比，并回答：哪个物种的雌雄喙长差距相对最小？再看 `bill_depth_mm`——结论一致吗？**如果两图结论冲突，你会向读者展示哪一张，为什么？**
+:::
+
+::: {.callout-warning}
+## 高频错误：哑铃图配了连续色
+哑铃两端是**状态**（雌/雄、前/后），要用对比强烈的双定性色（如 Okabe-Ito 蓝橙对 `#0072B2` / `#E69F00`），而不是 `scale_colour_gradient()`——渐变色暗示"多与少"，会把读者引向错误的解码。
+:::
+
+## 6. `facet_grid()`：小型复式图的放大器
+
+分面不是"另一张图"，是给**任何**几何乘上一个比较维度；`facet_grid()` 比 `facet_wrap()` 多一层约束：行/列各有明确语义，适合**两个分类变量都少**（≤4 × ≤3）的笛卡尔比较；各分面默认**共享标尺**，这正是"可比性"的来源——除非量纲不同，别轻易 `scales = "free"`。
+
+::: {.callout-example}
+```r
+palmerpenguins::penguins |>
+  filter(!is.na(sex)) |>
+  ggplot(aes(bill_length_mm, bill_depth_mm)) +
+  geom_point(aes(color = species), alpha = 0.7, size = 1.6) +
+  facet_grid(rows = vars(species), cols = vars(sex)) +
+  scale_colour_viridis_d(end = 0.85) +
+  labs(x = "喙长 (mm)", y = "喙深 (mm)")
+```
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+照抄 §2 的模式，改画**物种 × 岛屿的样本量热力图**（`penguins |> count(species, island)`）。要求：`fill` 用 viridis，白缝分隔，标题写成一个"读者能直接回答的问题"。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把 §3 的山脊图改造成"2007 年各洲对比"（`x = lifeExp`，`y = continent`），并：① 用 `forcats::fct_reorder()` 按 2007 年 `lifeExp` 中位数降序固定 `y` 轴；② 试两个 viridis `option`，比较哪个最易读并写下理由。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：为 `gapminder` 设计一张图，回答"1997 → 2007 十年间，哪些国家人均 GDP 排名跃升最快？"——自己决定用斜率图还是哑铃图（或更好的选择），手工搭建，不装新包。
+**第二轮（开放 AI）**：把成品代码贴给 Posit Assistant，只问：「几何选择与问题匹配吗？有没有更少墨水、更快解码的方案？」记录 AI 的替代方案，与原方案并排渲染，写下取舍理由。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「三问三图」——围绕 `penguins` 或 `gapminder` 自拟**三个不同类型**的问题（分布漂移 / 构成演变 / 两端变化），为每问挑选对位几何，其中至少一问使用分面放大。交付：Quarto 一页——三图各配 2 行"为什么选这个几何"的辩护 + 一张"问题 → 几何"选择表。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 问题设计 | 三问类型不同 | 问题具体可答 | 问题之间有叙事递进 |
+| 几何匹配 | 三图均对位 | 每图有辩护词 | 辩护词引用"读者解码成本" |
+| 实现 | 代码可跑、图可读 | 手工斜率/哑铃图无多余依赖 | 分面/配色/顺序均服务比较 |
+| 反思 | 有选择表 | 指出一图的备选方案 | 对备选方案做了取舍实验 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1 决策优先的教学结构、§6 分面思想 | posit::conf(2025) ggplot2 workshop sessions/slides（Thomas Lin Pedersen, Teun van den Brand · CC-BY-SA 4.0） | 改编 |
+| `geom_density_ridges()` 参数、`geom_raster()` 对照 | ggridges、ggplot2 官方文档 | 引用 |
+| 热力图/ribbon/area/斜率/哑铃示例组合、选择器总表、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

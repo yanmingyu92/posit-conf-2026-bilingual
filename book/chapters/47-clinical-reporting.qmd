@@ -1,0 +1,258 @@
+---
+title: "4.7 临床报告 · Clinical Reporting with pharmaverse"
+objectives: |
+  学完本章你能：画出 SDTM → ADaM → ARD → TLG 的受监管报告流水线并说明分层理由；
+  用 admiral 做声明式派生；解释 ARD 如何解耦「计算」与「呈现」；
+  用 gtsummary 构建人口学表；描述双编程验证文化；判断 AI 在流水线中的合法位置。
+source-note: "教学结构与练习设计改编自 posit::conf(2026) pharmaverse 工作坊（Daniel D. Sjoberg & Becca Krouse · CC-BY-SA 4.0）；讲义文字为本项目原创"
+---
+
+# 4.7 临床报告（pharmaverse）
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **map** 流水线 SDTM → ADaM → ARD → TLG，说出每层标准存在的理由（可审性 reviewability · 可追溯性 traceability）
+2. **derive** 用 admiral 的派生函数完成日期插补与参数计算——元数据驱动，而非复制粘贴
+3. **explain** ARD（Analysis Results Dataset，分析结果数据集）如何解耦「算什么」与「长什么样」
+4. **construct** 用 gtsummary 从模拟临床数据构建人口学基线表，并取出其内部 ARD
+5. **critique** 双编程（dual programming）与 QC 独立性文化
+6. **judge** AI 助手在流水线各环节「能碰什么、不能碰什么」
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下两问再继续；否则先回补 [L1-B1]：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 用 `dplyr` 对任一数据框按处理组分组，数出各组人数与年龄均值。
+2. 思考题：审阅人指着表里的「42%」问「怎么算出来的」，你的代码能否一路追溯到原始记录？说不清断在哪一环——本章就是补这条链的。
+:::
+
+## 1. 流水线总览：四层标准，一条证据链
+
+临床报告与普通数据分析的最大区别：**读者不是你的老板，是监管审阅员**。表里每个数字都要经得起一句追问：「这个数从哪来？」于是行业把流程标准化成一条链：
+
+```mermaid
+flowchart LR
+  A[原始数据 Raw] -->|SDTM 标准化| B[SDTM<br/>制表数据]
+  B -->|ADaM 派生| C[ADaM<br/>分析数据集]
+  C -->|统计计算| D[ARD<br/>机器可读结果]
+  D -->|呈现规格| E[TLG<br/>表/图/清单]
+```
+
+| 层 | 解决什么 | 关键词 |
+|---|---|---|
+| SDTM | 原始数据 → 审阅人认识的统一结构 | 面向审阅的数据结构 |
+| ADaM | 在 SDTM 之上派生分析变量 | 分析就绪 analysis-ready · 可追溯 |
+| ARD | 统计结果本身成为数据集 | 机器可读 · 可复查 · 可换皮 |
+| TLG | 结果呈现成合规的表/图/清单 | 版式即规格（spec） |
+
+::: {.callout-note}
+SDTM 与 ADaM 是 CDISC（Clinical Data Interchange Standards Consortium）发布的数据标准，是主要监管申报的通用语言。本章不逐条讲标准条文，只讲 R 生态（pharmaverse 家族，§7）如何沿这条链组织代码。
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+临床报告里最贵的错误不是「算错」，而是「**无法证明你没算错**」。一切标准、包与流程，本质都在压缩审阅人的追问成本。
+:::
+
+## 2. ADaM：admiral 的元数据驱动思维
+
+ADaM 派生（derivation）在老脚本里的常见形态：逐行 if-else、手工补日期、复制上一个研究改数字——审阅人无法回答「派生规则是什么」。
+
+admiral 的心智模型是**声明式**：说清「对哪个数据集、哪个原始变量、按什么规则派生」，派生逻辑是带参数的函数调用——**参数即文档，调用即审计记录**。
+
+::: {.callout-example}
+日期插补（imputation）：原始病史日期常常缺月缺日，admiral 把插补规则写成显式参数：
+
+```r
+library(admiral)
+library(tibble)
+
+mh_raw <- tribble(
+  ~USUBJID,      ~MHSTDTC,
+  "01-701-1015", "2024-02",
+  "01-701-1015", "2019",
+  "01-701-1019", ""
+)
+
+derive_vars_dtm(
+  dataset = mh_raw,
+  new_vars_prefix = "AST",
+  dtc = MHSTDTC,
+  highest_imputation = "M",   # 最多补到月级
+  date_imputation = "first",  # 缺月缺日 → 取最早
+  time_imputation = "first"
+)
+# 年份全缺的记录不补、返回 NA——插补上限写在了参数里
+```
+:::
+
+同族的 `derive_param_computed()` 用「参数引用参数」的方式算派生指标：如平均动脉压 `MAP = (SYSBP + 2 × DIABP) / 3`——公式写在 `set_values_to` 表达式里，来源参数写在 `parameters` 里，谁算的、怎么算的，一目了然。
+
+::: {.callout-warning}
+## 高频误区：手工 if-else 补日期
+自己写 `if (nchar(x) == 4) paste0(x, "-01-01")` 之类，每个研究各有各的补法，审阅时无法还原规则。**规则必须显式参数化**——这正是 admiral 存在的理由。
+:::
+
+## 3. ARD：让结果先成为数据，再成为表
+
+传统脚本把「统计计算」与「表格排版」揉在一起：换版式要重算，换统计量要重排。ARD 的思路是在中间插一层——**统计结果本身就是一个 tidy 数据集**：每行记录「哪个变量 · 哪个组 · 什么统计量 · 值 · 语境」。表格函数只消费 ARD，只管呈现。
+
+{cards} 包负责生产 ARD。本节先建一份**模拟**人口学数据（§4 复用；真实试验数据不可外流，教学可用 `pharmaverseadam` 包的示例 ADaM）：
+
+::: {.callout-example}
+```r
+library(cards)
+library(tibble)
+
+adsl_mock <- tribble(
+  ~USUBJID,      ~TRT01A,    ~AGE, ~SEX, ~BMIBL,
+  "01-701-1015", "Placebo",   64, "F",   26.1,
+  "01-701-1016", "Placebo",   71, "M",   24.3,
+  "01-701-1023", "Placebo",   58, "F",   31.5,
+  "01-701-1028", "Placebo",   67, "M",   27.9,
+  "01-701-1044", "Active",    60, "F",   25.2,
+  "01-701-1049", "Active",    73, "M",   23.7,
+  "01-701-1052", "Active",    61, "F",   33.0,
+  "01-701-1057", "Active",    66, "M",   26.8
+)
+
+ard_tabulate(
+  data = adsl_mock,
+  variables = SEX,
+  by = TRT01A,
+  denominator = adsl_mock
+)
+```
+
+输出是长表：分组列（`group1`/`group1_level`）记录按哪个组切，`variable`/`variable_level` 记录统计对象，`stat_name`/`stat_label`/`stat` 记录统计量与值——**机器可读的 42%**，而不是长在表格里的 42%。
+:::
+
+分层汇总（如不良事件按系统器官分类 → 首选术语逐层计数）用 `ard_stack_hierarchical()`：`variables = c(AESOC, AEDECOD)`、`by = ARM`、`id = USUBJID`、`denominator = adsl`，一组参数声明整棵树。
+
+::: {.callout-note}
+ARD 不是换一种存表的方式，而是**把结果纳入数据治理**：它可 diff、可版本控制、可被任何呈现工具（gtsummary、tfrmt、ggplot2）二次消费。
+:::
+
+## 4. 表格：gtsummary 起步，tfrmt 接力
+
+有了 §3 的数据，一张最短的人口学（demographics）基线表只要：
+
+::: {.callout-example}
+```r
+library(gtsummary)
+
+tbl <- adsl_mock |>
+  tbl_summary(
+    by = TRT01A,
+    include = c(AGE, SEX, BMIBL),
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = all_continuous() ~ 1
+  ) |>
+  add_overall()
+
+tbl
+```
+
+（结构改编自工作坊 `exercises/05-tables-gtsummary.R`）
+:::
+
+gtsummary 与 ARD 的关系：新版 gtsummary 的统计引擎就是 {cards}——表对象内部先构建 ARD，随时可用 `gather_ard(tbl)` 取出：每个单元格背后的统计量都在那里。
+
+::: {.callout-important}
+## Check In：预测再验证
+
+把 `all_continuous()` 的统计量改成 `"{median} ({p25}, {p75})"`，**先写下**你预期 `gather_ard()` 里会多出哪些 `stat_name`，再运行核对。这是「表格只是 ARD 的皮」的直接证据。
+:::
+
+tfrmt 的分工在另一头：当表格规范（spec）要在数据锁库**之前**评审时，tfrmt 把**版式写成代码**——`group/label/column/param/value` 五个映射定义表结构，`body_plan()` 定义单元格格式（如 `n (p%)`），配合 mock 打印即可**不需要真实数据**渲染出表壳（table shell）给审阅人签字；同一份 spec，数据到了再灌真值。
+
+## 5. 验证文化：双编程与 QC 独立性
+
+监管环境下，「我检查过我的代码」不算验证。行业通行做法是**双编程**（dual programming / independent programming）：生产程序员（production programmer）按规格写交付代码；QC 程序员**独立**实现同一规格（不同人、不同代码路径，必要时不同工具）；两边结果逐项 diff，差异解释至一致，全程留痕。
+
+| 角色 | 写给谁 | 独立性要求 |
+|---|---|---|
+| Production | 申报交付 | 不看 QC 代码 |
+| QC | 验证生产结果 | 不看 production 代码 |
+
+::: {.callout-warning}
+## 陷阱：让同一个 AI 给两边写代码
+若 production 与 QC 都由同一个 AI 助手生成，两边会共享同一套（潜在）错误——这叫**伪独立**。QC 的独立性要求同样适用于 AI：工具可以不同，人必须分开，双方的使用都要留痕（4.8 章展开治理细节）。
+:::
+
+## 6. AI 的位置：加速迭代，不产出证据
+
+工作坊标题里的 "AI-Powered" 落在哪一层？答案克制而明确：**AI 加速迭代，不产出最终证据**。数字永远来自「代码 × 数据」的确定执行；AI 的产出是代码草稿、格式化建议、报错解释——比如练习里自带的示例提示词：「如何在 tfrmt 单元格里把 n 和 p 格式化成 `n (p%)`？」
+
+| 适合交给 AI | 必须人来 |
+|---|---|
+| 起草 tfrmt/gtsummary 版式代码 | 规格（spec）的最终解释 |
+| 解释 admiral 报错与参数含义 | 派生规则的医学/统计判断 |
+| 对照 spec 评审代码 | 结果数值与申报文本的签字 |
+| 写辅助脚本（重命名、导出、文档） | QC 独立性与人为主责（accountability） |
+
+透明、可复现、可审阅（transparency, reproducibility, reviewability）三条底线不因 AI 放松：AI 参与的部分同样要能被另一个人重放与检查（LLM 基础见 4.1 章）。
+
+## 7. pharmaverse 家族地图
+
+| 流水线层 | 代表包 | 一句话职责 |
+|---|---|---|
+| SDTM | sdtm.oak · pharmaversesdtm | 原始数据映射成 SDTM 结构（后者为教学示例数据） |
+| 元数据 | metacore | 把标准/规格本身变成 R 可用的数据 |
+| ADaM | admiral（+ 各治疗领域扩展） | 声明式派生函数库 |
+| 示例数据 | pharmaverseadam · pharmaverseraw | 教学用 ADaM / 原始数据 |
+| ARD | cards · cardx | 统计结果的机器可读数据集 |
+| 表格 | gtsummary · tfrmt · rtables | 从数据出表 / 版式即代码 / 表格构建框架 |
+| 交付 | docorator · xportr | 表格成文（页眉页脚、PDF/Word）/ 导出传输格式（xpt） |
+
+不必全会：先认领你工作流的一两层，其余按需取用。
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+运行 §4 的人口学表，然后做三例检查并各写一行「预期 vs 实际」：① 典型：`include = c(AGE, SEX)`；② 边界：给 `SEX` 人为引入一个 `NA`（表怎么呈现？有没有参数能控制？）；③ 变化：去掉 `by`、保留 `add_overall()`——列结构怎么变？
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把 §2 的 MAP 派生改造成 BMI：用 `derive_param_computed()` 从 `HEIGHT`（cm）与 `WEIGHT`（kg）派生 `BMIDER`，`AVAL = WEIGHT / (HEIGHT / 100)^2`，`PARAMCD`/`PARAM`/`AVALU` 齐全。自建 4 行 ADVS tribble 验证（USUBJID 沿用 `01-701-10XX` 格式）。（锚点：`exercises/03-ADaM.R` 练习 2）
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：自建 10 行 mini-ADAE（列：USUBJID、ARM、AESOC、AEDECOD），用 `ard_stack_hierarchical()` 算各 SOC/PT 的 n 与 p（`over_variables = TRUE`，分母用你的 mini-ADSL）；再用 tfrmt 写出 `n (p%)` 的表壳并 mock 打印。
+**第二轮（开放 AI）**：把你的 tfrmt spec 贴给 Posit Assistant，只问：「这个 spec 在真实数据灌入后最容易在哪里出错？」记录它指出的 2–3 个风险点。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「迷你 TLG 流水线」——用 `pharmaverseadam::adsl`（或自建模拟数据），走完 ADaM 微派生 → cards ARD → gtsummary/tfrmt 表 → Quarto 报告的完整链条，并附一页「审阅者附录」：任选表中三个数字，画出从表到源数据的追溯路径。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 标准对齐 | 分层清晰不串层 | 变量命名/结构贴合惯例 | 能解释每层「为什么存在」 |
+| 派生质量 | 派生参数显式 | 公式与来源可追溯 | 含边界（缺失/插补）讨论 |
+| 表格质量 | 表可读可渲染 | 统计量与格式合规 | spec 化（tfrmt）可复用 |
+| 验证意识 | 附追溯路径 | 留痕可供双人复查 | 模拟一次 QC diff 并解释差异 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1 流水线与章节骨架 | posit::conf(2026) pharmaverse 工作坊日程（Daniel D. Sjoberg & Becca Krouse） | 改编 |
+| §2 派生示例 | 工作坊 `exercises/03-ADaM.R`（日期插补 / MAP 派生） | 改编 |
+| §3 ARD 结构与分层汇总 | 工作坊 `exercises/04-ARD.R` | 改编 |
+| §4–§6 表格练习与 AI 定位 | 工作坊 `exercises/05-tables-gtsummary.R`、`06-tables-tfrmt.R` | 改编 |
+| mock 人口学数据、双编程表、家族地图、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

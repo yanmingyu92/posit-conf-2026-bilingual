@@ -1,0 +1,258 @@
+---
+title: "1.3 效率 · Efficient Code"
+objectives: |
+  学完本章你能：解释 R 的 copy-on-modify 内存模型；用 bench::mark 做
+  可信微基准；用 profvis 定位热点；落地四条实用提速守则。
+source-note: "本章为本项目原创；测量工具用法参照 bench 与 profvis 官方文档；「大数据先过滤」语境旁证 posit::conf(2024) databases / r-in-production 工作坊 README（CC-BY 4.0）"
+---
+
+# 1.3 效率 · Efficient Code
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **explain** copy-on-modify（复制即修改）：R 何时复制、为何「改副本」不动原件
+2. **measure** 用 `bench::mark()` 对比多个方案，并解读 median / `itr/sec` / `mem_alloc`
+3. **locate** 用 `profvis` 找出脚本真正的热点（hotspot），而不是靠猜
+4. **predict** 向量化、预分配循环、增长向量三者的相对耗时量级，并用实测验证
+5. **apply** 四条守则：先量后优、不增长向量、优先向量化、查询先过滤
+6. **evaluate** 一次优化是否值得——速度收益与可读性代价放在天平两端
+
+## 前置自测（≤5 分钟）
+
+能凭直觉给出以下答案再继续（本章结束时回来对账）；不熟 `map()` 先回补 1.2：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. `for (i in 1:n)` 里把结果攒进 `out <- c(out, x)`，你觉得这有什么隐患？
+2. `map_dbl(1:1e6, \(x) x^2)` 与 `(1:1e6)^2`，哪个快？快多少倍？写下直觉数字。
+:::
+
+## 1. 心智模型：copy-on-modify
+
+R 的赋值从不复制数据，只复制**名字**；真正的复制发生在**修改**那一刻——这就是 copy-on-modify（复制即修改）：
+
+::: {.callout-example}
+```r
+x <- c(1, 2, 3)
+tracemem(x)        # 开始追踪 x 的内存行踪（base R 自带）
+y <- x             # 此时不复制：x、y 指向同一块内存
+y[[1]] <- 99       # 修改 y 触发复制，tracemem 打印迁移地址
+x                  # 仍是 1 2 3：原件毫发无损
+untracemem(x)
+```
+:::
+
+两个推论：① 函数无法修改调用者的对象（放心传大对象进函数）；② **每次修改一个命名的大对象，都可能整块复制**。
+
+::: {.callout-warning}
+## 高频错误：逐列给大数据框「打补丁」
+```r
+df$c <- df$a * 2   # 整表复制一次；再 df$d <- ... 又一次……20 个新列 = 20 次
+```
+新列请在**一次** `mutate()` 里一起给：`mutate(df, c = a * 2, d = b * 2)`。
+:::
+
+## 2. 中间对象与内存：命名即「钉住」
+
+数据经三步加工，就有三种写法，内存足迹完全不同：
+
+::: {.callout-example}
+```r
+# 写法 A：每步命名保存——三份大对象同时被「钉」在内存里
+step1 <- raw |> filter(year == 2024)
+step2 <- step1 |> mutate(gain = value - lag(value))
+result <- step2 |> summarise(total = sum(gain, na.rm = TRUE))
+# 写法 B：管道——临时对象用完即被垃圾回收（GC）
+result <- raw |> filter(year == 2024) |>
+  mutate(gain = value - lag(value)) |>
+  summarise(total = sum(gain, na.rm = TRUE))
+# 写法 C：确要中途留档，用完主动放手
+rm(step1, raw)
+```
+:::
+
+管道不是魔法零拷贝，同样产生中间副本——区别是**无名临时对象活不过下一行**；伤内存的是给每个中间结果起名字又从不放手。
+
+::: {.callout-note}
+`gc()` 手动垃圾回收几乎从不需要：R 会在需要时自动运行，把它当「加速咒语」是迷信；它只适合**观察**内存现状。
+:::
+
+## 3. 向量化 vs 迭代：一次诚实的对决
+
+直觉没有发言权，`bench::mark()` 有。它把每个表达式跑到稳定，报告中位数
+耗时与内存分配（文档：https://bench.r-lib.org）：
+
+::: {.callout-example}
+```r
+library(bench)
+x <- runif(1e5)
+mark(
+  vectorized = x^2,
+  loop = {
+    out <- numeric(length(x))
+    for (i in seq_along(x)) out[i] <- x[i]^2
+  },
+  mapped = map_dbl(x, \(v) v^2),
+  iterations = 20
+)
+```
+:::
+
+读三列就够：`median`（典型耗时）、`itr/sec`（每秒次数）、`mem_alloc`（累计
+分配内存）。典型结果：**向量化比循环快 50–200 倍**；`map_dbl()` 与 for 循环
+同量级——purrr 卖的是表达力，不是速度。
+
+::: {.callout-warning}
+## 高频错误：拿 bench 比了两个不同的结果
+`mark()` 默认 `check = TRUE`，会**验证所有表达式结果一致**，不一致就报错。
+这是它的仁慈：比「不同答案」谁跑得快，是效率研究里最贵的 bug——
+千万别为了「跑通」随手关掉它。
+:::
+
+::: {.callout-important}
+## Check In：先猜后跑
+
+写下你对三者 `median` 的倍数预测（如 1 : 80 : 70），再运行 `mark()`，把
+「预测 vs 实测」写成三行注释。另问：哪一行 `mem_alloc` 最大？为什么循环比 `map_dbl()` 多分配？
+:::
+
+## 4. 增长向量的代价：最经典的慢代码
+
+::: {.callout-example}
+```r
+grow <- \(n) {
+  out <- NULL
+  for (i in 1:n) out <- c(out, i)   # 每次都新建更长的向量并整体搬运
+  out
+}
+prealloc <- \(n) {
+  out <- numeric(n)                  # 一次到位
+  for (i in seq_along(out)) out[i] <- i
+  out
+}
+mark(grow(1e4), prealloc(1e4), iterations = 10)
+```
+:::
+
+`c(out, i)` 的每次调用都要**新分配更长的内存并复制全部旧内容**：攒 n 个
+元素的总搬运量约 n²/2——n 翻 10 倍，耗时翻约 100 倍。预分配拉回线性；向量化
+干脆不用循环。
+
+::: {.callout-warning}
+## 高频错误：`1:n` 在 n = 0 时倒着跑
+`for (i in 1:n)` 当 `n == 0` 时得到 `1:0`，循环**倒跑两步**——
+空输入产生了非空输出。永远写 `seq_along(x)` 或 `seq_len(n)`。
+:::
+
+## 5. 用 profvis 定位热点：别猜，量
+
+脚本慢，通常只有一个函数在吃掉 90% 时间。profvis（https://rstudio.github.io/profvis/）边跑边采样，把时间花在哪里画成火焰图：
+
+::: {.callout-example}
+```r
+library(profvis)
+profvis({
+  d <- tibble(x = runif(2e5), g = sample(letters[1:4], 2e5, replace = TRUE))
+  d |> group_by(g) |> summarise(m = mean(x), s = sd(x))
+  d |> filter(x > 0.9) |> nrow()
+})
+```
+:::
+
+用法要点：① 在**交互会话**里运行（knit 时不弹窗）；② 火焰图里**最宽的横条**
+就是最吃时间的函数；③ Data 视图可下钻到每行代码的耗时与内存。优化只对最宽的条做。
+
+::: {.callout-note}
+正确顺序：profvis 找热点 → 只改那一段 → `bench::mark()` 前后对账。
+在没量过之前改代码，叫「换一种方式猜」。
+:::
+
+## 6. 实用守则速查
+
+| 守则 | 做法 | 一句原理 |
+|---|---|---|
+| 先量后优 | profvis 定位，`mark()` 对账 | 直觉会骗人，一次只优化一个瓶颈 |
+| 不增长向量 | 预分配或向量化累积 | `c()` 累积是二次方搬运 |
+| 优先向量化 | `x^2`、`ifelse()`、`pmin()` | 整列一次算完，循环解释开销归零 |
+| 查询先过滤 | 把 `filter()` 推向下层，再取数 | 数据大于内存时，全量拉取必败 |
+| 批量修改 | 一次 `mutate()` 给齐新列 | copy-on-modify：少改命名大对象 |
+
+「查询先过滤」值得展开：数据在数据库或 parquet 里、比内存大时，谁先动手谁说了算——
+
+::: {.callout-example}
+```r
+# 慢：把 100 GB 拉进内存再筛
+# full <- tbl(con, "claims") |> collect()
+# small <- full |> filter(year == 2024)
+# 快：让数据库/磁盘引擎做筛选，只回传需要的行
+# small <- tbl(con, "claims") |> filter(year == 2024) |> collect()
+```
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+90% 的分析脚本「慢」不影响任何结论——先把代码写**对**。只有当慢开始**挡住
+你**（改一次等十分钟）或**挡住交付**（报表超时），才值得优化。但另一面：
+写向量化代码不叫「优化」，那叫把 R 当母语说。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+在**自己的机器**上复跑 §3 与 §4 的两个 `mark()`，把四个表达的 `median` 与
+`mem_alloc` 抄成一页表；换一台机器（或隔 10 分钟）再跑。写两行结论：什么稳定（相对倍数）？什么不稳定（绝对耗时）？
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+**先笔答**：`grow()` 与 `prealloc()` 的耗时比在 n = 1e3、1e4、1e5 下大约各是多少？然后实测——用 `map_dfr()` 整理成 tibble（`n`、`median_grow`、`median_prealloc`、`ratio`），画 log-log 时间–n 图，解释曲线为何「平方 vs 线性」（n = 1e5 档 `iterations` 降到 5）。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁 AI → AI 评审）
+
+**第一轮（禁用 AI）**：下面是「各组分别算 z 分」的慢实现——
+```r
+slow_z <- function(df, group, value) {
+  out <- NULL
+  for (g in unique(df[[group]])) {
+    sub <- df[df[[group]] == g, ]
+    out <- c(out, (sub[[value]] - mean(sub[[value]])) / sd(sub[[value]]))
+  }
+  out
+}
+```
+用 profvis 找热点（它至少慢在三处），重写（提示：`group_by()` + `mutate()`，
+或 `split()` + `map()`），并用 `mark()` 给出前后对比（含 `mem_alloc`）。
+**第二轮（开放 AI）**：把新旧两版贴给 Posit Assistant，只问：「我的新版还有
+哪些隐藏的复制或增长？」记录它指出的一处真实问题。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「提速审计」。自选一个慢脚本（或用班级提供的 `messy-qc.R`：含逐行
+`c()` 增长、逐列赋值、全量拉取三宗罪），交付 Quarto 审计报告一页：profvis
+火焰图（标出热点）→ 只优化最大的一个瓶颈 → `bench::mark()` 前后对比表
+（median + `mem_alloc`）→ 一段「为什么值得改」的成本收益说明。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 测量纪律 | 有 mark 前后对比 | 用 median 与固定 iterations，跑两遍确认 | 报告机器/负载差异，声明数字的适用边界 |
+| 热点诊断 | 指出瓶颈 | 有 profvis 证据链，不凭感觉 | 排除一个「看起来慢其实不慢」的嫌疑点 |
+| 优化效果 | 瓶颈确有实测改进 | 能解释慢的机制（复制/增长/解释开销） | 顺手消除了同类模式的其余出现处 |
+| 诚实边界 | 承认未动的部分 | 区分「测到的」与「推断的」 | 讨论可读性代价，说明为何到此为止 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| 全章结构、示例、练习、capstone、rubric | 本项目 | 原创 |
+| `bench::mark()` 用法与输出解读 | bench 官方文档 https://bench.r-lib.org | 引用 |
+| profvis 用法 | profvis 官方文档 https://rstudio.github.io/profvis/ | 引用 |
+| §6「查询先过滤」的大数据工程语境 | posit::conf(2024) databases 与 r-in-production 工作坊 README（Kirill Müller 等 · CC-BY 4.0） | 引用（旁证） |
+
+本章以 CC-BY-SA 4.0 发布。

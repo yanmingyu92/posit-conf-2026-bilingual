@@ -1,0 +1,233 @@
+---
+title: "4.8 受监管环境 · R in GxP Environments"
+objectives: |
+  学完本章你能：说出 GxP 对分析环境的三项证据要求（可追溯/变更控制/验证证据）；
+  按风险分层决定验证深度；用 renv 与固定日期的 CRAN-like 快照钉死环境；
+  设计 research → dev → GxP 的最小可行治理梯度；给出监管下使用 AI 的护栏清单。
+source-note: "主题与结构改编自 posit::conf(2026) r-pharma-regulated 工作坊（Mike Smith, Casey Johnson, Satish Murthy, Nicole Jones, Michael Mayer）与 posit::conf(2025) reproducible-environments 工作坊 · CC-BY-SA 4.0；讲义文字为本项目原创"
+---
+
+# 4.8 受监管环境（GxP）
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **define** GxP（Good "x" Practice）与「受监管」对分析环境的三项要求：
+   可追溯性 traceability · 变更控制 change control · 验证证据 validation evidence
+2. **differentiate** 基于风险的验证：按「用途 × 包质量」决定验证深度，
+   而不是一刀切（R Validation Hub 思想）
+3. **configure** 用 renv lockfile + 固定日期的 CRAN-like 仓库快照，
+   把环境钉死并可复原
+4. **design** research → dev → GxP 的最小可行治理环境（梯度表）
+5. **justify** 监管下使用 AI 的护栏：人类问责、提示词与输出留痕、
+   不向外部模型发送 PHI
+
+## 前置自测（≤5 分钟）
+
+- 用过 `git commit`（→ 没用过？先回 3.1 章）
+- 知道 `install.packages()` 默认从 CRAN 拿「今天最新」的包
+
+::: {.callout-important}
+## Check In：前置自测
+
+你上周的一个分析结果，今天能在同事的新电脑上一模一样复现吗？
+列出三个「你其实不确定」的环节（R 版本？包版本？系统库？）——本章逐个收编。
+:::
+
+## 1. GxP 监管的是什么：证据，不是工具
+
+GxP 是 Good Laboratory / Clinical / Manufacturing Practice 等法规实践的
+统称。对分析代码而言，监管者并不禁止你用 R——开源早已进入主流申报——
+它要求的是**过程证据**：
+
+| 要求 | 含义 | 落到 R 环境上 |
+|---|---|---|
+| 可追溯性 traceability | 每个结果能回溯到代码、数据、环境 | 版本控制 + 评审 + 环境 lockfile |
+| 变更控制 change control | 改动有授权、有记录、有影响评估 | 分支/PR 流程 + 快照化仓库 |
+| 验证证据 validation evidence | 「系统按预期工作」有书面证明 | 基于风险的验证（§2） |
+
+::: {.callout-note}
+美国 FDA 的 21 CFR Part 11（电子记录与电子签名）与 ICH E6（GCP）是这类
+要求的常见出处。本章只讲一般原则，不替代你所在组织的 QA/SOP 判断。
+:::
+
+## 2. 基于风险的验证：不是所有包生而平等
+
+「把所有 R 包都完全验证一遍」在数学上不成立（依赖图太大），业务上也不必要。
+R Validation Hub（制药行业社区工作组）推动的思路是**风险分层**，
+看两个轴：
+
+- **用途风险**：这个包的输出会进关键疗效终点/患者安全决策，
+  还是只做探索性图形？
+- **包质量信号**：测试覆盖、维护活跃度、文档、社区使用广度、issue 响应。
+
+| 风险层 | 典型用途 | 常见验证活动（示意） |
+|---|---|---|
+| 高 | 主要终点统计、申报表 | 深度评审 + 独立测试 + 记录在案的验证报告 |
+| 中 | 支持性分析、内部决策表 | 评审 + 抽样测试 + 使用日志 |
+| 低 | 探索图形、临时脚本 | 环境锁定 + 常规代码评审即可 |
+
+::: {.callout-warning}
+## 高频误区：冻结快照 = 已验证
+把包版本冻在某个日期，只买到**可复现**，不买**正确性**。
+可复现是验证的必要条件，不是充分条件——验证证据仍要按风险层另行积累。
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+治理不足的终点是假数据进申报；治理过度的终点是大家偷偷回 Excel。
+**最小可行治理**的意思是：每一层要求都对应一个真实风险——
+说不出对应风险的管控项，多半是在表演给审计看。
+:::
+
+## 3. 把环境钉死：renv + curated CRAN-like 快照
+
+可复现环境的两根支柱：
+
+**① lockfile（renv）——项目级精确复原：**
+
+::: {.callout-example}
+```r
+install.packages("renv")
+
+renv::init()      # 新项目：建立私有库并生成 renv.lock
+renv::snapshot()  # 把当前依赖（版本 + 哈希）写入 renv.lock
+renv::restore()   # 同事/生产机：按锁文件精确重装
+```
+
+`renv.lock` 是普通文本文件——**提交进 git**，它就是环境的「源代码」。
+:::
+
+**② 仓库快照（curated CRAN-like repository）——组织级可控来源：**
+Posit Package Manager（或同类仓库工具）提供一个 CRAN-like URL，可按日期
+冻结快照，并对同一 URL 按操作系统分发对应二进制：
+
+::: {.callout-example}
+```r
+# .Rprofile 里钉住组织仓库（示意 URL；latest 换成具体日期即「时间冻结」）
+options(repos = c(CRAN = "https://packagemanager.posit.co/cran/latest"))
+```
+:::
+
+两种策略的取舍是 reproducible-environments 工作坊的核心辩论：
+
+| 策略 | rolling（跟随 latest） | frozen（按日期冻结） |
+|---|---|---|
+| 新包/修复获取 | 快 | 慢（等下一个快照窗口） |
+| 验证负担 | 持续滚动 | 快照时一次性集中 |
+| 适合 | research / dev | GxP 生产 |
+
+::: {.callout-warning}
+## 边界：lockfile 管不到的层
+`renv.lock` 记录 R 版本但**不会替你安装 R**，更不管系统库与 OS 差异。
+跨机器复现的最后一公里，要靠 §5 的容器化。
+:::
+
+## 4. 可追溯与审计：让每次改动都有脚印
+
+- **版本控制**：申报相关代码全走 git；分支保护与 PR 评审是变更控制的
+  实现层（3.1–3.2 章的工具，这里换一副监管眼镜）
+- **代码评审**：合并前至少一双独立眼睛——与 4.7 章的双编程互为表里
+- **QC 留痕**：diff 结果、差异解释、放行决定落档
+- **平台审计**：企业级部署平台可提供任务级审计日志（谁、何时、
+  用哪个环境跑了什么）——审计员问起来，这是第一现场
+
+## 5. 生产部署：容器与托管平台（高空视角）
+
+当环境要「原样」搬进生产或交给审阅方时，常见路线：
+
+1. **容器化（containers）**：把 OS + R + 包 + 系统库打进一个镜像，
+   「在我机器上能跑」从此有唯一答案；行业也在讨论共享的**标准基础镜像**
+   以降低逐企业谈判成本
+2. **托管平台**：Workbench / Connect 这类企业平台统一管环境、凭据、
+   审计与发布，团队不必人人自建
+3. **监管侧共享的想象**：能否把容器化分析直接交给监管机构复现？
+   OS 差异与法务边界仍是开放问题（2025 工作坊议题之一）
+
+本节只需建立层级意识：**lockfile 锁包，容器锁整机，平台管治理**。
+
+## 6. 最小可行治理环境：research → dev → GxP 梯度表
+
+r-pharma-regulated 工作坊的核心练习是：不同规模的组织，如何为不同成熟度
+的用途各配一套「够用就好」的管控：
+
+| 维度 | Research 研究 | Dev 开发 | GxP 生产 |
+|---|---|---|---|
+| 包来源 | 公共 CRAN latest | 组织快照（rolling） | 日期冻结快照 |
+| 环境锁定 | 可选 renv | renv 必备 | renv + 容器镜像 |
+| 验证深度 | 无 / 自测 | 按包风险分级 | 高风险包验证包 + 变更控制 |
+| 留痕 | 个人 git | PR 评审记录 | 全链审计 + QC 档案 |
+| AI 使用 | 自由 | 内部网关 | §7 护栏全开 |
+
+使用方式：从左到右是**晋升**而不是**搬家**——一个分析从 research 冒头，
+按表逐级补证据；每级只补「下一级审阅人会问的那几件事」。
+
+## 7. 监管下的 AI：护栏清单
+
+AI 进受监管环境，问题从「能不能用」变成「**怎样用得可审计**」：
+
+1. **人类问责（accountability）**：AI 没有签名资格；签字的人对 AI 产出
+   负全责
+2. **留痕**：关键用途的提示词（prompts）与输出随分析档案存档——
+   AI 参与的部分要能被重放
+3. **数据边界**：受保护健康信息（PHI）/ 个人数据**不进外部模型**；
+   去标识化、脱敏样例、企业内部部署模型是三条出路
+4. **同受 QC**：AI 生成的代码与人工代码走同一套评审、测试与双编程约束
+   （4.7 章的「伪独立」陷阱在此加倍成立）
+
+::: {.callout-warning}
+## 高频误区：把 AI 输出当「已验证工具」的输出
+模型版本、提示词、采样参数任一变化，输出就变——它不满足受监管系统
+「行为确定可复现」的默认期望。**记录它，测试它，别神化它。**
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+对你现有任一分析项目执行 `renv::init()` → `renv::snapshot()`，提交
+`renv.lock`；然后在第二台机器（或 Posit Cloud）`renv::restore()`。
+记录：lockfile 捕获了什么？没捕获什么（R 本体？系统库？Quarto？）
+——列一张「缺口清单」。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+用 §2 的风险分层表，给你日常最常用的 5 个包定级（高/中/低），为每个包
+写出「该层对应的具体验证活动」与理由。检验标准：同一包被同事定成
+不同级时，你们的分歧点落在哪一格？
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：为你的团队写一页「AI 使用政策」：允许清单 / 禁止清单 /
+留痕要求 / 问责归属，四段各 3–5 条。
+**第二轮（开放 AI）**：把政策贴给 AI，要求它扮演**审计员攻击这份政策**
+（「我如何绕过你的护栏？」），把它找到的 2–3 个漏洞补进第二版。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「最小可行治理方案」——为一家你熟悉的（真实或虚拟）组织设计
+R 环境治理方案：组织画像 → 梯度表（§6 按组织规模裁剪）→ rolling/frozen
+决策及理由 → AI 使用政策一页 → 三个月迁移路线图。交付 Quarto 文档一份。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 风险分层 | 有高低之分 | 每层挂了具体活动 | 分歧点可讨论（可辩护） |
+| 环境可复现 | renv + 快照齐 | 缺口清单诚实（容器边界） | 给出 rolling/frozen 成本测算 |
+| 可追溯设计 | git + 评审 | 审计链完整（谁/何时/什么） | 覆盖 AI 留痕 |
+| 政策可行性 | 四段齐全 | 留痕与问责可执行 | 经一次「审计员攻击」并修订 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§2 生产环境属性与风险验证主题 | posit::conf(2026) r-pharma-regulated 工作坊 materials（`01_AttributesOfProductionEnvironments.pdf`、`03_Validation and risk.pdf`，按文件主题对齐，未逐页引用） | 改编 |
+| §3 rolling vs frozen、§5 容器与基础镜像议题 | posit::conf(2025) reproducible-environments 工作坊（James Black, Orla Doyle, Doug Kelkhoff, Michael Mayer, Rafael Pereira） | 改编 |
+| §6 梯度表框架 | r-pharma-regulated「最小可行方法」议题（工作坊描述） | 改编 |
+| renv/仓库用法、梯度表具体内容、AI 护栏清单、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

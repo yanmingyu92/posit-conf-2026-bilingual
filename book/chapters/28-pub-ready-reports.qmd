@@ -1,0 +1,260 @@
+---
+title: "2.8 出版级报告 · Publication-Ready Reports"
+objectives: |
+  学完本章你能：用 _brand.yml 驱动 HTML+PDF+幻灯片；跨项目共享品牌；
+  用模板 partials 抽出重复版式；说清 Typst vs LaTeX 的取舍；
+  调校亮/暗双模式；完成"素报告 → 品牌套件"的完整改造。
+source-note: "教学结构改编自 posit::conf(2026) practical-quarto（Charlotte Wickham, Mine Çetinkaya-Rundel · CC-BY-SA 4.0）modules 02-brand / 03-partials / 04-typst；讲义文字与练习为本项目原创"
+---
+
+# 2.8 出版级报告 · Publication-Ready Reports
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **apply** 用一个 `_brand.yml` 驱动 HTML、PDF（Typst）与幻灯片的颜色与字体
+2. **share** 把品牌抽成单一来源，跨多个 Quarto 项目复用而不漂移
+3. **factor** 用模板 partials 抽出报头（masthead）、页脚等重复版式
+4. **compare** 就速度、安装与输出差异论证 Typst vs LaTeX 选型
+5. **configure** 为 HTML 开启并定制亮/暗双模式（light/dark modes）
+6. **execute** 独立完成"素报告 → 品牌套件"全流程改造
+
+## 前置自测（≤5 分钟）
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. `quarto render` 要分别出 HTML 和 PDF，YAML 里写什么？PDF 默认走哪个引擎？
+2. `_quarto.yml` 与单篇 `.qmd` 的 YAML 怎么分工？（不会？先回补 [2.3]）
+:::
+
+## 1. Design once, use anywhere：品牌是内容之外的唯一真相
+
+同一份分析，周一 HTML 给同事、周三 PDF 给领导、周五幻灯片给大会。
+朴素做法是三个项目各改一遍 CSS——第四个月品牌换色，你改六处、漏三处。
+**品牌驱动（brand-driven）工作流**反过来：颜色、字体、徽标写进**一个**
+`_brand.yml`（[规范](https://posit-dev.github.io/brand-yml/)），HTML、Typst PDF、
+revealjs 全部向它看齐——这就是 design once, use anywhere。
+
+## 2. `_brand.yml`：颜色与字体的一份定义
+
+::: {.callout-example}
+项目根目录新建 `_brand.yml`（同目录渲染自动生效；字体 `source: bunny`
+走 Bunny Fonts CDN，离线可改 `files:` 本地字体）：
+
+```yaml
+brand:
+  color:
+    palette:
+      blue: "#1a3d7c"
+      teal: "#2c8c99"
+      paper: "#faf8f5"
+    foreground: blue
+    background: paper
+    primary: teal
+  typography:
+    fonts:
+      - family: Inter
+        source: bunny
+    base: Inter
+    monospace: IBM Plex Mono
+  logo:
+    small: logos/marker.png
+```
+
+再在 `_quarto.yml` 里让三个格式共享它：
+
+```yaml
+format:
+  html:
+    theme: cosmo          # 品牌色覆盖主题默认色
+  typst:                  # Typst 原生读取 _brand.yml
+    papersize: a4
+  revealjs:
+    logo: logos/marker.png
+```
+:::
+
+::: {.callout-warning}
+## 高频错误：品牌文件名写错或放错层
+文件必须叫 `_brand.yml`（下划线开头）且在项目根目录，写成 `brand.yml`
+会**静默不生效**。**排查口诀：品牌不生效，先查文件名与所在层。**
+:::
+
+## 3. 跨项目共享品牌：一份定义，N 个仓库
+
+| 路径 | 做法 | 适合 |
+|---|---|---|
+| Quarto 扩展 | 品牌打包成 `quarto use` 安装的 extension | 团队正式品牌，要版本化 |
+| Git 引用 | submodule / 复制 + CI 校验 | 小团队、个人多项目 |
+
+```yaml
+# 项目 YAML 也可显式指向外部品牌文件
+brand:
+  brand: ../shared-brand/_brand.yml
+```
+
+判断题：品牌文件该不该提交进每个项目仓库？——**默认要**（可复现优先），
+但以"单一上游 + 同步脚本"方式提交，避免手改副本。
+
+## 4. 模板 partials：把重复版式抽出来
+
+同一版式（报头、页脚、状态条）在多份文档里重复时，逐份粘贴必然漂移。
+**模板 partials（template partials）**只替换模板的一小块，而不是整个模板：
+
+```text
+templates/partials/
+├── masthead.html   # HTML 报头部件
+└── masthead.typ    # Typst 报头部件
+```
+
+::: {.callout-example}
+partial 内部是 Pandoc 模板语法——`$title$` 注入元数据，
+`$if(...)$...$endif$` 做条件渲染；文档 YAML 用 `template-partials` 挂载：
+
+```html
+<!-- partials/masthead.html -->
+<header class="masthead">
+  <img src="$if(brand.logo.small)$$brand.logo.small$$endif$" alt="logo"/>
+  <div>
+    <h1>$title$</h1>
+    <p class="byline">$author$ · $date$</p>
+  </div>
+</header>
+```
+
+```yaml
+format:
+  html:
+    template-partials:
+      - partials/masthead.html
+```
+:::
+
+::: {.callout-warning}
+## 高频误区：拿 partial 当内容 include
+`{{< include >}}` 复用**内容**（一段 Markdown）；template partial 复用**版式**
+（Pandoc 模板片段）。把报头写成 include 塞正文，PDF 与幻灯片上它会跑到奇怪的位置。
+:::
+
+## 5. Typst vs LaTeX：PDF 的快赢清单
+
+| 维度 | Typst | LaTeX |
+|---|---|---|
+| 安装 | Quarto 内置，**零安装** | 需 TinyTeX/TeX Live（数百 MB） |
+| 渲染速度 | 毫秒级增量 | 每次完整编译 |
+| 报错 | 人话，定位到行 | `.log` 考古 |
+| 生态 | 年轻，模板少 | 四十年模板帝国 |
+| 输出差异 | 与 LaTeX 有排版细节差异 | 期刊/学位论文终稿事实标准 |
+
+::: {.callout-example}
+```yaml
+format:
+  typst:
+    margin: [2cm, 2.5cm]   # x, y
+```
+
+排错技巧：Quarto 先生成中间 `.typ` 再编译，报错时打开中间 `.typ` 文件
+（或 `keep-typ: true` 保留），源头一目了然；进阶定制用 Typst 的
+`set`/`show` 规则（写在 raw Typst 块里）。
+:::
+
+选型口诀：**内部评审、数据报告、快速迭代 → Typst；投期刊、学位论文、要 `.cls` 合规 → LaTeX。**
+
+## 6. 亮/暗双模式：一次写作，两种光照
+
+::: {.callout-example}
+```yaml
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+```
+
+读者右上角出现切换器。暗色下对比度不足的品牌色可按模式分别定义（`color.background` / `foreground` 各配一套）；图表配色由 thematic 联动，ggplot 自动换墨。
+:::
+
+## 7. 改造实战：素报告 → 品牌多格式套件
+
+把前六节串成流水线，起点：`report.qmd`（默认主题，单 HTML）。
+
+::: {.callout-example}
+```text
+# 六步改造清单（每步渲染一次，眼看变化）
+1. brand    新建 _brand.yml：调色板 + 双字体 + 徽标        → §2
+2. formats  _quarto.yml 加 typst 与 revealjs 三格式         → §2
+3. dark     HTML 配 light/dark 双主题                       → §6
+4. partials 抽 masthead/footer，挂到 html 与 typst          → §4
+5. share    品牌移入 shared-brand/，项目引用其 _brand.yml    → §3
+6. verify   quarto render 全格式，逐格式对照品牌色           → 全章
+```
+
+交付检查：同一标题在三个格式里**同色、同字体、同徽标**——这是"出版级"的及格线。
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+
+品牌不是"美化"，是**降低读者认知成本**：同色系让领导第三秒就知道
+"这是那份周报"。我坚持"品牌先行、格式后到"——先定 `_brand.yml` 再写
+第一个字，比写完再补皮肤便宜十倍。
+:::
+
+::: {.callout-important}
+## Check In：三问速答
+
+① `format: typst` 想改页边距，改 YAML 还是写 LaTeX 命令？
+② 同一报头要出现在 HTML 与 Typst PDF 上，需要几个 partial 文件？为什么？
+③ 品牌色 `paper: "#faf8f5"` 在暗色模式下有什么问题，从哪个字段补？
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+新建 Quarto 项目，把 §2 的 `_brand.yml` 原样抄入（徽标用任意小图），
+渲染 HTML，截图三处品牌落点：标题色、正文字体、徽标；再用同一品牌
+渲染 `format: typst` PDF，对照字体是否一致。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+给 Practice 1 加上：① light/dark 双主题并检查品牌色在暗色下的对比度；
+② 一个 masthead partial（注入 `$title$` 与 `$date$`），同时挂到
+`html` 与 `typst`。提交：两格式渲染截图 + partial 源码。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁用 AI 环节）
+
+**第一轮（禁 AI）**：仅凭本章 + quarto.org 文档（不许问任何 AI 助手），
+把你的一份旧报告（没有就先用 `report.qmd`）完成 §7 六步全流程改造，
+中途必须读一次中间 `.typ` 文件定位一处样式来源。
+**第二轮（开放 AI）**：把 `_brand.yml` 与 `_quarto.yml` 贴给 Posit Assistant，
+只问："哪里最可能在不同机器上渲染不一致？"修复并记录。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「研究组季度报告套件」——以 `report.qmd` 素报告为起点：
+`shared-brand/` 品牌仓库 + 主项目三格式（HTML 双模式 / Typst PDF / revealjs）
++ masthead/footer partials + 《品牌使用说明》。交付：项目仓库 + 三格式成品 + 改造前后对照截图。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 品牌一致性 | 三格式同色同徽标 | 字体跨格式一致并有核对记录 | 队友照说明 10 分钟复现 |
+| 版式工程 | partials 可用 | 同一 partial 服务多格式 | 内容 include 与版式 partial 职责分明 |
+| 格式选型 | 三格式都能渲染 | 能说明 Typst/LaTeX 取舍 | 对某格式给出"不做"的理由 |
+| 可维护性 | 品牌单一来源 | 品牌变更有版本记录 | 有 CI 或脚本校验品牌未漂移 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§4 brand.yml、共享品牌、模板 partials | posit::conf(2026) practical-quarto `modules/02-brand.qmd`、`03-partials.qmd`（Charlotte Wickham, Mine Çetinkaya-Rundel · CC-BY-SA 4.0） | 改编 |
+| §5–§6 Typst 快赢、读 .typ、set/show、暗色模式 | practical-quarto `modules/04-typst.qmd` | 改编 |
+| §7 六步改造流水线、练习与 rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

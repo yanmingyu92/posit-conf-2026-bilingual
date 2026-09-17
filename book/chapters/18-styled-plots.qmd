@@ -1,0 +1,260 @@
+---
+title: "1.8 专业图表 · Professionally Styled Plots"
+objectives: |
+  学完本章你能：拆解 theme() 四大件并用 element_*() 精确控制；用线端直接标注
+  替换图例；选 colorblind-safe 色板并以命名向量纪律使用 scales_*_manual()；
+  按"标题=结论"层级写 labs()；用 brand.yml 统一 Quarto 与 ggplot2 视觉语言。
+source-note: "教学结构与练习设计改编自 posit::conf(2025) ggplot2 workshop（Thomas Lin Pedersen, Teun van den Brand · CC-BY-SA 4.0）与 quarto-brand workshop（Isabella Velásquez, Sara Altman · CC-BY-SA 4.0）；讲义文字与 makeover 示例为本项目原创"
+---
+
+# 1.8 专业图表 · Professionally Styled Plots
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **decompose** `theme()` 的四大区域（text / axis / panel / legend）与 `element_*()` 的对应
+2. **replace** 用线端直接标注（direct annotation）替换图例，降低解码成本
+3. **apply** 选 colorblind-safe 色板（RColorBrewer / viridis）并用**命名向量**驱动 `scale_*_manual()`
+4. **compose** 按"标题是结论、副标题是语境、脚注是出处"的层级组织 `labs()`
+5. **integrate** 让 `_brand.yml` 同时约束 Quarto 排版与 ggplot2 出图
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下两问再继续；否则先回补 [L1-B1]：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 画 `ggplot(penguins, aes(bill_length_mm, body_mass_g)) + geom_point(aes(color = species))` 后，用一行代码把图例移到顶部。
+2. 说出 `theme_bw()` 与 `theme_minimal()` 的一个视觉差异。
+:::
+
+## 1. `theme()` 解剖学：四大件与 `element_*()`
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+很多人调样式的方式是"复制十行 theme() 玄学"。其实 theme 只管**与数据无关的墨水**（网格、边框、字体）；想改点和线的默认外观，要动 scale 或 geom 参数——放错地方的 theme() 调用会让你白忙一场。
+:::
+
+`theme()` 的参数名遵循 `区域.子项` 的点语法，各区域配一种 `element_*()`：
+
+| 区域 | 典型参数 | 元素函数 |
+|---|---|---|
+| text / axis | `plot.title` / `axis.title` / `axis.line` / `axis.text` | `element_text()` / `element_line()` |
+| panel | `panel.background` / `panel.grid.major` | `element_rect()` / `element_line()` |
+| legend | `legend.position` / `legend.title` | 位置是字符串，样式是 `element_*()` |
+
+::: {.callout-example}
+```r
+library(ggplot2)
+
+p <- ggplot(palmerpenguins::penguins,
+            aes(bill_length_mm, body_mass_g, color = species)) +
+  geom_point(alpha = 0.75, size = 2)
+
+p + theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),      # 细网格：纯噪音
+    panel.grid.major.x = element_blank(),    # 横向比较 → 只留横网格
+    legend.position = "top"
+  )
+```
+:::
+
+::: {.callout-note}
+## 来自工作坊的前沿（ggplot2 4.0+）
+posit::conf(2025) 主题课展示了新一代 API：`theme_gray(ink/paper/accent)` 一次换全局色、`theme(geom = element_geom(...))` 统一图层默认外观、`theme(palette.colour.continuous = ...)` 主题层设默认色板。ggplot2 ≥ 4.0 可试用，本章主线用稳定 API。
+:::
+
+## 2. 用直接标注替换图例
+
+图例迫使读者在图与边栏之间往返"查表"。**把标签直接放在数据旁边**——折线图的最自然位置是线端。
+
+::: {.callout-example}
+```r
+countries <- c("China", "India", "United States", "South Africa")
+g4 <- gapminder::gapminder |> filter(country %in% countries)   # 只取一次
+ends <- filter(g4, year == 2007)              # 线端点 + 标签数据
+
+ggplot(g4, aes(year, lifeExp, color = country)) +
+  geom_line(linewidth = 1) +
+  geom_text(data = ends, aes(label = country), hjust = 0, nudge_x = 1.5,
+            fontface = "bold") +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.25))) +  # 右侧留白
+  coord_cartesian(clip = "off") +             # 允许文字出面板
+  guides(color = "none") +                    # 图例下岗
+  labs(x = NULL, y = "预期寿命")
+```
+:::
+
+直接标注三配件：**右侧留白**（`expansion`）、**关掉裁剪**（`clip = "off"`）、**撤走图例**（`guides(color = "none")`）——少一个都会翻车。
+
+::: {.callout-warning}
+## 高频错误：图例和标注并存
+加了线端标注却忘了 `guides(color = "none")`——同一信息出现两遍，读者反而要确认"两者是否一致"。**标注上岗，图例就必须下岗。**
+:::
+
+## 3. 色彩的纪律：colorblind-safe 色板与 `scale_*_manual()`
+
+约 8% 的男性读者有色觉障碍（color vision deficiency）；你的图**默认就会被这样阅读**。可靠路径有二：
+
+::: {.callout-example}
+```r
+# 路径一：RColorBrewer 定性色（先 display.brewer.all(colorblindFriendly = TRUE) 查名单）
+p + scale_colour_brewer(palette = "Dark2")
+# 路径二：viridis——连续值/大类别数的默认答案（截尾防最黄端在白底消失）
+p + scale_colour_viridis_d(end = 0.85)
+```
+:::
+
+viridis 成为默认推荐的理由：**感知均匀**（等值差 ≈ 等感知差）、**色觉无障碍**、**灰度安全**（黑白打印不失序）。`Dark2` / `Set2` 适合 ≤8 类定性比较；超过 8 类别硬撑调色板——该分面了（见 1.7 章 §6）。
+
+手选品牌色是刚需，但**位置匹配的 manual scale 是定时炸弹**：factor 层级一变，颜色全错位且不报错。解药是**命名向量**（键 = factor 层级，与顺序解耦）：
+
+::: {.callout-example}
+```r
+species_cols <- c(
+  Adelie    = "#0072B2",   # Okabe-Ito 蓝
+  Chinstrap = "#E69F00",   # 橙
+  Gentoo    = "#009E73"    # 绿
+)
+
+p + scale_colour_manual(values = species_cols)
+```
+:::
+
+三条纪律：命名向量的键可以多于实际层级但**不能缺**（缺了得到 `NA` 灰）；**色板对象只定义一次**全文档复用（为 §5 的 brand.yml 做铺垫）；上游改了 factor 顺序，命名色不受影响。
+
+::: {.callout-important}
+## Check In：动手 2 分钟
+
+用 `colorspace::cvd_image()` 或在线 CVD 模拟器检查你最近一张图在 deuteranopia（绿色盲）下的样子：哪两个颜色贴在了一起？换一个成 Okabe-Ito 色再模拟。然后故意打乱 `penguins$species` 的 factor 层级，验证命名色板纹丝不动。
+:::
+
+## 4. `labs()` 的层级：标题是结论，不是栏目名
+
+读者扫读顺序是 标题 → 图形 → 轴/图例：把结论放进 `title`，等于替读者完成第一步解读；把结论埋进 `caption`，没人会看到。
+
+| 位置 | 职责 | 反例 |
+|---|---|---|
+| `title` | 一句话结论 | "企鹅数据图" |
+| `subtitle` | 语境：范围、时间、口径 | 重复标题 |
+| `caption` | 出处与说明 | 放结论 |
+| `tag` | 面板编号（"A"）用于复合图 | 放在标题里 |
+
+::: {.callout-example}
+```r
+p + labs(
+    title    = "喙越长的企鹅体重越大，且三物种斜率一致",
+    subtitle = "Palmer 站 2007–2009，333 条完整记录",
+    caption  = "数据：palmerpenguins（Gorman 等，2014）",
+    x = "喙长 (mm)", y = "体重 (g)", color = NULL   # 顺手抹掉图例标题
+  )
+```
+:::
+
+## 5. `brand.yml` × Quarto × ggplot2
+
+Quarto（≥ 1.8）自动读取项目根目录的 `_brand.yml`，把颜色与字体注入 HTML/PDF/幻灯片。让 ggplot2 也说"品牌语"，出图与排版才不会两张皮。
+
+::: {.callout-example}
+```yaml
+# _brand.yml —— Quarto 自动读取
+color:
+  palette:
+    brand-blue:  "#2266B1"
+    brand-green: "#1B7D3A"
+    brand-amber: "#B1781B"
+typography:
+  base: Inter   # 还可声明 foreground / background / headings 等
+```
+
+```r
+# 方案 A（零依赖）：色板与 _brand.yml 同步维护，一处定义全文档复用
+brand_cols <- c("#2266B1", "#1B7D3A", "#B1781B")
+# 方案 B（可选）：install.packages("thematic") 后让 ggplot2 直接吃品牌色与字体
+thematic::thematic_on(color = "#1A1A1A", qualitative = brand_cols)
+```
+:::
+
+::: {.callout-note}
+posit::conf(2025) 的 quarto-brand 工作坊把这套流程叫 "bring your own brand"：HTML 端 Quarto 原生吃 `_brand.yml`；图形端的桥是 thematic。方案 A 依赖少、行为可控——团队协作建议先用 A，品牌要求变严再升级 B。
+:::
+
+## 6. 整容手术现场：一张丑图的 Before → After
+
+::: {.callout-example}
+**Before**——每一条都在浪费读者耐心：
+
+```r
+p + scale_colour_manual(values = c("red3", "limegreen", "deepskyblue1")) +
+  labs(title = "图1") + theme_grey(base_size = 14)
+```
+
+病灶清单：刺眼高饱和色（且非色盲安全）、标题无信息量、灰底灰格抢戏、默认图例在右侧、轴无单位。**After**——五步手术，只用本章工具：
+
+```r
+label_ends <- palmerpenguins::penguins |> drop_na() |> group_by(species) |>
+  summarise(bill_length_mm = max(bill_length_mm) + 3,   # 物种带右端外侧
+            bill_depth_mm = median(bill_depth_mm), .groups = "drop")
+ggplot(palmerpenguins::penguins,
+       aes(bill_length_mm, bill_depth_mm, color = species)) +
+  geom_point(alpha = 0.75, size = 2) +
+  geom_text(data = label_ends, aes(label = species), fontface = "bold") +  # 手术1：直接标注
+  scale_colour_manual(values = c(Adelie = "#0072B2",    # 手术2：Okabe-Ito 命名色
+    Chinstrap = "#E69F00", Gentoo = "#009E73")) +
+  guides(color = "none") +                              # 手术3：图例下岗
+  labs(title = "三个物种各占一条喙形带，互不重叠",        # 手术4：结论式标题
+       subtitle = "Palmer 站 2007–2009；颜色经色盲安全校验",
+       caption = "数据：palmerpenguins（Gorman 等，2014）",
+       x = "喙长 (mm)", y = "喙深 (mm)") +
+  theme_minimal(base_size = 12) +                       # 手术5：减墨主题
+  theme(panel.grid.minor = element_blank(), plot.title = element_text(face = "bold"))
+```
+:::
+
+::: {.callout-warning}
+## Makeover 的顺序也是依赖顺序
+先定**色板与标注**（手术 1–3，信息层），再动 **labs 与 theme**（手术 4–5，装饰层）。反过来做，配色一改主题又得重调——**信息层稳定之前，不要装修。**
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+复现 §2 的线端标注图，换成 `gapminder` 中 Rwanda / Botswana / Uganda / Kenya 四国 1962–2007 的 `lifeExp`。注意：有国家曾出现回落——标注还能全放"线端"吗？给出你的处理（提示：`hjust`、微调或末点加 `geom_point`）。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把 §3 的纪律适配到 1.7 章的哑铃图：雌/雄两球改为 Okabe-Ito 蓝橙对（`#0072B2` / `#E69F00`），并写两行注释说明"为什么对色盲读者安全"。再故意改一次 factor 层级顺序，验证命名色不受影响。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：挑你过往报告里最不满意的一张图（或用 1.7 章 Exercise 3 的成品），仅凭本章清单做完整 makeover：直接标注、色盲安全色板、命名向量、结论式 `labs()`、减墨 `theme()`。
+**第二轮（开放 AI）**：把 before/after 贴给 Posit Assistant，只问：「after 图里还有哪三处样式在伤害可读性？」逐条接受或驳回，每条判断锚回本章某节。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「一张能投稿的图」——自选 `penguins` / `gapminder` 的一个结论，产出终稿图 + 设计决策文档：线端或图内直接标注、色盲安全色板（命名向量定义）、完整 `labs()` 层级、自定义 `theme()`，以及 `_brand.yml` 草案与图形色板的对应说明。交付 Quarto 一页：图 + ≤10 行决策说明。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 信息层 | 有直接标注 | 标注位置经遮挡检查 | 标注顺序引导阅读动线 |
+| 色彩 | colorblind-safe 色板 | 命名向量 + 截尾/对照微调 | 经 CVD 模拟验证并留档 |
+| 层级 | labs 四件齐 | 标题是可检验的结论 | 副标题交代口径与局限 |
+| 一致性 | 图与文档色调不冲突 | `_brand.yml` 与色板对应成表 | thematic 方案可选落地并对比 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1 theme 解剖与 4.0 前沿注 | posit::conf(2025) ggplot2 workshop `slides/4_theme_guide.qmd`（Thomas Lin Pedersen, Teun van den Brand · CC-BY-SA 4.0） | 改编 |
+| §5 brand.yml 流程 | posit::conf(2025) quarto-brand workshop（Isabella Velásquez, Sara Altman · CC-BY-SA 4.0） | 改编 |
+| viridis / RColorBrewer / Okabe-Ito 依据 | 各包官方文档；Okabe & Ito (2008) | 引用 |
+| 线端标注、manual 纪律、labs 层级、makeover、rubric | 本项目 | 原创 |
+本章以 CC-BY-SA 4.0 发布。

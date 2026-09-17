@@ -1,0 +1,238 @@
+---
+title: "2.2 动画 · Animation with gganimate"
+objectives: |
+  学完本章你能：判断动画何时澄清何时干扰；正确使用三大转场
+  transition_states / transition_reveal / transition_time；用 ease_aes
+  与 shadow 调节运动语言；用 animate() 控制节奏并保存 gif / mp4；
+  把动画稳妥嵌入 Quarto 并为非 HTML 读者留退路。
+source-note: "本章为 100% 原创，仅引用官方文档：gganimate（https://gganimate.org）"
+---
+
+# 2.2 动画 · Animation with gganimate
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **judge** 一段数据故事用动画是澄清还是干扰（对照双栏清单）
+2. **apply** 三大转场 `transition_states()` / `transition_reveal()` / `transition_time()` 及其标题占位符
+3. **tune** 用 `ease_aes()` 缓动与 `shadow_mark()` / `shadow_trail()` 残影控制「运动语言」
+4. **control** duration / fps / nframes 的节奏预算（知二求一）并用 `animate()` 渲染
+5. **compare** gif 与 mp4 的体积与兼容性权衡，按交付渠道选格式
+6. **embed** 在 Quarto 中嵌入动画，并为 PDF 与无障碍读者提供静态退路
+
+## 前置自测（≤5 分钟）
+
+会写出带分组映射的 ggplot2 散点/折线图再继续；否则先回补 1.7：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 同一批对象各有 1952 与 2007 两个年份的取值——静态图里你有哪些办法同时展示两年？（至少说出两种）
+2. 你看过的动画统计图里，哪一次的「动」帮你理解了数据，哪一次只是炫技？各举一例。
+:::
+
+## 1. 动画何时澄清、何时干扰
+
+动画用得好，观众**看到过程**：轨迹如何走出、差距如何拉开、排名如何反转——这些信息静态端点图给不了。用得差，观众只看到闪。
+
+| 动画在澄清 ✅ | 动画在干扰 ⚠️ |
+|---|---|
+| 时间演化是主线（追赶、爆发、路径） | 静态并排就能说清的端点比较 |
+| 主体少而清晰（几条线、几个类别） | 主体太多，帧间全在闪烁 |
+| 观众需要理解「过程」而非只看「结果」 | 观众要精确读数（运动毁精度） |
+| 读者可自主暂停、回看（网页交付） | 限时直播、弱网环境 |
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+动画的第一观众是你自己：制作过程逼你逐帧追问「数据怎么随时间变化」，这本身就是分析。但交付要诚实——如果观众只需要起点与终点，两张静态图比十秒动画更尊重他们的时间。
+:::
+
+::: {.callout-note}
+无障碍提醒：动效可能引发部分读者的动晕不适，且 gif 无法暂停。正式交付的页面最好同时提供静态版本。
+:::
+
+## 2. 三大转场：states / reveal / time
+
+先立招牌例子——各大洲国家随年份「跑」起来的散点：
+
+::: {.callout-example}
+```r
+library(ggplot2)
+library(gganimate)
+library(gapminder)
+
+anim <- ggplot(gapminder, aes(x = gdpPercap, y = lifeExp,
+                              size = pop, color = continent)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  scale_x_log10() +
+  labs(title = "年份：{frame_time}") +
+  transition_time(year)
+
+anim
+```
+:::
+
+`{frame_time}` 这类占位符（placeholder）把当前帧信息写进标题。三种转场各管一类数据形态：
+
+| 转场 | 数据形态 | 典型问题 |
+|---|---|---|
+| `transition_time()` | 连续时间，每帧一个时刻 | 「各主体随时间怎么跑」 |
+| `transition_states()` | 离散状态（类别） | 「各组分布长什么样、如何过渡」 |
+| `transition_reveal()` | 沿连续变量逐步展开 | 「这条线是如何一步步走出来的」 |
+
+状态之间平滑变形（states）：
+
+::: {.callout-example}
+```r
+p_states <- ggplot(gapminder, aes(x = lifeExp, fill = continent)) +
+  geom_density(alpha = 0.6) +
+  labs(title = "大洲：{closest_state}") +
+  transition_states(states = continent,
+                    transition_length = 2, state_length = 1)
+```
+:::
+
+沿线逐步揭示（reveal）：
+
+::: {.callout-example}
+```r
+ggplot(ggplot2::economics, aes(x = date, y = unemploy)) +
+  geom_line() +
+  geom_point(aes(group = seq_along(date)), size = 1) +  # 让点跟着线现身
+  labs(title = "{frame_along}") +
+  transition_reveal(date)
+```
+:::
+
+::: {.callout-note}
+动画的本质：N 张完整 ggplot + gganimate 的插值引擎。所以渲染时间与文件体积都随帧数线性增长；直接 print 一个动画对象默认渲 100 帧。
+:::
+
+::: {.callout-important}
+## Check In：占位符与节奏
+
+① 把 states 示例的占位符换成 `{next_state}`，观察标题比画面提前还是滞后一拍。
+② 先笔答：`transition_length` 与 `state_length` 谁控制「停留」谁控制「过渡」？再把两者改成 (5, 5) 与 (1, 5) 各渲一次验证。
+:::
+
+## 3. 缓动与残影：运动的语气词
+
+缓动（easing）决定帧间运动的手感：
+
+::: {.callout-example}
+```r
+p_states + ease_aes(default = "sine-in-out")   # 正式报告：柔和进出
+p_states + ease_aes(default = "bounce-out")    # 喜感弹跳——慎重
+```
+:::
+
+缓动名 = 基础曲线（`linear` / `cubic` / `sine` / `exponential` / `back` / `bounce` …）+ 修饰（`-in` / `-out` / `-in-out`）。**数据动画的默认审美是 `cubic-in-out` 或 `sine-in-out`；`bounce` 与 `elastic` 属于表情包。**
+
+残影（shadow）让「过去」可见：
+
+::: {.callout-example}
+```r
+anim + shadow_mark()                  # 留下历史足迹：看清各国轨迹
+anim + shadow_trail(distance = 0.05)  # 等距拖尾：强调运动本身
+```
+:::
+
+分工：讲**轨迹**用 `shadow_mark()`（保留过去帧的浅色标记）；讲**速度感**用 `shadow_trail()`（`distance` 越小残影越密）。
+
+## 4. 节奏控制：duration / fps / nframes
+
+三个节奏参数满足 `nframes = duration × fps`，**最多指定两个**，第三个自动推算：
+
+::: {.callout-example}
+```r
+animate(anim, duration = 10, fps = 10)   # 100 帧，nframes 自动
+animate(anim, nframes = 60, fps = 10)    # 6 秒，duration 自动
+anim_save("gapminder.gif")               # 保存最近一次 animate() 的结果
+```
+:::
+
+::: {.callout-warning}
+## 高频错误：三个参数全给
+duration、fps、nframes 同时指定且不满足乘积关系，`animate()` 直接报错——不是 bug，是逼你想清楚节奏预算。经验起点：**讲故事的动画 8–12 秒、10 fps 足够**；100 帧是多数场景的上限而非默认追求。
+:::
+
+## 5. 渲染与体积：gif vs mp4
+
+::: {.callout-example}
+```r
+animate(anim, duration = 10, fps = 10)            # 默认渲染 gif（经 gifski）
+animate(anim, duration = 10, fps = 10,
+        renderer = av_renderer("gapminder.mp4"))  # mp4（需安装 av 包）
+
+file.size("gapminder.gif") / file.size("gapminder.mp4")
+```
+:::
+
+| 格式 | 压缩方式 | 体积 | 兼容性 |
+|---|---|---|---|
+| gif | 逐帧 + 256 色调色板 | 大 | 最好，任何 `<img>` 都能放 |
+| mp4（H.264） | 帧间压缩 | 常小一个数量级 | 网页 `<video>`；邮件端表现不一 |
+
+选型：嵌入 html 首选 gif（省事）；体积敏感（邮件、多动画页面）用 mp4。渐变色图表警惕 gif 调色板出现色带（banding）。
+
+## 6. 在 Quarto 中嵌入动画
+
+代码单元里 `animate()`（或直接 print 动画对象），HTML 输出自动嵌入并可交叉引用：
+
+::: {.callout-example}
+````markdown
+```{r}
+#| label: fig-lifeexp
+#| fig-cap: "预期寿命与人均 GDP（1952–2007）"
+animate(anim, duration = 10, fps = 10, width = 720, height = 405)
+```
+````
+:::
+
+::: {.callout-warning}
+## 高频误区：忘了 docx / pdf 读者
+gif 在 Word / PDF 输出里**不会动**。退路：同一张 ggplot 去掉转场层（或改 `facet_wrap()`）输出静态版；并确保正文结论不依赖「看过动画」才成立。
+:::
+
+体积预算：帧数 × 分辨率双重放大文件——先 `anim_save()` 看 `file.size()` 再决定嵌入参数，别让一个 100 帧、高分辨率的动画拖垮整本文档。
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+复跑 §2 招牌动画与 §4 的 `animate(duration = 10, fps = 10)` + `anim_save("gapminder.gif")`，记录实际帧数与 gif 大小（MB）。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+给 states 图分别渲 `ease_aes(default = "sine-in-out")` 与 `"bounce-out"`（各 30 帧），回答哪种缓动适合正式报告、为什么；再给 §2 的 time 动画加 `shadow_mark()`，对比有无「足迹」时对 2007 年端点状态的理解差异，写两行结论。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁 AI → AI 评审）
+
+**第一轮（禁用 AI）**：用 `ggplot2::economics` 自选变量（unemploy / psavert / uempmed）做 reveal 动画：标题用 `{frame_along}`、点沿线现身、`nframes` ≤ 60，`anim_save()` 后嵌入一个 Quarto html 页。
+**第二轮（开放 AI）**：把渲染参数（nframes / fps / width / height）贴给 Posit Assistant，只问：「体积还能砍多少？砍了会伤什么？」记录一条你采纳并实测验证的建议。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「十秒数据故事」。自选真正随时间变化的数据（gapminder 子集 / economics / 自备），交付 Quarto html 一页：① 200 字说明为什么这个故事值得动起来（对照 §1 双栏清单）；② 一部 ≤10 秒的动画（转场三选一，缓动与残影有意图）；③ 渲染决策：gif 或 mp4 + nframes/fps 数字与实测文件大小；④ 给 PDF 读者的静态 fallback（端点对比图）。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 叙事判断 | 有「为什么动」的说明 | 对照 §1 清单逐条论证 | 论证含「先试静态、为何不够」的证据 |
+| 技术实现 | 转场语法正确 | 缓动/残影与叙事意图匹配 | 占位符、图例、轴尺度无破绽 |
+| 节奏与体积 | 能渲染出动画 | nframes/fps 有明确预算 | gif vs mp4 附 file.size 实测对比 |
+| 发布适配 | 嵌入 html 正常播放 | 提供静态 fallback | 声明无障碍局限（无法暂停/动晕） |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| 全章结构、示例、练习、capstone、rubric | 本项目 | 原创 |
+| `transition_*()` / `shadow_*()` / `ease_aes()` / `animate()` 用法 | gganimate 官方文档 https://gganimate.org | 引用 |
+| gapminder、economics 数据 | gapminder / ggplot2 R 包（仅作练习数据） | 数据 |
+
+本章以 CC-BY-SA 4.0 发布。

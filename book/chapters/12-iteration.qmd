@@ -1,0 +1,260 @@
+---
+title: "1.2 迭代 · Iteration with purrr"
+objectives: |
+  学完本章你能：识别"免费"与显式的迭代；用 map/map2/pmap/walk 替代
+  复制粘贴与 for 循环；用 across() 迭代列；用 possibly()/safely() 容错。
+source-note: "教学结构与练习设计改编自 posit::conf(2025) r-programming（Emma Rand, Garrett Grolemund, Ian Lyttle · CC-BY-SA 4.0）；讲义文字为本项目原创"
+---
+
+# 1.2 迭代 · Iteration with purrr
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **recognize** 哪些迭代 R 已「免费」提供（向量化、`group_by()`），哪些需要显式迭代
+2. **write** 用 `map()` 家族替代复制粘贴，按输出类型选对变体，并用 `\(x)`/`~ .x` 写匿名函数
+3. **predict** `map2()`/`pmap()` 多输入迭代时参数如何配对、结果长什么样
+4. **design** 用 `across()` + `.names` 对数据框多列做统一变换，并装进函数
+5. **harden** 用 `possibly()`/`safely()` 包住易失败操作，批量任务不因一处失败全灭
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下两问再继续；否则先回补 1.1 Writing Functions（[L1-B1]）：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 写函数 `se(x)`：返回数值向量的标准误（`sd()` 除以非缺失个数平方根，忽略 `NA`）。
+2. 不运行，说出 `map(1:3, \(x) x^2)` 的**返回类型**与内容。
+:::
+
+## 1. 为什么 for 循环在 R 里「有味道」
+
+看一段真实风格的多文件读取：
+
+::: {.callout-example}
+```r
+data_2011 <- readr::read_csv("data/survey_2011.csv")
+data_2012 <- readr::read_csv("data/survey_2012.csv")
+data_2013 <- readr::read_csv("data/survey_2012.csv")   # ← 经典工伤
+data_2014 <- readr::read_csv("data/survey_2014.csv")
+all <- bind_rows(data_2011, data_2012, data_2013, data_2014)
+```
+:::
+
+第三行读的是 **2012** 的文件——不报错、不警告，数据悄悄错了两年。for 循环
+本身没错，但它把**做什么**（what）埋进**怎么做**（how）：预分配、下标、累加
+变量抢走了意图的戏份。R 是函数式编程（functional programming）语言：
+把「做什么」打包成函数，交给迭代器。
+
+::: {.callout-note}
+你早已在免费使用迭代：`2 * nums`、`group_by() + summarise()`、
+`facet_wrap()` 都是。「还需要自己写循环吗」——本章给出一套判断标准。
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+我淘汰 for 循环的理由不是「慢」（`map()` 通常并不更快），而是它把三行意图
+写成八行机械。**迭代逻辑简单时用 map；运行状态复杂时，for 是诚实的**（§6）。
+:::
+
+## 2. `map()` 家族与匿名函数：`\(x)` 还是 `~ .x`？
+
+`map(x, f)` 对 `x` 的每个元素调用 `f`，返回与 `x` 等长的**列表**。不需要列表时，选类型化变体：
+
+| 函数 | 返回 | 适用 |
+|---|---|---|
+| `map()` | 列表 | 结果结构不一（模型、图、数据框） |
+| `map_dbl()` `map_int()` `map_chr()` `map_lgl()` | 原子向量 | 每次恰返回一个数/整数/字符串/逻辑值 |
+| `map_dfr()` | 数据框（按行合并） | 旧代码常见；新代码写 `map() \|> list_rbind()` |
+
+::: {.callout-example}
+```r
+library(tidyverse)
+numbers <- list(1:5, c(2, 4, NA), c(10, 20))
+map(numbers, mean)                              # 列表；含 NA 就得 NA
+map_dbl(numbers, \(x) mean(x, na.rm = TRUE))    # 匿名函数：R >= 4.1 原生写法
+map_dbl(numbers, ~ mean(.x, na.rm = TRUE))      # purrr 公式写法（.x .y）
+map_int(numbers, length)                        # 每个元素多长
+```
+:::
+
+传给 `map()` 的常常是**匿名函数**（anonymous function，又称 lambda）——用完
+即弃，不起名字。`\()` 是 R 4.1 起的原生写法，全 R 通用；`~ .x` 是 purrr 的
+公式简写（formula shorthand）。读旧代码必须认识 `~ .x`，写新代码统一用 `\()`。
+
+::: {.callout-warning}
+## 高频错误：给函数带上括号
+`map(numbers, mean())` 立刻报错——你要**交出函数本身**，让 `map()` 去调用它。同族错误：`map_dbl(x, range)` 也会炸——`range()` 返回长度 2，而类型化变体要求**每个元素恰好产出一个值**。
+:::
+
+::: {.callout-note}
+`~ mean(.x)` 只在 purrr/tidyverse 函数里有效——塞给 `lapply()` 会原样收到一个公式对象而不是函数。
+:::
+
+## 3. 多个输入一起走：`map2()` 与 `pmap()`
+
+一个向量不够用？`map2()` 并行迭代两个，`pmap()` 迭代一个**命名列表**：
+
+::: {.callout-example}
+```r
+mu <- c(0, 5, 10); sigma <- c(1, 2, 3)
+map2(mu, sigma, \(m, s) rnorm(3, mean = m, sd = s))
+# pmap 按名字配对：列表名 = 函数参数名
+specs <- list(n = c(30, 60, 90), mean = c(0, 5, 10))
+specs |> pmap(\(n, mean) rnorm(n, mean)) |> map_dbl(mean)
+```
+:::
+
+关键直觉：**数据框就是命名列表**，所以 `pmap(df, f)` = 逐行迭代——把每行当作一组命名参数交给 `f`。
+
+::: {.callout-warning}
+## 高频错误：两个输入长度不齐
+`map2()` 遇到长度不整除的输入会**静默重循环**（recycle）或只给一条警告，
+结果长度取长者——单位对不上的「巧合」就这样进了论文。先 `stopifnot(length(a) == length(b))`。
+:::
+
+::: {.callout-important}
+## Check In：预测输出
+
+先笔算再运行；然后解释把 `c(2, 3)` 换成 `c(2, 3, 4)` 后发生了什么：
+```r
+map2_chr(c("Adelie", "Gentoo"), c(2, 3), \(s, n) str_c(rep(s, n), collapse = "-"))
+```
+:::
+
+## 4. 迭代数据框的列：`across()`
+
+dplyr 内建了一个「列上的 map」：`across()`，专答「同一件事对很多列各做一遍」：
+
+::: {.callout-example}
+```r
+se <- \(x) sd(x, na.rm = TRUE) / sqrt(sum(!is.na(x)))
+palmerpenguins::penguins |>
+  group_by(species) |>
+  summarise(across(ends_with("mm"), list(mean = \(x) mean(x, na.rm = TRUE), se = se),
+                   .names = "{.fn}_{.col}"))
+```
+:::
+
+三个旋钮：`.cols` 用 `select()` 语法选列（`ends_with()`、`where(is.numeric)`…）；
+`.fns` 传函数**不带括号**，多个函数装进命名列表；`.names` 胶水串控制输出列名。
+
+::: {.callout-warning}
+## 高频错误：mutate 里忘了 .names
+`mutate(across(ends_with("mm"), to_z))` 会**直接覆盖原列**——原始测量值
+无声消失。在 `mutate()` 里请养成写 `.names = "z_{.col}"` 的肌肉记忆。
+:::
+
+::: {.callout-note}
+把 `across()` 装进自己的函数（1.1 的 `{{ }}` 在此汇合）：
+```r
+my_summary <- function(df, cols = where(is.numeric)) {
+  df |> summarise(across({{ cols }}, list(mean = \(x) mean(x, na.rm = TRUE))), .groups = "drop")
+}
+penguins |> group_by(species) |> my_summary(ends_with("mm"))
+```
+:::
+
+## 5. 只要副作用：`walk()` 族
+
+保存文件、画图、打印——这些调用**不是为了返回值**，是为了副作用（side effects）。
+此时用 `walk()`，宣告「我在乎动作，不在乎结果」：
+
+::: {.callout-example}
+```r
+penguins <- palmerpenguins::penguins
+plots <- split(penguins, penguins$species) |>
+  map(\(d) ggplot(d, aes(bill_length_mm, body_mass_g)) + geom_point())
+fs::dir_create("plots")
+iwalk(plots, \(p, name) ggsave(fs::path("plots", paste0(name, ".png")), p))
+```
+:::
+
+`walk()` 原样（不可见地）返回输入，方便接管道；`iwalk()` 额外把元素**名字**传给函数，天然适合生成文件名。
+
+::: {.callout-note}
+`map()` 的契约是：每次调用互不干扰、不共享状态——守约的代码可以随便并行/重跑，
+这正是 for 循环里「累加变量满天飞」给不了的性质。
+:::
+
+## 6. 失败不该炸队：`possibly()` 与 `safely()`
+
+批量读 30 个文件，第 7 个损坏——`map()` 直接停摆，前 6 个的成果全丢。副词
+（adverb）函数改造动词：`possibly()` 给垫底值继续走，`safely()` 把「结果
+或错误」成对收回供你审计：
+
+::: {.callout-example}
+```r
+read_raw <- \(path) readr::read_csv(path, show_col_types = FALSE)
+paths <- c(fs::dir_ls("data/survey"), "data/survey/2099.csv")  # 混入不存在的
+possibly_read <- possibly(read_raw, otherwise = NULL)
+dfs <- map(paths, possibly_read) |> keep(\(x) !is.null(x))
+survey <- list_rbind(dfs)                    # 好文件一个不落
+safe_read <- safely(read_raw)                # 想知道谁失败了？
+map(paths, safe_read) |> keep(\(r) !is.null(r$error)) |> map_chr(\(r) r$error$message)
+```
+:::
+
+`possibly()` 适合「失败就用默认值顶上」；`safely()` 适合「失败必须记账」。
+
+::: {.callout-warning}
+## 高频错误：possibly 吞错成瘾
+`possibly()` 会把**所有**错误换成垫底值，包括你其实必须知道的逻辑错。
+原则：外部世界的失败（文件缺失、网络超时）可以 possibly；自己代码的 bug 不许。
+:::
+
+最后给 for 循环正名，以下场景它是**诚实**的工具：① 后一步依赖前一步的累积
+状态（滚动预测、MCMC）；② 迭代次数由运行时条件决定（`while`）；③ 正在调试，
+需要逐迭代看状态。其余情况，先想向量化，再想 map。
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+复制 §4 的 `across()` 代码，把两个统计函数换成 `median` 与 `mad`（都带
+`na.rm = TRUE`），让 `.names = "med_of_{.col}"`。**先笔答**输出有哪几列，
+再运行验证，把「预测 vs 实际」写成三行注释。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把 §6 改造成函数 `read_survey(dir, pattern = ".csv$")`：返回「成功合并的
+数据框」，并**报告被跳过的文件名与原因**。在 `tempdir()` 里自造 3 个好
+CSV + 1 个不存在的路径当测试集，要求成功 3、报告 1（提示：`safely()` + `map_chr()`）。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁 AI → AI 评审）
+
+**第一轮（禁用 AI）**：仅凭本章 + `?pmap`，写 `simulate_groups(specs)`：
+输入命名列表 `specs`（含 `n`、`mean`、`sd`、`label`），用 `pmap()` 生成各组
+正态数据、合并成带 `label` 列的 tibble，并用 `iwalk()` 给每组存一张
+`label.png` 散点图。**第二轮（开放 AI）**：把代码贴给 Posit Assistant，
+只问：「哪些环节出错会让整批任务失败？」补上容错，记录 AI 指出而你漏掉的一处。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「月度航班质检流水线」。把 `nycflights13::flights` 按月拆分，每月：
+① 产出质量 tibble（行数、`dep_delay` 缺失率、取消率）；② 存一张延误分布
+直方图（`walk()` 族）；合并 12 个月质量表并渲染 Quarto 报告。必须演示容错：
+故意放一个「坏月」，流水线照常完成并报告失败原因。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 迭代设计 | 用 map/walk 完成拆分、统计、存图 | map 变体与返回类型选择全部正确 | `pmap()`/`across()` 恰当压缩重复，函数化可换数据集 |
+| 健壮性 | 单月失败不中断 | 失败月有名有因的报表 | possibly 与 safely 的分工有书面理由 |
+| 正确性 | 数字与 `group_by` 直算一致 | 关键输出先笔答预测再验证 | 指出并修复一处自己的下标/回收隐患 |
+| 表达 | 报告完整 | 流程一图讲清 | 提炼个人「map 还是 for」判断规则 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§3、§6 结构与练习（map 家族、并行迭代、adverbs 容错、「读错年份文件」动机） | posit::conf(2025) r-programming `04-iteration-02.qmd`（Emma Rand, Garrett Grolemund, Ian Lyttle · CC-BY-SA 4.0） | 改编 |
+| §4 `across()` 三旋钮与函数化 | 同上 `03-iteration-01.qmd` | 改编 |
+| walk 存图练习、月度航班 capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

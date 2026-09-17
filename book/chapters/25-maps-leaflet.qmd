@@ -1,0 +1,258 @@
+---
+title: "2.5 地图 · Web Maps with leaflet"
+objectives: |
+  学完本章你能：建立「点 + 经纬度」的空间心智模型；铺底图并加标记层
+  （popup / label）；用 colorNumeric / colorFactor 上色并配图例；用
+  sf + addPolygons 做面上填色；用图层与视角控制组织地图；保存地图部件。
+source-note: "本章为 100% 原创，仅引用官方文档：Leaflet for R（https://rstudio.github.io/leaflet/）"
+---
+
+# 2.5 地图 · Web Maps with leaflet
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **model** 用「点 + 经纬度（lon/lat）」的空间心智模型组织数据，杜绝坐标颠倒
+2. **construct** 用 `addTiles()` 铺底图，用 `addMarkers()` / `addCircleMarkers()` 叠加标记层
+3. **differentiate** label（悬停轻提示）与 popup（点击详情卡）两种信息 affordance
+4. **encode** 用 `colorNumeric()` / `colorFactor()` + `addLegend()` 把数据映射为颜色
+5. **build** 用 sf + `addPolygons()` 做面上填色（choropleth-lite），并知道何时要除基数
+6. **orchestrate** 图层控制、`setView()` / `fitBounds()` 取景，并保存可分享的地图部件
+
+## 前置自测（≤5 分钟）
+
+知道数据框「行 = 观测、列 = 变量」、会用 `filter()` 再继续；否则先回补 [L1-B1]：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. `quakes` 是 R 自带数据（斐济附近 1000 次地震）：运行 `head(quakes)`，说出哪列是经度、哪列是纬度。
+2. 经度 178°E、纬度 20°S 在地球上是哪片海域？（答对恭喜，这就是本章主场。）
+:::
+
+## 1. 空间心智模型：点，以及经纬度
+
+网页地图的最小数据单位是**点**：一对坐标（经度 longitude = lng，纬度 latitude = lat）。
+
+| 概念 | 常见写法 | 方向 | 直觉 |
+|---|---|---|---|
+| 经度 | lng / lon / long | 东西 | 相当于 x；负数 = 西经 |
+| 纬度 | lat | 南北 | 相当于 y；负数 = 南纬 |
+
+::: {.callout-example}
+```r
+head(quakes)
+# long ≈ 165–190（东经），lat ≈ -38 到 -10（南纬）→ 斐济附近，本章 1000 个地震点主场
+```
+:::
+
+::: {.callout-warning}
+## 高频错误：lng 与 lat 对调
+`addMarkers(lng = ~lat, lat = ~long)` 不报错，只是把点画到完全错误的地方——§3 的 Check In 会让你亲手犯一次，终身免疫。
+:::
+
+::: {.callout-note}
+leaflet 说的是 **WGS84（EPSG:4326）** 经纬度。GIS 数据若在其他坐标系（投影），先 `sf::st_transform(x, 4326)` 再进地图（§5 会用到）。
+:::
+
+## 2. 底图：addTiles()
+
+地图 = **底图**（瓦片，tiles：服务器上的小图片拼成的画布）+ **你的数据层**。先铺底图：
+
+::: {.callout-example}
+```r
+library(leaflet)
+
+leaflet() |>                               # 最小地图：默认 OpenStreetMap 瓦片
+  addTiles() |>
+  setView(lng = 178, lat = -20, zoom = 4)
+
+# 正式交付常换更「安静」的底图，好让数据当主角：
+leaflet() |>
+  addProviderTiles(providers$CartoDB.Positron) |>   # 浅色低干扰
+  setView(lng = 178, lat = -20, zoom = 4)
+```
+:::
+
+::: {.callout-note}
+右下角的 attribution（版权行）随瓦片自动带上——正式交付别裁掉它。瓦片来自网络服务器：**离线或内网受限环境下地图只剩灰底**（§7 再回到这点）。
+:::
+
+## 3. 标记层：addMarkers / addCircleMarkers
+
+::: {.callout-example}
+```r
+leaflet(data = quakes[1:200, ]) |>
+  addTiles() |>
+  addMarkers(lng = ~long, lat = ~lat,
+             label = ~as.character(mag),            # 悬停：一个数
+             popup = ~paste0("震级 ", mag, " · 深度 ", depth,
+                             " km · 台站 ", stations))  # 点击：详情卡
+```
+:::
+
+| affordance | 触发 | 适合放什么 |
+|---|---|---|
+| label | 悬停 | 一个词、一个数——快速扫读 |
+| popup | 点击 | 多字段结构化详情 |
+
+图钉标记（markers）适合少量带名字的点；数据一多、还想让**大小/颜色随数据变化**，换矢量圆 `addCircleMarkers()`：
+
+::: {.callout-example}
+```r
+leaflet(data = quakes) |>
+  addTiles() |>
+  addCircleMarkers(lng = ~long, lat = ~lat,
+                   radius = ~mag / 2,          # 半径随震级
+                   stroke = FALSE, fillOpacity = 0.5)
+```
+:::
+
+::: {.callout-note}
+点数上千时，图钉标记会拖慢浏览器；可开聚合：`addMarkers(clusterOptions = markerClusterOptions())`，缩放时自动聚散。
+:::
+
+::: {.callout-important}
+## Check In：故意把地图弄错
+
+先渲 `setView(lng = -122.4, lat = 37.8, zoom = 10)`（旧金山）确认坐标感；再**故意**交换成 `setView(lng = 37.8, lat = -122.4)`，观察视角飞去了哪里。截图留档——这个 bug 值得见一次症状，胜过十次说教。
+:::
+
+## 4. 用数据上色：colorNumeric / colorFactor + addLegend
+
+连续数值 → 连续色阶（`colorNumeric`）；类别 → 离散色（`colorFactor`）。套路是先建「翻译器」（色板函数），再喂给颜色映射：
+
+::: {.callout-example}
+```r
+pal <- colorNumeric(palette = "viridis", domain = quakes$mag)
+
+leaflet(quakes) |>
+  addProviderTiles(providers$CartoDB.Positron) |>
+  addCircleMarkers(lng = ~long, lat = ~lat, radius = 3,
+                   color = ~pal(mag), stroke = FALSE, fillOpacity = 0.7,
+                   popup = ~paste0("震级 ", mag)) |>
+  addLegend(pal = pal, values = ~mag, opacity = 1, title = "震级")
+
+# 类别上色：先把连续变量分箱，再映射离散色（colorFactor）
+quakes$depth_band <- cut(quakes$depth, breaks = c(0, 200, 400, 700),
+                         labels = c("浅层", "中层", "深层"))
+pal_band <- colorFactor("Set1", domain = quakes$depth_band)
+# 之后 color = ~pal_band(depth_band) + addLegend(pal = pal_band, values = ~depth_band)
+```
+:::
+
+::: {.callout-note}
+选口诀：数值连续→`colorNumeric`；类别→`colorFactor`；等宽分箱还有 `colorBin`。**`addLegend()` 不是可选装饰**——没有图例的颜色就是哑谜。
+:::
+
+## 5. 面上填色：sf + addPolygons（choropleth-lite）
+
+点之外的第二种空间单位是**面**（polygon）：行政区、流域、网格。sf 包内置的 `nc` 数据（北卡罗来纳 100 县，公共教学数据）是标准练习场：
+
+::: {.callout-example}
+```r
+library(sf)
+nc <- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE) |>
+  st_transform(4326)                       # leaflet 只认 WGS84
+
+pal_nc <- colorNumeric("YlOrRd", domain = nc$SID79)
+
+leaflet(nc) |>
+  addProviderTiles(providers$CartoDB.Positron) |>
+  addPolygons(weight = 1, color = "white",
+              fillColor = ~pal_nc(SID79), fillOpacity = 0.7,
+              highlightOptions = highlightOptions(weight = 3, bringToFront = TRUE),
+              popup = ~paste0(NAME, " 县：SIDS ", SID79, " 例"))
+```
+:::
+
+::: {.callout-warning}
+## 高频误区：给「总量」上色
+SID79 是**计数**：人多的县天然更多。想让读者看到风险而非人口规模，就除以基数（`rate = SID79 / BIR79 * 1000`，每千活产）再上色，原始数放进 popup。
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+choropleth 的默认谎言是总量填色：你以为在讲疾病，其实在讲人口。动手前先自问「这块颜色代表强度还是规模」；想讲故事就归一，想保细节就把原始数交给 popup。底图同理——它从来不是中性背景：地名、边界、配色都是某个版本的地理叙事，正式交付前多换一个 provider 看一眼。
+:::
+
+## 6. 图层控制与视角：addLayersControl / setView / fitBounds
+
+图层（group）是地图的「目录」：底图单选、数据层多选，读者自己开关；视角（view）决定读者第一眼看到哪里：
+
+::: {.callout-example}
+```r
+m <- leaflet(quakes) |>
+  addTiles(group = "OSM 默认") |>
+  addProviderTiles(providers$CartoDB.Positron, group = "浅色底图") |>
+  addCircleMarkers(lng = ~long, lat = ~lat, radius = ~mag / 2,
+                   stroke = FALSE, fillOpacity = 0.5,
+                   color = ~pal(mag), group = "地震点") |>
+  addLayersControl(baseGroups = c("OSM 默认", "浅色底图"),
+                   overlayGroups = c("地震点"),
+                   options = layersControlOptions(collapsed = FALSE))
+
+m |> setView(lng = 178, lat = -20, zoom = 5)                     # 定点定焦
+m |> fitBounds(lng1 = 165, lat1 = -38, lng2 = 190, lat2 = -10)   # 恰好框住数据
+```
+:::
+
+::: {.callout-note}
+`baseGroups` 互斥单选，`overlayGroups` 可多选叠加；`collapsed = FALSE` 让控件常开（省读者一次点击）。**取景即叙事**：`fitBounds()` 交代全局，`setView()` 把镜头对准你要讲的那块。
+:::
+
+## 7. 保存地图部件
+
+leaflet 地图与 2.1 章的 plotly 部件同属 htmlwidgets，保存方式一致：
+
+::: {.callout-example}
+```r
+htmlwidgets::saveWidget(m, "quakes-map.html")   # 自包含单文件（权衡见 2.1 §5）
+```
+:::
+
+::: {.callout-warning}
+## 高频误区：以为存了就能离线看
+部件里你的**数据**是内嵌的，但**瓦片来自网络**：断网打开只剩数据层和灰底。交付时要么声明「需联网」，要么走自托管瓦片方案（超出本章，见 leaflet 文档）。Quarto html 里 leaflet 输出会自动内嵌，无需另存。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+复跑 §2 底图 + §3 前 200 个震点的 `addMarkers()` 图；再用 `setView()` 把视角移到你所在城市（自查经纬度）`zoom = 10`，与默认视角截图对比。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+给 §4 的 colorNumeric 图加三件事：① `radius = ~mag / 2` 映射；② §4 的深度分箱图层（`colorFactor`）作为第二图层；③ `addLayersControl()` 切换两个数据层与两种底图，最后 `fitBounds()` 框住全部震点。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁 AI → AI 评审）
+
+**第一轮（禁用 AI）**：把 §5 的 nc 地图改成「每千活产 SIDS 率」（`SID79 / BIR79 * 1000`）上色，popup 同时给出**率与原始数**，配 `addLegend()`。
+**第二轮（开放 AI）**：只问 Posit Assistant 一个问题：「我的配色对色盲读者友好吗？给一个可验证的改法。」记录建议并实测修改前后你自己对色阶的分辨体验。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「一页地图简报」。点数据（quakes 换一列变量，或自备 CSV：城市/门店/站点）或面数据（nc 换变量，或自备 shapefile）二选一，交付：① leaflet 地图：底图切换 + 数据图层 + 图例 + popup/label；② 视角控制：`setView()` 或 `fitBounds()`，并用一句话说明为什么这样取景；③ `saveWidget()` 独立 html；④ Quarto 简报一页：为什么这组信息值得用地图讲、色阶与半径的选择理由、坐标系与底图归因说明。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 空间心智 | 经纬度无颠倒 | 说明数据坐标系与 4326 的关系 | 取景（view/zoom）有明确叙事意图 |
+| 视觉编码 | 颜色映射数值且有图例 | 色阶/半径选择有理由（连续 vs 分类） | 声明色盲友好性与（choropleth）基数归一 |
+| 交互设计 | popup 或 label 可用 | 图层控制 + 底图切换就位 | 交互不过载：每个控件服务一个问题 |
+| 发布边界 | saveWidget 能独立打开 | 说明离线时底图失效的风险 | 提供静态截图 fallback 与归因说明 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| 全章结构、示例、练习、capstone、rubric | 本项目 | 原创 |
+| `addTiles` / `addMarkers` / `addCircleMarkers` / `colorNumeric` / `addPolygons` / `addLayersControl` 等用法 | Leaflet for R 官方文档 https://rstudio.github.io/leaflet/ | 引用 |
+| nc.shp 示例数据 | sf 包内置北卡县界数据（公共教学数据） | 数据 |
+
+本章以 CC-BY-SA 4.0 发布。

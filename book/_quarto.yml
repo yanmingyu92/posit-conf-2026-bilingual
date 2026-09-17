@@ -13,17 +13,44 @@ book:
     - part: "Unit 1 · Complex Analyses 复杂分析"
       chapters:
         - chapters/01-functions.qmd
-        - unit-1-map.qmd
+        - chapters/12-iteration.qmd
+        - chapters/13-efficient-code.qmd
+        - chapters/14-json-apis.qmd
+        - chapters/15-web-scraping.qmd
+        - chapters/16-great-tables.qmd
+        - chapters/17-alt-geoms.qmd
+        - chapters/18-styled-plots.qmd
     - part: "Unit 2 · Professional Deliverables 专业交付物"
       chapters:
-        - unit-2-map.qmd
+        - chapters/21-interactive-graphics.qmd
+        - chapters/22-animation.qmd
+        - chapters/23-dashboards-static.qmd
+        - chapters/24-dashboards-dynamic.qmd
+        - chapters/25-maps-leaflet.qmd
+        - chapters/26-ggplot-extensions.qmd
+        - chapters/27-shiny-reactive.qmd
+        - chapters/28-pub-ready-reports.qmd
     - part: "Unit 3 · Package Development 包开发"
       chapters:
-        - unit-3-map.qmd
+        - chapters/31-pkg-structure.qmd
+        - chapters/32-unit-testing.qmd
+        - chapters/33-debugging.qmd
+        - chapters/34-code-speed.qmd
     - part: "Unit 4 · AI & Domain Applications AI 与领域应用"
       chapters:
         - chapters/41-llm-basics.qmd
-        - unit-4-map.qmd
+        - chapters/42-structured-output.qmd
+        - chapters/43-agents.qmd
+        - chapters/44-skills.qmd
+        - chapters/45-rag-mcp.qmd
+        - chapters/46-shinychat.qmd
+        - chapters/47-clinical-reporting.qmd
+        - chapters/48-regulated-gxp.qmd
+  appendix:
+    - unit-1-map.qmd
+    - unit-2-map.qmd
+    - unit-3-map.qmd
+    - unit-4-map.qmd
   sidebar:
     style: floating
 

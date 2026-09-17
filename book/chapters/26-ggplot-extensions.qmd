@@ -1,0 +1,255 @@
+---
+title: "2.6 ggplot 扩展生态 · ggplot Extensions"
+objectives: |
+  学完本章你能：解释扩展包如何以新 geom/stat/theme 接入 ggplot2 语法；
+  用六个高频扩展（ggrepel、ggridges、patchwork、ggforce、gghighlight、scales）
+  写出可运行图形；从官方画廊发现并评估扩展；组合多个扩展而不失控；
+  用"三问法"快速读懂任意扩展的文档。
+source-note: "教学结构改编自 posit::conf(2025) ggplot2（Thomas Lin Pedersen, Teun van den Brand · CC-BY 4.0）sessions 5–6 与 quarto-extend（Mine Çetinkaya-Rundel, Charlotte Wickham · CC-BY-SA 4.0）扩展思想；讲义文字与练习为本项目原创"
+---
+
+# 2.6 ggplot 扩展生态 · ggplot Extensions
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **explain** 扩展包如何以 `geom_*()` / `stat_*()` / `theme_*()` / `scale_*()`
+   的形式接入 grammar of graphics（图形语法）
+2. **run** 六个高频扩展的最小示例：ggrepel、ggridges、patchwork、ggforce、
+   gghighlight、scales
+3. **discover** 通过官方扩展画廊发现扩展并评估其维护状态
+4. **combine** 多个扩展完成一张图，而不把代码写成面条
+5. **read** 用"三问法"在 10 分钟内读懂一个陌生扩展的文档
+6. **justify** 为什么这张图值得引入一个新依赖（AI 织入点：让 AI 当采购评审）
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下两问再继续；否则先回补 [1.7]：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 写出散点图 + 平滑线的 ggplot2 代码（用 `palmerpenguins::penguins`，
+   `bill_length_mm` × `bill_depth_mm`，按 `species` 着色）。
+2. 说出一层 `+` 加上去的是"图层（layer）"还是"全局设置"——
+   `geom_point()` 与 `labs()` 的区别在哪里？
+:::
+
+## 1. 什么是扩展：语法里的新动词
+
+ggplot2 的威力在于**语法**：数据 → 几何对象 → 标度 → 主题，用 `+` 逐层组装。
+扩展包（extension package）就是**往这门语法里添加新动词的包**——
+一个新的 `geom_*()` 就像词典里多了一个精准的动词，句子结构不用重学。
+
+好消息：**你已经会 90% 了**。`ggforce::geom_mark_circle()` 的用法和
+`geom_point()` 一样——映射 aes、调参数、`+` 上去。
+学扩展的成本几乎全在"知道它存在"，而不是"学会怎么用"。
+
+::: {.callout-note}
+ggplot2 扩展遵循统一的 Extension API（`ggproto` 体系）。
+本章**只当用户**；想当作者的进阶路线在 Unit 3（包开发）之后再回来。
+:::
+
+## 2. 六件套快览：每个都有真实用武之地
+
+以下示例均可独立运行（`install.packages()` 装齐缺的包即可）。
+
+::: {.callout-example}
+```r
+library(ggplot2); library(palmerpenguins)
+pg <- dplyr::filter(penguins, !is.na(sex))
+
+# ① ggrepel：标签不打架（对比 geom_text 的灾难）
+ggplot(pg, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+  geom_point() +
+  ggrepel::geom_text_repel(
+    aes(label = stringr::str_to_title(species)),
+    data = ~ dplyr::distinct(.x, species, .keep_all = TRUE)
+  )
+
+# ② ggridges：分布随组漂移的"山脊图"
+ggplot(pg, aes(bill_length_mm, species, fill = species)) +
+  ggridges::geom_density_ridges(alpha = 0.7)
+
+# ③ gghighlight：只强调你说话的那一部分
+ggplot(pg, aes(bill_length_mm, fill = species)) +
+  geom_histogram(bins = 30) +
+  gghighlight::gghighlight(species == "Gentoo")
+
+# ④ ggforce：局部放大，看清拥挤区域
+ggplot(pg, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+  geom_point() +
+  ggforce::facet_zoom(zoom = species == "Gentoo")
+```
+:::
+
+::: {.callout-example}
+```r
+# ⑤ patchwork：把多张图拼成一件作品
+p1 <- ggplot(pg, aes(species, bill_length_mm)) +
+  geom_boxplot()
+p2 <- ggplot(pg, aes(flipper_length_mm)) +
+  geom_histogram(bins = 25)
+p3 <- ggplot(pg, aes(species, fill = island)) +
+  geom_bar(position = "fill")
+
+p1 | (p2 / p3)          # 运算符即布局：左一右二
+
+# ⑥ scales：坐标轴与图例的"抠细节"层
+p1 + scales::label_percent()               # 试试错误示范？→ 见下方警告
+p2 + scale_x_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale()))
+```
+:::
+
+::: {.callout-warning}
+## 高频错误：把 label_*() 用在不匹配的标度上
+`scales::label_percent()` 只对**比例标度**有意义；柱数直方图的 x 轴是
+原始毫米数，强行贴百分比标签会得到荒谬结果（或直接报错）。
+**排查口诀：先问轴上是什么数，再选 label 函数。**
+:::
+
+## 3. 发现扩展：官方画廊与三步评估
+
+ggplot2 扩展生态有 100+ 个包。入口只有一个，稳定可引用：
+**[exts.ggplot2.tidyverse.org](https://exts.ggplot2.tidyverse.org)**
+（ggplot2 extension gallery，官方维护）。按缩略图浏览，按需检索。
+
+找到候选扩展后，花 60 秒做三步评估：
+
+| 步骤 | 看什么 | 红旗 |
+|---|---|---|
+| 1. 发布渠道 | CRAN 有发布？版本号？ | 仅 GitHub 且两年未动 |
+| 2. 语法契合 | 文档示例是否就是 `+ geom_*()` | 要求你绕开 ggplot2 另起炉灶 |
+| 3. 维护迹象 | NEWS、issue 响应、ggplot2 新版本兼容 | 大量 "not compatible" issue |
+
+::: {.callout-important}
+## Check In：画廊寻宝
+
+打开扩展画廊，完成两件事：
+① 找到一个能画**平行坐标图（parallel coordinates plot）**的扩展，记下包名与函数名；
+② 找到一个本章没讲过、但你想在 capstone 里用的扩展，用三步评估打分。
+把答案写进你的学习笔记（不评分但视为必做）。
+:::
+
+## 4. 组合扩展而不面条化
+
+扩展的真正威力在**组合**：一个管标签、一个管强调、一个管拼版。
+但三个扩展叠一起，代码很快失控。纪律只有一条：
+**每张图保持"一个构建对象"的形态，扩展只加一层，加完就命名。**
+
+::: {.callout-example}
+```r
+# 逐步构建、逐步命名：每一步都可单独重跑与微调
+base <- ggplot(pg, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+  geom_point(alpha = 0.6)
+
+labelled <- base +
+  ggrepel::geom_text_repel(
+    aes(label = stringr::str_to_title(species)),
+    data = ~ dplyr::distinct(.x, species, .keep_all = TRUE),
+    seed = 42                       # repel 布局随机：锁种子保证可复现
+  )
+
+focused <- labelled + gghighlight::gghighlight(
+  species != "Chinstrap",
+  unhighlighted_colour = "grey80"
+)
+
+final <- focused + ggtitle("吻突最长的两种企鹅") + theme_minimal()
+final
+```
+:::
+
+组合三原则：
+
+1. **一条链只讲一个故事**——强调（gghighlight）与放大（ggforce） seldom 同屏
+2. **随机成分锁种子**（`seed =`），否则每次渲染图都不一样，审稿人会疯
+3. **patchwork 最后上**：先把子图各自打磨好，再拼版
+
+## 5. 快速读懂扩展文档：三问法
+
+任何扩展文档，按顺序问三个问题，10 分钟内决定去留：
+
+| 问题 | 在哪找 | 判据 |
+|---|---|---|
+| Q1 给我哪个新函数？ | README 第一屏 | 函数名是否自解释 |
+| Q2 最小示例长什么样？ | README 首段代码 | 能否直接套我的数据 |
+| Q3 与标度/主题层如何交互？ | vignette 中段 | `scale_*()`、`theme()` 是否照常生效 |
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+
+我的扩展观是"**节食**"：一张图引入超过两个新依赖，审稿人复现你的图形的
+概率就掉一半。patchwork 和 ggrepel 值得进默认工具箱（近乎 ggplot2 的一部分）；
+其余扩展**按项目临时引入，用完即走**。生态的繁荣不是让你全装上，
+而是让你确信"要用的时候一定有"。
+:::
+
+## 6. 反向检查：真的需要扩展吗？
+
+ggplot2 本体在快速进化（posit::conf(2025) 工作坊的主题之一就是
+"Modern ggplot2"）。引扩展前先做反向检查：
+
+- 这个图**本体能不能画**？`annotate()`、`coord_*()`、`facet_wrap()` 常被低估
+- 版本升级是否已**内置**了该功能？（查 ggplot2 NEWS）
+- 扩展是否只为省三行代码？——那不如自己写三行
+
+::: {.callout-warning}
+## 高频误区：用扩展掩盖设计问题
+标签互相重叠常因为**图上标签太多**——先问"这 40 个标签读者都要看吗"，
+再决定 ggrepel。扩展解决的是排版问题，不是信息过载问题。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+从扩展画廊选一个扩展，把 README 的第一个示例**原样跑通**，
+然后把数据换成 `penguins`（列名相应映射）。
+交付：两段代码 + 一句话说明"这个扩展解决了本体 ggplot2 的什么痛点"。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+改造 §4 的逐步构建链：把强调对象从 species 换成 island，
+并把 `focused` 与一张按 species 的山脊图用 patchwork 拼成
+`(focused | ridge) + patchwork::plot_annotation(tag_levels = "A")`。
+要求：随机成分锁种子；每个中间对象单独命名。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁用 AI 环节）
+
+**第一轮（禁 AI）**：仅凭扩展画廊 + 两个扩展的官方文档（不许问任何 AI 助手），
+为 `penguins` 做一张"编辑精选图"：分面 + 强调 + 无重叠标签 + 拼版任选三项组合。
+写下你三问法的答案（每个扩展各三行）。
+**第二轮（开放 AI）**：把成品代码贴给 Posit Assistant，只问：
+"哪一层可以换成 ggplot2 本体实现？"记录它指出的至少一处。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：自选真实数据集（本班提供：体检 / penguins / nycflights13 三选一），
+做一张"一图讲完"的总结图：**至少组合三个扩展**，其中 patchwork 管拼版、
+ggrepel 管关键标注，第三 个扩展自选并说明理由。
+交付：Quarto 报告一页——最终图 + 逐步构建链（每步命名）+ 一段"为什么是这三个扩展"
+的选型辩护（含三步评估表）。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 组合质量 | 三扩展齐且图可读 | 每层只讲一件事，无面条链 | 版式有设计意图（留白/层级/强调一致） |
+| 可复现性 | 代码可重跑 | 随机成分锁种子 | 他人拿走代码零修改出同图 |
+| 选型论证 | 说了用什么 | 说了为什么 | 含"哪层可被本体替代"的反向检查 |
+| 文档效率 | 用了三问法 | 三问法答案写在报告里 | 给画廊条目写了你的评分供同学复用 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§2 扩展生态与 patchwork 组合视角 | posit::conf(2025) ggplot2 `sessions/5_composition.qmd`、`6_extensions.qmd`（Thomas Lin Pedersen, Teun van den Brand · CC-BY 4.0） | 改编 |
+| §3 "扩展是 Quarto/ggplot2 生态的接入点"思想 | posit::conf(2025) quarto-extend（Mine Çetinkaya-Rundel, Charlotte Wickham · CC-BY-SA 4.0） | 借鉴结构 |
+| 扩展画廊 URL | <https://exts.ggplot2.tidyverse.org>（ggplot2 官方） | 引用 |
+| 六件套示例、三问法、三步评估、练习与 rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

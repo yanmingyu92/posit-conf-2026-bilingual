@@ -1,0 +1,245 @@
+---
+title: "1.6 出版级表格 · Great Tables with gt"
+objectives: |
+  学完本章你能：区分存储型与传播型表格；用 gt() |> fmt_*() 管道构建表格并配置
+  标题与列名；格式化数字、比例与日期；用行分组组织长表；用 tab_style() +
+  where() 做条件样式；导出成品并标注来源。
+source-note: "教学结构与练习设计改编自 posit::conf(2026) modern-ds-python great-tables（Jeroen Janssens, Richard Iannone, Isabel Zimmerman · CC-BY-SA 4.0）；讲义文字与 penguins/gapminder 示例为本项目原创"
+---
+
+# 1.6 出版级表格 · Great Tables with gt
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **distinguish** 「存储型表格」与「传播型表格」，并说出三处典型差异
+2. **construct** 用 `gt(data) |> fmt_*() |> tab_*()` 管道组装表格，配好标题、副标题与列名
+3. **format** 用 `fmt_number()` / `fmt_percent()` / `fmt_date()` 让数字与日期可读
+4. **organize** 用 `tab_row_group()` + `row_group_order()` 组织长表结构
+5. **style** 用 `tab_style()` + `cells_body()` + `where()` 实现数据驱动的高亮
+6. **export** 用 `gtsave()` 导出成品并配上 `tab_source_note()` 出处
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下两问再继续；否则先回补 [L1-B1]：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 用 `dplyr` 对 `palmerpenguins::penguins` 按 `species` 分组求 `body_mass_g` 均值与样本量（忽略缺失值）。
+2. 说出 `|>` 管道与嵌套函数调用相比的两个好处。
+:::
+
+## 1. 表格是传播，不是存储
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+大多数人把表格当"倒出来的数据"：`print()` 能看就行。**但从你决定给读者看的那一刻起，表格就是传播媒介**——标题、对齐、数字格式、出处，每一样都在替你说话（或者骂你）。存储用 CSV，传播用 gt；两件事别混。
+:::
+
+存储型表格（`write_csv()` 的产物）与传播型表格的差异：
+
+| 维度 | 存储型 | 传播型 |
+|---|---|---|
+| 列名 | `body_mass_g` | 平均体重 (g) |
+| 数字 | `4201.754385964912` | 4,201.8 |
+| 出处 | 无 | 表下注明数据来源 |
+| 缺失 | `NA` | `—`（并说明含义） |
+
+gt 的函数分工对应这个差异：**`fmt_*()` 改格式、`tab_*()` 改结构、`opt_*()` 改外观**——数据进、格式中、样式出。
+
+## 2. 管道与门面：`gt(data) |> fmt_*()`、`tab_header()` 与 `cols_label()`
+
+所有 gt 函数都以 `gt_tbl` 对象为第一参数——整张表就是一条管道；`fmt_*()` 只改**渲染层**，底层数据框一字节不动，"显示"与"真相"永远可分离。
+
+::: {.callout-example}
+```r
+library(gt)
+library(dplyr)
+
+penguins_sum <- palmerpenguins::penguins |>
+  drop_na() |>
+  group_by(species, island) |>
+  summarise(
+    n = n(),
+    mean_bill = mean(bill_length_mm),   # 平均喙长 mm
+    mean_mass = mean(body_mass_g),      # 平均体重 g
+    .groups = "drop"
+  )
+
+penguins_sum |>
+  gt() |>
+  tab_header(
+    title = "Palmer 企鹅体型摘要",
+    subtitle = "按物种 × 岛屿汇总，2007–2009 三次调查合并"
+  ) |>
+  cols_label(
+    species = "物种", island = "岛屿", n = "样本量",
+    mean_bill = "平均喙长 (mm)", mean_mass = "平均体重 (g)"
+  ) |>
+  tab_spanner(label = "均值指标", columns = c(mean_bill, mean_mass))
+```
+:::
+
+列名改写的三条纪律：**写单位**（`平均体重 (g)`，读者不用翻文档）；**写人话**（`species` 是变量名，`物种` 是给读者看的标签）；**保持机器可读**（只在 `cols_label()` 改显示，永远不要为迁就显示去 `rename()` 原始列名）。
+
+## 3. 数字会说谎还是说话：`fmt_number()` / `fmt_percent()` / `fmt_date()`
+
+小数位数不是技术问题，是**有效数字**问题：样本量 68 只的均值报 8 位小数是伪精确。
+
+::: {.callout-example}
+```r
+penguins_sum |>
+  gt() |>
+  fmt_number(columns = c(mean_bill, mean_mass), decimals = 1) |>
+  fmt_integer(columns = n)
+
+# 比例列配 fmt_percent()
+palmerpenguins::penguins |>
+  count(species, name = "n") |>
+  mutate(share = n / sum(n)) |>
+  gt() |>
+  fmt_percent(columns = share, decimals = 1)
+
+# 日期列：一眼可读的样式
+tibble::tibble(survey = c("第一次", "第二次"),
+               date = as.Date(c("2007-11-15", "2009-01-10"))) |>
+  gt() |>
+  fmt_date(columns = date, date_style = "yMMMEd")   # 如 Fri, Jan 10, 2009
+```
+:::
+
+缺失值也归格式层管：`sub_missing(missing_text = "—")` 把 `NA` 换成破折号，比裸 `NA` 体面得多（Python great-tables 的同名方法同理）。
+
+::: {.callout-warning}
+## 高频错误：先 fmt 后换算
+`fmt_percent()` **不做乘法**——它把 0.442 显示成 44.2%。若你的列已经是 44.2，`fmt_percent()` 会显示 4420%。**规则：数据层存比例，显示层交给 fmt。**
+:::
+
+## 4. 行分组：`tab_row_group()` + `row_group_order()`
+
+物种重复出现在行里时，把它提升为**行组标签（row group）**，层次立刻清晰。
+
+::: {.callout-example}
+```r
+# 偷懒路径：groupname_col 一步到位，再固定展示顺序
+penguins_sum |>
+  gt(groupname_col = "species") |>
+  row_group_order(groups = c("Adelie", "Chinstrap", "Gentoo"))
+
+# 显式路径：自定义组标签并隐藏原列
+penguins_sum |>
+  gt() |>
+  tab_row_group(label = "Gentoo（最大物种）", rows = species == "Gentoo") |>
+  cols_hide(columns = species)
+```
+:::
+
+`row_group_order()` 与 dplyr 的 `arrange()` 解耦是刻意的：**数据顺序服务分析，展示顺序服务读者**（如按体量从大到小，而非字母序）。
+
+## 5. 条件样式：`tab_style()` + `cells_body()` + `where()`
+
+`tab_style()` 的句式固定：**样式（style）+ 位置（locations）**。位置用 `cells_body()` 指到"表体的哪几行哪几列"；列选择支持 tidyselect，所以 `where()` 能按类型批量命中。
+
+::: {.callout-example}
+```r
+penguins_sum |>
+  gt(groupname_col = "species") |>
+  fmt_number(columns = c(mean_bill, mean_mass), decimals = 1) |>
+  tab_style(
+    style = cell_fill(color = "#FFF3CD"),          # 淡黄底
+    locations = cells_body(
+      columns = where(is.numeric),                 # 所有数值列
+      rows = mean_mass > 4200                      # 满足条件的行
+    )
+  ) |>
+  data_color(                                      # 数据驱动上色
+    columns = mean_mass,
+    method = "numeric",
+    palette = c("#f7fbff", "#08306b"),
+    domain = c(3000, 6000)
+  )
+```
+:::
+
+::: {.callout-important}
+## Check In：动手 60 秒
+
+把高亮条件从"体重 > 4200"改成"喙长全表前两名"（提示：`rows = rank(desc(mean_bill)) <= 2`）。然后回答：`columns = where(is.numeric)` 命中了哪几列？为什么 `species` 没被命中？
+:::
+
+::: {.callout-warning}
+## 高频错误：where() 放错参数
+`where(is.numeric)` 是**选列**的谓词（用于 `columns`），`rows` 接的是普通表达式（如 `mean_mass > 4200`）。把 `where()` 塞进 `rows` 是初学最常见的报错来源。
+:::
+
+## 6. 出处与出口：`tab_source_note()` / `tab_footnote()` / `gtsave()`
+
+出版级表格的最后两块拼图：**说明从哪来**（source note）、**解释为什么**（footnote），然后**导出交付**。
+
+::: {.callout-example}
+```r
+final <- penguins_sum |>
+  gt(groupname_col = "species") |>
+  fmt_number(columns = c(mean_bill, mean_mass), decimals = 1) |>
+  tab_header(title = "Palmer 企鹅体型摘要", subtitle = "2007–2009 合并调查") |>
+  tab_source_note(source_note = md("数据：**palmerpenguins** 包（Gorman 等，2014）")) |>
+  tab_footnote(
+    footnote = "样本量最小的组，均值解释需谨慎",
+    locations = cells_body(columns = n, rows = n == min(n))
+  )
+
+final |> gtsave("penguins_summary.html")   # 交互式 HTML
+final |> gtsave("penguins_summary.png")    # 静态图（见下方注意）
+```
+:::
+
+::: {.callout-warning}
+## 导出 PNG 的隐藏依赖
+`gtsave(..., ".png")` 依赖本地 Chrome/Chromium（经 webshot2 截图）。服务器环境没有浏览器时，先导出 `.html` 或 `.rtf`；CI 里可用环境变量指定浏览器路径。
+:::
+
+::: {.callout-note}
+Python 版 great-tables 有 `fmt_nanoplot()`（单元格里画迷你图），R 版 gt 暂无——可先在数据层预计算趋势列并用 `fmt_markdown()` 呈现箭头符号（↑/↓），上游功能落地后再切换。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+照抄 §3–§4 的模式，为 `gapminder::gapminder` 中 2007 年 `Asia` 各国做表：列含 `country`、`lifeExp`、`gdpPercap`、`pop`。要求：`fmt_number()` 控小数、大数加千分位（`sep_mark = ","`），配 `tab_header()` 副标题与 `tab_source_note()`。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把 §5 的条件样式适配到 Exercise 1：① `where()` 选中所有数值列，对 `lifeExp > 80` 的行整行淡黄高亮；② 给 `gdpPercap` 加 `data_color()` 渐变（`domain` 要覆盖实际值域，先 `range()` 查）；③ 用 `tab_footnote()` 解释一处你做的取舍。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：从空管道开始，为 `penguins` 做"雄雌差异表"：按 `species` × `sex` 汇总 `body_mass_g` 均值，行分组按物种、组内按性别排序，配齐标题/副标题/列名/来源注，并 `gtsave()` 导出 HTML。
+**第二轮（开放 AI）**：把代码贴给 Posit Assistant，只问：「读者是期刊审稿人，哪些展示细节会被挑刺？」逐条核对 AI 建议与 §1 的差异表，记录：哪几条你认可、哪几条你驳回、为什么。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「一页国情小报」——用 `gapminder` 为非分析师读者做一张**洲 × 年份（1952/1982/2007）** 表：单元格为各洲 `lifeExp` 均值与 `pop` 总量，年份列用 `tab_spanner()` 归组，`World` 汇总行用 `tab_style()` 高亮，配齐 header / source note / footnote，导出 HTML 与 PNG 各一份，附 5 行设计决策说明。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 结构 | 表头/分组/列名齐 | spanner 层级逻辑清晰 | 展示顺序有叙事理由并写明 |
+| 格式 | 小数位合理 | 千分位/缺失值处理 | 每列格式选择能说出依据 |
+| 样式 | 至少一处条件高亮 | 高亮服务于结论而非装饰 | data_color 与 domain 匹配且可解释 |
+| 交付 | HTML 可打开 | PNG + HTML 双格式 | 设计说明把每个决策锚回 §1 原则 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §2–§6 阶梯结构（fmt/tab/style/save 练习设计） | posit::conf(2026) modern-ds-python `04_great_tables.ipynb`（Jeroen Janssens, Richard Iannone, Isabel Zimmerman · CC-BY-SA 4.0） | 改编 |
+| gt R API 细节（`where()`、`data_color()`、`gtsave()`） | gt 包官方文档 | 引用 |
+| "表格是传播"框架、penguins/gapminder 示例、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

@@ -1,0 +1,260 @@
+---
+title: "1.4 JSON 与 APIs · 从网络拿数据"
+objectives: |
+  学完本章你能：读懂 JSON 结构并用 jsonlite 解析（预判类型陷阱）；
+  用 httr2 搭建请求管道并处理状态码；妥善保管 API key；实现翻页与限速。
+source-note: "本章为 100% 原创；技术细节以 httr2 与 jsonlite 官方文档为准（引用见 SOURCES）"
+---
+
+# 1.4 JSON 与 APIs · 从网络拿数据
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **predict** JSON 对象/数组层级到 R 的类型映射，含 `fromJSON()` 的 `simplifyVector` 陷阱
+2. **construct** httr2 请求管道：`request() |> req_url_path() |> req_url_query() |> req_perform()`
+3. **diagnose** 常见 HTTP 状态码（401/404/429/5xx）并让错误尽早、可读地暴露
+4. **protect** API key：`Sys.getenv()` + `.Renviron`，永不硬编码
+5. **implement** 翻页循环与 `req_throttle()` / `req_retry()` 限速礼仪
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下三问再继续；否则先回补 1.1（函数）与 1.2（迭代）：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. `x <- list(a = list(b = 1))`，`x$a$b` 与 `x[["a"]][["b"]]` 各返回什么？
+2. `purrr::map_dbl(1:3, ~ .x^2)` 的结果是什么？
+3. URL 里 `?` 之后的那串字符叫什么、起什么作用？
+:::
+
+## 1. JSON 长什么样：对象、数组与层级
+
+CSV 是平面表；JSON（JavaScript Object Notation）是**一棵树**——网络 API 几乎都用它交付数据。两种积木，无限嵌套：
+
+| JSON 积木 | 语法 | R 里的对应物 |
+|---|---|---|
+| 对象（object） | `{"key": value}` | 命名列表 |
+| 数组（array） | `[v1, v2, ...]` | 向量（或列表） |
+
+::: {.callout-note}
+读 JSON 的口诀：**看见 `{}` 想列表，看见 `[]` 想向量，一层层往下点**。
+值可以是字符串、数字、`true/false`、`null`，或再嵌一层。
+:::
+
+## 2. fromJSON()：JSON → R 的类型映射
+
+::: {.callout-example}
+```r
+json <- '{
+  "name": "Ada Lovelace",
+  "born": 1815,
+  "fields": ["math", "computing"],
+  "mentor": null
+}'
+
+jsonlite::fromJSON(json)
+# $name    chr "Ada Lovelace"
+# $born    int 1815
+# $fields  chr [1:2] "math" "computing"
+# $mentor  NULL
+```
+:::
+
+默认 `simplifyVector = TRUE` 会尽力"压缩"（数组坍缩、同构对象变数据框），方便，但**返回形状跟着数据走**——本章第一大坑：
+
+::: {.callout-warning}
+## 高频错误：0 条 / 1 条 / 多条，类型不一样
+```r
+jsonlite::fromJSON('{"data": ["a"]}')$data      # 坍缩成标量 "a"
+jsonlite::fromJSON('{"data": ["a", "b"]}')$data # 向量 c("a", "b")
+jsonlite::fromJSON('{"data": []}')$data         # 空——具体类型？先猜再跑
+```
+API 返回 1 条→标量、2 条→向量、0 条→消失。**批量处理前先问：0/1/多分别是什么形状？**
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+我写 API 代码只做一个决定：**永远 `simplifyVector = FALSE`**，
+用 `purrr::pluck()` 点出字段、`tibble()` 成型——多写三行，换"API 改条数也不炸"，稳赚。
+:::
+
+::: {.callout-important}
+## Check In：先猜再跑
+不运行代码写出三行的**类型与内容**再验证
+（提示：第 3 行的数组是"参差的"——还能坍缩成向量吗？）：
+
+```r
+jsonlite::fromJSON('{"a": [1, 2]}')$a
+jsonlite::fromJSON('{"a": [1]}')$a
+jsonlite::fromJSON('{"a": [[1], [1, 2]]}')$a
+```
+:::
+
+## 3. httr2 请求管道：把拼 URL 交给工具
+
+httr2 的哲学：请求是一个**可逐步加工的对象**，最后一步才真正发出网络调用。
+
+::: {.callout-example}
+```r
+library(httr2)
+
+resp <- request("https://api.open-meteo.com") |>
+  req_url_path("v1", "forecast") |>
+  req_url_query(
+    latitude = 39.90, longitude = 116.41,
+    current_weather = "true"   # 传字符串：API 只认小写 true
+  ) |>
+  req_perform()
+
+resp_body_json(resp)$current_weather$temperature  # 一个数值（摄氏度）
+```
+:::
+
+为什么不用 `paste0()` 拼 URL？——参数转义、空格与 `&` 拼接全是坑，
+`req_url_query()` 一次搞定，参数结构一目了然。
+
+::: {.callout-note}
+`resp_body_json()` 默认 `simplifyVector = FALSE`（与 `fromJSON()` 正相反），稳定返回
+列表——正是 §2 推荐的工作方式；要数据框形态就显式传 `simplifyVector = TRUE`。
+:::
+
+## 4. 状态码与错误处理：让失败尽早暴露
+
+| 状态码 | 含义 | 你该做什么 |
+|---|---|---|
+| 200 | 成功 | 取数据 |
+| 301/302 | 跳转 | httr2 自动跟随，一般无感 |
+| 401/403 | 未授权 / key 无效 | 检查密钥（§5） |
+| 404 | 路径不存在 | 检查 `req_url_path()` |
+| 429 | 请求太频 | 慢下来 + `req_retry()` |
+| 5xx | 服务器自身故障 | 稍后重试 |
+
+httr2 的 `req_perform()` **默认在 4xx/5xx 时抛错**，并附上服务器报错正文——
+失败越早越响，越好排查。调试三件套：
+
+::: {.callout-example}
+```r
+resp_status(resp)      # 200
+last_response()        # 出错后复盘最近一次响应（不发新请求）
+last_error()           # 最近一次错误的完整信息
+```
+:::
+
+瞬时故障（429/5xx）交给 `req_retry(req, max_seconds = 60)` 自动退避重试（遵守 `Retry-After`）；排查用 `req_dry_run()`——见练习 1。
+
+## 5. API key 与密钥卫生
+
+Open-Meteo 不要 key；真实世界大多数 API 要。铁律一条：**key 是密码**。
+
+- 永不硬编码在脚本 / Quarto / git 里
+- 存进 `.Renviron`：`usethis::edit_r_environ()` 打开，写一行
+  `MY_API_KEY=xxxxxxxx`（无引号、无空格），保存后**重启 R 会话**
+- 代码里只用 `Sys.getenv("MY_API_KEY")` 读取（缺失时返回 `""` 而非报错）
+
+::: {.callout-example}
+```r
+key <- Sys.getenv("MY_API_KEY")
+if (!nzchar(key)) stop("缺少 MY_API_KEY：请检查 .Renviron 并重启 R")
+
+request("https://api.example.com") |>
+  req_url_path("v1", "data") |>
+  req_auth_bearer(token = key) |>    # 或 req_headers("X-API-Key" = key)
+  req_obfuscate() |>                 # 打印时自动打码敏感信息
+  req_perform()
+```
+:::
+
+::: {.callout-warning}
+## 高频错误：key 泄漏的三条常见路径
+① 打印整个 request 对象发群提问（先 `req_obfuscate()`）；
+② `.Renviron` 被 git 跟踪（必须留在 .gitignore）；③ key 混进渲染出的 HTML 报告。
+任何一条的代价都远超"重跑一遍"。
+:::
+
+## 6. 翻页与限速：把 API 当合伙人，不是自助餐
+
+很多 API 一页只给几十条，`page`/`total_pages`（或游标 cursor）翻页是标配。模式：**取第一页 → 读"说明书" → 补齐剩余页 → 拼成一个表**。
+
+::: {.callout-example}
+```r
+fetch_users <- function(page) {
+  request("https://reqres.in") |>          # 练习用假 API（无需 key）
+    req_url_path("api", "users") |>
+    req_url_query(page = page) |>
+    req_throttle(rate = 1) |>              # 每秒至多 1 次
+    req_retry(max_seconds = 30) |>         # 瞬时故障自动重试
+    req_perform() |>
+    resp_body_json(simplifyVector = TRUE)
+}
+
+first <- fetch_users(1)
+first$total_pages                         # 2
+users <- 1:first$total_pages |>
+  map(fetch_users) |>                     # 翻页：逐页取回
+  map(pluck, "data") |>                   # 每页的 data（数据框）
+  list_rbind()
+nrow(users)                               # 12
+```
+:::
+
+::: {.callout-note}
+翻页方案因 API 而异：页码式（`page=2`）或游标式（把响应里的 `next_cursor`
+传回下一页）。思路不变：**第一页先到手，再按响应说明书决定下一页**。
+reqres.in 不可用时，任何页码式 API 均可套用。
+:::
+
+限速礼仪四条：① `req_throttle()` 主动限速；② 用 `req_retry()` 而非硬扛 429；
+③ 能缓存就缓存（`req_cache()`）；④ 留下身份（`req_user_agent("姓名 <邮箱>")`）。
+免费 API 是公共资源，善待它。
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+跑通 §3 的 Open-Meteo 请求，坐标换成你的城市，打印当前温度。
+再用 `req_dry_run()` 打印将发出的请求，把 URL 粘到浏览器打开——内容应对得上。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把 §3 的请求包成 `current_temp(lat, lon)`，对至少 3 个城市
+（`tibble::tribble(~city, ~lat, ~lon, ...)`）用 `purrr::map2_dbl()` 取温度，
+产出 `city | temp` 的 tibble。要求：`req_throttle()` 写在管道内；报错信息可读。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：写 `weather_bulletin(cities)`——输入城市表，
+输出含 `city / temperature / windspeed / time` 的速报 tibble；
+单城失败该行填 NA 并给 warning（提示：`tryCatch()`）；
+空表输入安静返回空 tibble（§2 的 0/1/多一课）。
+**第二轮（开放 AI）**：把函数贴给 Posit Assistant，只问：
+「哪些地方会在 API 响应缺字段时悄悄出错？」修掉问题并复跑，记录它找出几个。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「城市天气速报 0.1」——选 5 个城市（含至少 1 个海外城市），
+用 `weather_bulletin()` 采集，渲染一页 Quarto 报告：温度对比条形图（ggplot2）、
+数据来源标注（Open-Meteo，附访问日期），及自评"API 改版后哪里最先断？"
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 管道正确 | 全部城市取到温度 | 函数化 + 命名参数 | 限速 / 重试 / 缓存三件套齐 |
+| 健壮性 | 正常输入可跑 | 单城失败不拖垮全局 | 0/1/多 与缺字段路径均有验证 |
+| 密钥卫生 | 无任何硬编码 | .Renviron + Sys.getenv | req_obfuscate() 也用上 |
+| 复用性 | 脚本能跑 | 换城市表即可复用 | 自评最脆一环并给加固计划 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§2 JSON 结构与 `fromJSON()` 行为 | [jsonlite 官方文档](https://jeroen.r-lib.org/jsonlite/) | 引用 |
+| §3–§6 请求管道 / 错误 / 密钥 / 翻页 | [httr2 官方文档](https://httr2.tidyverse.org) | 引用 |
+| 示例选取（Open-Meteo、reqres.in）、练习、capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

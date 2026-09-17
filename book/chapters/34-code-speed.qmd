@@ -1,0 +1,260 @@
+---
+title: "3.4 代码性能 · Code Speed & Benchmarking"
+objectives: |
+  学完本章你能：在包开发语境下用 bench::mark() 建立可信的性能证据；
+  按修复性价比排列 R 的三大慢源（循环增长对象、逐行运算、重复文件 I/O）；
+  用 tracemem() 回炉 copy-on-modify；对 data.table 与 dplyr 做场景化
+  诚实选型；用 profvis 给包做心电图；判断何时值得并行。
+source-note: "本章为本项目原创（半原创章）· CC-BY-SA 4.0；bench 用法参照 https://bench.r-lib.org，profvis 用法参照 https://rstudio.github.io/profvis/；与 1.3 章互为犄角（1.3 建立脚本直觉，本章面向包与真实工作负载）"
+---
+
+# 3.4 代码性能 · Code Speed & Benchmarking
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **measure** 用 `bench::mark()` 在包语境下产出可信对比（median、`itr/sec`、`mem_alloc`）
+2. **rank** R 三大慢源并说出各自机制：循环里增长对象、逐行运算、重复文件 I/O
+3. **explain** 用 `tracemem()` 现场演示 copy-on-modify（复习 1.3，一分钟回炉）
+4. **compare** 对 data.table 与 dplyr 做场景化诚实选型，而不是站队
+5. **locate** 用 profvis 给包函数定位真正的热点
+6. **evaluate** 并行的收益与开销，判断一段代码值不值得并行
+
+## 前置自测（≤5 分钟）
+
+已完成 1.3 章（copy-on-modify、`bench::mark()` 初体验）再继续；否则先回补 1.3：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. `tracemem(y)` 后执行 `y <- x`、再 `y[[1]] <- 9`：哪一步打印内存迁移？
+2. 直觉猜：`rowwise() |> mutate(z = max(a, b))` 与 `mutate(z = pmax(a, b))`
+   差多少倍？写下数字，§2 对账。
+:::
+
+## 1. 先测量，再优化（bench 复习，包语境）
+
+1.3 已建立直觉；本章镜头拉到**包开发**：性能证据要经得起同事与审稿人
+追问——基准进 PR、进 vignette，而不是聊天截图。`bench::mark()`
+（https://bench.r-lib.org）还是那台天平：
+
+::: {.callout-example}
+```r
+library(bench)
+scores <- runif(1e5)
+mark(
+  cut_default = as.character(cut(scores, c(0, 60, 70, 80, 90, 100),
+                    labels = c("F", "D", "C", "B", "A"))),
+  nested_ifelse = ifelse(scores >= 90, "A", ifelse(scores >= 80, "B",
+                   ifelse(scores >= 70, "C", ifelse(scores >= 60, "D", "F")))),
+  iterations = 50
+)
+```
+:::
+
+读三列：`median`（典型耗时）、`itr/sec`（吞吐）、`mem_alloc`（内存）。
+纪律三条：① 只信**相对倍数**，绝对耗时随机器漂移；② `check = TRUE`
+默认验证两个表达式**结果一致**——「比不同答案谁快」是效率研究里最贵的
+bug；③ 一次只对比一个变量。
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+R 的慢，九成不是 R 慢，是「把别的语言的思路逐字翻译成 R」慢。
+先把 R 当母语说（向量化、整列思维），剩下的慢轮不到你优化，
+轮到的多半是 §2 的三宗罪。
+:::
+
+## 2. 三大慢源排行榜
+
+| 排名 | 慢源 | 机制 | 一句话修复 |
+|---|---|---|---|
+| 1 | 循环里增长对象 `out <- c(out, x)` | 每次新建更长向量并整体搬运，总量 ~n²/2 | 预分配，或向量化累积 |
+| 2 | 逐行运算（row-wise） | 每行付一次 R 解释器开销 | 问一句「有整列版吗」：`pmax`/`rowSums`/`ifelse` |
+| 3 | 重复文件 I/O | 磁盘毫秒级比内存慢约 10⁵ 倍，且常伴慢源 1 的 `rbind` | 一次读、批量读、惰性扫描 |
+
+慢源 2 的标准对决（前置自测第 2 问对账处）：
+
+::: {.callout-example}
+```r
+library(dplyr)
+df <- tibble(a = runif(1e5), b = runif(1e5))
+mark(
+  rowwise_max = df |> rowwise() |> mutate(z = max(a, b)),
+  vectorized  = df |> mutate(z = pmax(a, b)),
+  iterations = 20
+)   # 典型差距 50–150 倍
+```
+:::
+
+慢源 3 的典型现场与两种修法：
+
+```r
+# 慢：循环里逐个读，再逐个 rbind（一步踩两颗雷：慢源 3 + 慢源 1）
+out <- NULL
+for (f in files) {
+  d <- utils::read.csv(f)
+  out <- rbind(out, d)
+}
+# 快：一次批量读；或让 arrow 惰性扫描目录（大于内存也扛得住）
+out <- vroom::vroom(files)
+# out <- arrow::open_dataset("data/scores_dir/")
+```
+
+同一条纪律的两面：能离开循环的 I/O 就离开循环；离不开（逐个写日志）
+就攒批写，别每行写。
+
+::: {.callout-warning}
+## 高频错误：给 I/O 基准开 `check = TRUE` 却比出「不一致」
+`read.csv()`（data.frame）与 `vroom()`（tibble）返回类型不同，
+`mark()` 会好心报错。此时确属「容器不同、内容相同」，才允许
+`check = FALSE`——并在报告里注明为何关闭（呼应 1.3 的警告）。
+:::
+
+## 3. tracemem 复习：copy-on-modify 一分钟回炉
+
+完整直觉见 1.3；这里只回放最核心的一幕——**给命名对象的「修改」就是复制**：
+
+::: {.callout-example}
+```r
+df <- data.frame(x = 1:5)
+tracemem(df)
+df$y <- 2          # 打印一次迁移：命名对象的修改 = 整块复制
+df$z <- df$x * 2   # 又一次
+untracemem(df)
+```
+:::
+
+对包开发的两条推论：① 函数**接收**大对象不复制（放心传参）；
+② 循环里逐步修改命名大对象 = 复制地狱（慢源 1 的底层机制）。
+想原地修改不复制？主流例外是 data.table 的引用语义（`:=`）——§4 的主角。
+
+## 4. data.table vs dplyr：诚实的选型说明
+
+::: {.callout-example}
+```r
+library(dplyr); library(data.table)
+flights <- nycflights13::flights
+# dplyr：读作「过滤 → 分组 → 汇总」，管道动词逐步组合
+flights |> filter(month == 1) |>
+  group_by(carrier) |> summarise(delay = mean(dep_delay, na.rm = TRUE))
+# data.table：读作「取 month==1 的行，对每 carrier 算 delay」
+as.data.table(flights)[month == 1,
+  .(delay = mean(dep_delay, na.rm = TRUE)),
+  by = carrier]
+```
+:::
+
+| 维度 | dplyr | data.table |
+|---|---|---|
+| 心智模型 | 管道动词，逐步组合 | 一句 `DT[i, j, by]` |
+| 速度/内存 | 内存内日常分析足够 | 分组与大表显著更快；`:=` 原地修改省复制 |
+| 生态 | tidyverse 无缝衔接 | 自成一体，零依赖 |
+| 学习曲线 | 平缓 | 陡，但熟练后语法极简 |
+
+诚实建议三条：① **团队都会哪个**常常比「哪个更快」更重要——代码是给人
+读的；② 数据真正大时，瓶颈常在 I/O 与查询设计（1.3 §6），不是动词开销；
+③ 在**包**里选依赖更要谨慎：别为一个小函数同时 Import 两个。
+
+::: {.callout-important}
+## Check In：选型三秒判断
+① 1 亿行分组汇总、内存吃紧；② 团队全是 tidyverse 用户、数据 <1 GB；
+③ 小包只做字符串清洗。各选 dplyr / data.table /「都行」，
+并各给一句引用 §4 判据的理由。
+:::
+
+## 5. profvis：给包做心电图
+
+基准回答「A 比 B 快多少」，profvis（https://rstudio.github.io/profvis/）
+回答「时间都花在谁身上」——对包函数同样直接：
+
+::: {.callout-example}
+```r
+library(profvis)
+profvis({
+  dat  <- vroom::vroom("scores_big.csv")
+  grade <- scorekit::grade_letter(dat$score)
+  table(grade)
+})
+```
+:::
+
+读图三则：① 火焰图里**最宽的横条**就是热点，优化只对它做；② Data
+视图下钻到每行代码的耗时与内存；③ 在**交互会话**运行（knit 时不弹窗）。
+包语境加分：把火焰图截进性能相关 PR——性能回归（慢 5 倍）合并前会被看见。
+
+::: {.callout-note}
+完整闭环仍是 1.3 的顺序：profvis 找热点 → 只改那一段 → `mark()` 前后
+对账。没量过就动手，叫「换一种方式猜」。
+:::
+
+## 6. 并行：一段话的引入
+
+单个任务以**秒**计且彼此独立（如批量解析 500 个文件）才轮到并行——
+`future` 定执行策略，`furrr` 给你并行的 `map`：
+
+```r
+library(furrr)
+plan(multisession, workers = 4)
+results <- future_map(files, ~heavy_parse(.x))   # 结果保序
+```
+
+三盆冷水：① 进程启动与数据搬运有开销，毫秒级任务并行反而**更慢**；
+② 已向量化的代码在 C 层飞驰，并行插不上手；③ 随机数必须管好种子
+（future 有专门机制）。入门判断法：`mark()` 单次 median 不足 1 秒，
+回家向量化，别碰并行。
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+在自己机器上复跑 §1 与 §2 的两个 `mark()`（cut vs 嵌套 ifelse、
+rowwise vs `pmax`），抄成一张表（median、`itr/sec`、`mem_alloc`）；
+隔十分钟或换台机器再跑。写两行结论：什么稳定（相对倍数）、什么不稳
+（绝对耗时）？自测猜对了吗？
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+脚本生成 50 个小 CSV（每个 ~2000 行），实测 §2 慢源 3 的三方对决：
+「循环 `read.csv()` + `rbind()`」 vs 「`vroom::vroom(files)`」
+vs 「`arrow::open_dataset()`」。按 §2 警告处理 `check` 参数并注明对齐
+方式；`iterations` 调低（如 5）。回答：哪个最快？内存呢？
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：取你包里最重的函数（或班级 repo 的 `profile-me.R`，
+三宗罪俱全）：profvis 找热点 → 按 §2 诊断慢源 → 重写最大瓶颈 →
+`mark()` 前后对账（含 `mem_alloc`）。
+**第二轮（开放 AI）**：新旧两版 + profvis 摘要给 Posit Assistant，只问：
+「新版还剩哪些隐藏的复制、逐行操作或重复 I/O？」记录 1 条**经你实测
+确认**的问题并修复。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「性能档案 1.0」。自选一段真实慢代码（班级 repo 提供
+`slow-registry.R` 备选，三宗罪俱全），交付 Quarto 审计报告：profvis
+火焰图（圈出热点）→ 按排行榜定性诊断 → 只优化最贵的一项 → `mark()`
+前后对比表（median + `mem_alloc`）→ 「选型说明」：为何用/不用
+data.table？为何值得/不值得并行？（引用 §4、§6 判据）
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 测量纪律 | 有 mark 前后对比 | median + 固定 iterations，复跑确认 | 声明机器与负载差异，划定数字适用边界 |
+| 慢源诊断 | 指出瓶颈 | 有 profvis 证据 + 慢源定性归类 | 排除一个「看似慢实不慢」的嫌疑点 |
+| 优化验证 | 实测确有改进 | 能解释慢的机制（复制/解释开销/I/O） | 顺手清理同类模式的其余出现处 |
+| 选型诚实 | 有选型段落 | 判据引用 §4/§6 而非口号 | 讨论可读性/团队/依赖代价，说明为何到此为止 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| 全章结构、慢源排行榜、选型说明、练习、capstone、rubric（含与 1.3 的分工设计） | 本项目 | 原创 |
+| `bench::mark()` 用法与输出解读 | bench 官方文档 <https://bench.r-lib.org> | 引用 |
+| profvis 用法 | profvis 官方文档 <https://rstudio.github.io/profvis/> | 引用 |
+| data.table / dplyr 对照事实 | 两包官方文档（Getting started 与 vignettes） | 引用 |
+
+本章以 CC-BY-SA 4.0 发布。

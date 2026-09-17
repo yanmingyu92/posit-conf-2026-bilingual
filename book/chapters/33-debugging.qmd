@@ -1,0 +1,253 @@
+---
+title: "3.3 调试 · Debugging Strategies"
+objectives: |
+  学完本章你能：解剖一条错误（message 与 call 两半）；用 traceback() 还原
+  调用栈；用 browser() 的 n/c/f/Q 单步取证；在 Positron 里设断点与用
+  debugonce() 拦截；用 cat/str 三明治与二分法定位长管线问题；按上下文
+  rubric 向 AI 求助调试（本章 AI 线主场：刻意用 AI，但喂足证据）。
+source-note: "调试纪律与 §7 提问具体性改编自 posit::conf(2026) modern-r-workflow 模块 01 Helping yourself（Hadley Wickham, Jenny Bryan · CC-BY 4.0）；练习 1 改编自 posit::conf(2026) positron 工作坊 debug.R（François Michonneau, Garrett Grolemund · CC-BY 4.0）；讲义文字为本项目原创"
+---
+
+# 3.3 调试 · Debugging Strategies
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **parse** 一条错误的解剖结构（call 在哪、message 说什么）与三类信号
+2. **trace** 用 `traceback()` 还原出错瞬间的调用栈
+3. **operate** `browser()` 里的 `n` / `c` / `f` / `Q` 单步命令
+4. **apply** 在 Positron 设断点、用 `debugonce()` 无痕拦截
+5. **design** cat/str 三明治取证法与长管线的二分排查
+6. **formulate** 按上下文 rubric 向 AI 描述错误（本章刻意 AI-on）
+
+## 前置自测（≤5 分钟）
+
+能独立回答以下两问再继续；否则先回补 1.1 章：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 写一行会触发 `if (NA)` 类错误的代码（提示：从含 `NA` 的向量取值）。
+2. `message()` / `warning()` / `stop()` 三者中，哪个会中断执行？
+:::
+
+## 1. 读错误：先看清 message 与 call
+
+R 的三类信号，严肃程度递增：
+
+| 信号 | 生成函数 | 执行 | 语义 |
+|---|---|---|---|
+| message | `message()` | 继续 | 进度与提示 |
+| warning | `warning()` | 继续 | 结果可疑但可用 |
+| error | `stop()` | **停止** | 输入/状态不可接受 |
+
+一条错误文本天然分两半：**call（案发地址）+ message（案由）**。例如班级
+贷款管线（positron 工作坊 `debug.R`）对含 `NA` 信用分的申请人会报：
+
+```{.text}
+Error in if (is_subprime) ... : missing value where TRUE/FALSE needed
+└────────── call：哪一句 ──────────┘ └────── message：什么问题 ──────┘
+```
+
+读错误纪律：① 读完整，先看 call 再看 message；② 搜索求助时**带引号原样
+搜 message 片段**；③ warning 不是「可以忽略的红字」——它是 R 在说
+「结果你可能不想负责」。
+
+::: {.callout-warning}
+## 高频错误：见红就搜
+还没读完 call 部分就去搜索，搜到的常是别人家的同名错误。
+先回答「案发在哪一句」，再决定要不要向外求援。
+:::
+
+## 2. traceback()：还原案发现场
+
+出错后立刻运行 `traceback()`，它列出从外到内的调用链，**最深处就是抛错
+的那一帧**。Positron / 装了 rlang 的 RStudio 会在错误下方自动画出形如：
+
+```{.text}
+Error in `if (is_subprime)` ... : missing value where TRUE/FALSE needed
+Backtrace:
+1. ├─process_loan_application("A003", loan_applicants)
+2. └─assess_credit_risk("A003", loan_applicants)
+3.   └─calculate_risk_score(applicant)
+4.     └─classify_credit_tier(applicant$credit_score)   ← 案发第一现场
+```
+
+读法：沿树往下走，最深一层给出**该看的函数与该查的变量**
+（这里显然是 `credit_score` 的值）。注意 `traceback()` 只反映**最近一次**
+错误——下一条错误会覆盖现场，别手滑。
+
+## 3. browser()：在案发时刻停下来
+
+在可疑函数体内插一行 `browser()`，执行到该行即暂停，进入交互检查模式：
+
+```r
+classify_credit_tier <- function(credit_score) {
+  browser()                        # ← 停在这，控制台出现 Browse[1]>
+  is_subprime <- credit_score < 620
+  if (is_subprime) "subprime" else "prime"
+}
+```
+
+| 键 | 全称 | 作用 |
+|---|---|---|
+| `n` | next | 执行下一行后暂停 |
+| `c` | continue | 跑到下一个 `browser()`/断点或结束 |
+| `f` | finish | 跳出当前循环/函数 |
+| `Q` | quit | 无条件退出（断点保留） |
+
+暂停期间**任何 R 表达式都能直接敲**：`credit_score`、`str(applicant)`、
+`ls()`——此刻你站在函数体内部，看得到局部变量，这是它相比 print 取证的
+压倒性优势。
+
+::: {.callout-important}
+## Check In：读懂这条错误
+```r
+mean_score <- function(df, col) mean(df[[col]], na.rm = TRUE)
+mean_score(palmerpenguins::penguins, 99)
+#> Error in `df[[col]]` : subscript out of bounds
+```
+① call 是哪部分？message 是哪部分？
+② 你预测 traceback 的最深一层会在哪个函数里？
+③ 先笔答再运行验证。
+:::
+
+## 4. 断点与 debugonce()：不改代码的拦截
+
+`browser()` 要改源码，忘删就会随包发布——两种无痕替代：
+
+- **断点（breakpoint）**：在 Positron 里点行号左侧，出现红点即设好；
+  先 `load_all()`（或 source），触发执行到该行自动暂停，体验与 `browser()`
+  相同（同样的 `n`/`c`/`f`/`Q`，环境面板同步显示局部变量），删红点即撤防。
+- **`debugonce(f)`**：下一次对 `f` 的调用在函数入口暂停一次，之后自动解除；
+  对包里的函数同样有效，是「进去看一眼就走」的首选。
+
+::: {.callout-note}
+还有更重的火力（`debug(f)` 常驻拦截、`options(error = recover)` 出错后
+选帧），入门期记住「断点 + debugonce」两招已够用。
+:::
+
+## 5. cat/str 三明治：最朴素的取证
+
+渲染报告、长时间任务、别人机器上——这些场景插不进交互调试器。老派但
+永远有效的办法：**在可疑代码的两面各压一片 cat/str**：
+
+```r
+cat(">> before clean: "); str(scores)
+scores <- clean_scores(scores)
+cat(">> after  clean: "); str(scores)
+```
+
+为什么是 `str()` 而不是 `print()`：`str()` 紧凑地给出类、长度、样本值，
+大对象也不会刷屏。循环里加 `cat("i =", i, "\n")` 就知道死在第几轮。
+纪律：定位之后**立刻拆掉**这些行——它们是脚手架，不是建筑。
+
+## 6. 二分法：长管线的嫌疑犯排除
+
+管线越长，逐段读越蠢。像二分查找：在**中点**插一个检查点（`str()` 或
+`cat()`），看中间对象已经坏了没有——
+
+```r
+out <- raw |>
+  step_read() |>
+  step_clean() |>    # ← 先在这里 str()：坏了？嫌疑在前半段；没坏？在后半段
+  step_merge() |>
+  step_report()
+```
+
+每次排除一半，n 步管线约 log₂(n) 次检查即可锁定案发段，再对该段
+上断点精查。此法同样适用于「数据坏了」而非「代码错了」的案件。
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+调试的终点不是「代码能跑了」，而是「我能一句话解释它为什么坏」。
+修完还解释不了的，只是 bug 暂时躲开了你——它还会回来，还带着利息。
+:::
+
+## 7. AI 协作调试：上下文 rubric（本章 AI 线主场）
+
+本章刻意 AI-on：调试是 AI 的强项，**前提是你喂足证据**。modern-r-workflow
+工作坊的结论值得贴在显示器上：*「具体 20%，效果好 80%」*——
+以及像 Terence Tao 那样提问：窄而准，一次问一个问题。
+
+求助前按 rubric 打包上下文：
+
+| # | 要素 | 自检 |
+|---|---|---|
+| 1 | 错误原文 | message + call 逐字复制，不转述 |
+| 2 | 调用栈 | `traceback()` 输出全文 |
+| 3 | 最小复现 | 用 `reprex::reprex()` 打包可运行代例 |
+| 4 | 预期 vs 实际 | 两句话，各一句 |
+| 5 | 已试过的排查 | 排除了什么，防止 AI 让你重走老路 |
+
+问法也讲究：先问「**解释**这个错误的机制」，复述认同后再问「**怎么修**」；
+让 AI 给出依据（receipts）：指出它引用了哪份文档/哪个函数行为。
+
+::: {.callout-warning}
+## 高频错误：把 AI 当答案机
+「我的代码报错了怎么修」这种零上下文提问，换来的是概率性猜测，
+照抄还会引入新 bug。AI 看不见你的机器与会话——涉及版本/平台时，
+把 `sessionInfo()` 摘要一并附上。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（adapt 档）Positron 断点实战
+
+素材：班级 repo 的 `debug.R`（贷款申请四层管线，positron 工作坊原题改编）。
+① source 后分别跑 `process_loan_application("A001", loan_applicants)`
+（成功）与 `"A003"`（报错）；② 只凭错误原文 + 调用栈笔答：错在哪一层、
+哪个变量可疑；③ 在 `classify_credit_tier()` 里设断点，重跑 A003，
+在环境面板找到 `credit_score` 的值；④ 用 `n` 单步到 `if` 行，
+确认 `is_subprime` 为 `NA`；⑤ 修复（显式处理 `NA`，如
+`is.na()` 分支或 `isTRUE()`），重跑两个申请人都正常。
+交付：两句话根因 + 断点暂停时的环境面板截图。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）bug 交换
+
+写一个 3 函数小管线（自选领域，如体检/BMI），**故意**埋一个只在特定输入
+触发的 bug（`NA`、空表、类型皆可），交给同组；对方限时 15 分钟，
+只允许用 traceback + `debugonce()` + cat/str 三明治定位。
+双方各写一行「我埋的 bug 被哪一步暴露」，并注明用的工具序列。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 反转——本章特例，刻意 AI-on）
+
+用 A003 的错误做两轮求助实验：
+**第一轮（裸问）**：只发「我的 R 代码报错了，怎么修？」，记录回复有多泛。
+**第二轮（rubric 问）**：按 §7 五要素打包——错误原文、调用栈全文、
+3 行最小复现（含 `NA` 信用分的 tibble）、预期 vs 实际、已试过的排查。
+对比两轮：第二轮 AI 是否给出准确根因？有没有幻觉（说错行号、编造函数
+行为）？写三行反思：哪一条上下文最有决定性。
+红线：要求「先解释、我复述、再修」，禁止整段粘贴 AI 的修复代码。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「验尸报告」（postmortem）。班级 repo 提供一个埋了 3 个 bug 的
+迷你包（或由同伴按练习 2 的规格埋）。用本章阶梯逐一侦破：读错误 →
+traceback 定层 → 断点/debugonce 定位 → （必要时）二分法。每个 bug
+写一页验尸报告：症状（错误原文）/ 侦破工具链（按时间线）/ 根因一句话 /
+修复 + 防回归测试（呼应 3.2：修好的 bug 留测试作纪念）。
+若动用了 AI，附上你的提问与 rubric 达标情况。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 工具链 | 3 个 bug 全修 | 每案都有 traceback/断点证据 | 工具选择有理由（为何不用更重的） |
+| 根因解释 | 每案一句话根因 | 根因可复述给未读代码的人 | 指出 bug 背后的设计教训 |
+| 修复与防回归 | 修复且 demo 通过 | 每案配回归测试 | 测试锁定了消息文本（快照/regexp） |
+| AI 协作 | 未用或使用合规 | rubric 五要素齐 | 两轮对比有数据支撑的结论 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1 读错误纪律、§7「具体 20%」与提问风格 | modern-r-workflow 模块 01 Helping yourself（Hadley Wickham, Jenny Bryan · CC-BY 4.0，posit::conf 2026） | 改编 |
+| §4 断点练习与贷款管线（练习 1） | positron 工作坊 `debug.R`（François Michonneau, Garrett Grolemund · CC-BY 4.0，posit::conf 2026） | 改编 |
+| browser()/traceback() 用法 | base R 文档；Advanced R（Wickham） | 引用 |
+| cat/str 三明治、二分法、AI rubric 细目、练习 2/3、capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

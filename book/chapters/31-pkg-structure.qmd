@@ -1,0 +1,260 @@
+---
+title: "3.1 R 包结构 · Package Structure"
+objectives: |
+  学完本章你能：判断一段代码何时值得升级成包；用 usethis/devtools 搭建
+  骨架并试跑；读懂 DESCRIPTION（Imports vs Suggests）；用 roxygen2 写文档；
+  说清 R/ man/ tests/ data-raw/ 职责；跑通 document() → check() → install()。
+source-note: "教学结构与练习设计改编自 posit::conf(2025) pkg-dev 工作坊（Jenny Bryan · CC-BY 4.0），工具事实核对 R Packages (2e)（Hadley Wickham & Jenny Bryan · r-pkgs.org）；讲义文字为本项目原创"
+---
+
+# 3.1 R 包结构 · Package Structure
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **justify** 何时把代码升级成包（个人复用 / 团队共享 / CRAN 三档标准）
+2. **create** 用 `usethis::create_package()` 与 `use_r()` 搭建骨架并 `load_all()` 试跑
+3. **interpret** DESCRIPTION 各字段含义，尤其 Imports 与 Suggests 的责任差异
+4. **write** roxygen2 注释（`@param` / `@return` / `@export`）并生成帮助页
+5. **organize** 说出 R/ man/ tests/ data-raw/ 放什么、哪些目录是生成物（勿手改）
+6. **execute** document() → check() → install() 开发主循环，并解读 check 输出
+
+## 前置自测（≤5 分钟）
+
+能独立回答以下两问再继续；否则先回补 1.1 章：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. `install.packages()` 与 `library()` 各做了什么？为什么缺一不可？
+2. 默写一个带默认值参数、带显式 `return()` 的函数（三行以内）。
+:::
+
+## 1. 什么时候代码配得上一个包
+
+| 阶梯 | 形态 | 升级信号 |
+|---|---|---|
+| L0 | 单脚本内的函数 | 1.1 章的水平 |
+| L1 | 项目内 `R/` 目录 + `source()` | 多个脚本要用同一批函数 |
+| L2 | 个人包（只装给自己） | 跨项目复用；想要正式文档与测试 |
+| L3 | 团队包（GitHub / Posit Package Manager） | 同事要用；要统一口径 |
+| L4 | CRAN 包 | 全社区要用，且愿意承担长期维护 |
+
+包给你三件 `source()` 永远给不了的东西：**版本化的文档**（`?函数名` 随处
+可查）、**可运行的测试**（3.2 章）、**一份 check() 体检报告**。
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+我个人的分水岭很朴素：**当你在第二个项目里 `source()` 第一个项目的函数文件时，
+就该建包了**。CRAN 不是建包的理由——为「两周后的自己」建包，就已经值回票价。
+:::
+
+## 2. 五分钟骨架：create_package() 与 use_r()
+
+::: {.callout-example}
+```r
+install.packages("devtools")            # 一次即可，自带 usethis/roxygen2 等
+usethis::create_package("~/scorekit")   # 建骨架，并在 IDE 中打开新工程
+usethis::use_r("grade_letter")          # 生成 R/grade_letter.R
+```
+:::
+
+在本章贯穿示例包 `scorekit` 里放一个把百分制转等级的函数：
+
+```r
+# R/grade_letter.R
+grade_letter <- function(x) {
+  if (!is.numeric(x)) {
+    stop("`x` must be numeric.", call. = FALSE)
+  }
+  cut(x, c(0, 60, 70, 80, 90, 100), c("F", "D", "C", "B", "A"),
+      right = TRUE, include.lowest = TRUE)
+}
+```
+
+`devtools::load_all()` 模拟「安装 + library」，之后立即在会话里试跑：
+`grade_letter(c(95, 72, 58))` 返回 `"A" "C" "F"`。
+
+::: {.callout-note}
+`load_all()` 是包开发的呼吸：改一行、load_all、试一下。它**不会**真安装——
+你测的永远是最新源码。包名只能含字母/数字/点、以字母开头、CRAN 不得重名：
+`available::available("scorekit")` 提前查。
+:::
+
+## 3. DESCRIPTION：包的身份证
+
+```{.text}
+Package: scorekit
+Title: Grade and Score Helpers for Teaching Analytics
+Version: 0.0.0.9000
+Authors@R: person("You", "Name", email = "you@example.com", role = c("aut", "cre"))
+Description: Converts numeric scores to letter grades and
+    summarises grade distributions.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports:
+Suggests:
+```
+
+字段速读：`Title` 书名式大写、无句点；`Version: 0.0.0.9000` = devtools 的
+「0.1.0 之前的开发版」；`Authors@R` 的 `cre`（creator）是责任人；
+`Description` 一段话、第三人称、句点结尾。
+
+本节主菜——**Imports 与 Suggests 的责任差异**：
+
+| | Imports | Suggests |
+|---|---|---|
+| 用户安装你的包时 | 必须已装好 | 不强制 |
+| 适合放什么 | 函数体离不开的包 | 测试、vignette、可选功能 |
+| 代码怎么写 | 永远 `pkg::fun()` 全名调用 | 用前 `requireNamespace()` 探路 |
+
+::: {.callout-example}
+```r
+usethis::use_package("dplyr")                       # 写进 Imports
+usethis::use_package("ggplot2", type = "Suggests")  # 写进 Suggests
+
+# Suggests 的使用纪律：先探路，再使用
+plot_scores <- function(df) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package `ggplot2` required for plot_scores().")
+  }
+  ggplot2::ggplot(df, ggplot2::aes(score)) + ggplot2::geom_histogram()
+}
+```
+:::
+
+::: {.callout-warning}
+## 高频错误：在 R/ 里写 library()
+包代码里禁止 `library()`——那污染的是**用户**的会话。一律 `pkg::fun()`
+全名调用；代码里用了的包必须声明进 DESCRIPTION，否则 `check()` 会当场叫停。
+:::
+
+::: {.callout-important}
+## Check In：版本号侦探
+盯着 `Version: 0.0.0.9000` 回答：① 主版本为什么是 0？② `.9000` 后缀在
+devtools 惯例里表示什么？③ 已发布 1.0.0 又继续开发的包，版本号长什么样？
+:::
+
+## 4. roxygen2：文档写在代码旁边
+
+roxygen2 的哲学是**单一信源**（single source of truth）：注释即文档——
+
+::: {.callout-example}
+```r
+#' Convert numeric scores to letter grades
+#' Maps scores in [0, 100] to letter grades with cut points at 60/70/80/90.
+#'
+#' @param x A numeric vector of scores, in [0, 100].
+#' @return A factor of letter grades, same length as `x`.
+#' @export
+#' @examples
+#' grade_letter(c(95, 72, 58))
+grade_letter <- function(x) {
+  ...   # 函数体同 §2，原样垫在注释下方
+}
+```
+:::
+
+跑 `devtools::document()`：`man/grade_letter.Rd` 生成、`?grade_letter` 可用；
+`@export` 同时把函数登记进 NAMESPACE（对用户可见）——没有 `@export` 的
+函数就是内部零件，用户调不到：这是特性，不是缺陷。
+
+::: {.callout-warning}
+## 高频错误：手改 man/ 或 NAMESPACE
+两者都是**生成物**，源头是 roxygen2 注释。手改一次，
+下次 `document()` 全部蒸发。改文档 = 改注释，永远别碰生成物。
+:::
+
+## 5. 目录解剖：R/ man/ tests/ data-raw/
+
+```{.text}
+scorekit/
+├── DESCRIPTION           身份证：唯一手工维护的元数据
+├── NAMESPACE             导出清单：roxygen2 生成，勿手改
+├── R/grade_letter.R      函数源码 + roxygen2 注释
+├── man/grade_letter.Rd   帮助页：document() 生成，勿手改
+├── tests/testthat/       测试主场：3.2 章
+└── data-raw/scores.R     示例数据的生成脚本
+```
+
+`data-raw/` 的用法：`usethis::use_data_raw("scores")` 生成脚本，末尾
+`usethis::use_data(scores)` 把结果**冻结**进 `data/scores.rda`，用户
+`data(scores)` 即得。纪律：原始数据不进 git，**生成脚本**进 git。
+
+::: {.callout-note}
+还有 `vignettes/`、`src/`、`inst/` 等（完整地图见 R Packages 书）；
+入门期 90% 的时间只花在 `R/` 和 `tests/`。
+:::
+
+## 6. 开发主循环：document() → check() → install()
+
+| 动作 | 函数 | RStudio 快捷键 | 频率 |
+|---|---|---|---|
+| 模拟安装 | `devtools::load_all()` | Cmd/Ctrl+Shift+L | 随时 |
+| 生成文档 | `devtools::document()` | Cmd/Ctrl+Shift+D | 改完注释 |
+| 全面体检 | `devtools::check()` | Cmd/Ctrl+Shift+E | 每天 / 每次提交 |
+| 真实安装 | `devtools::install()` | — | 里程碑 |
+
+`check()` 就是 R CMD check：在干净会话里假装安装你的包并全面挑刺。目标是
+**0 errors, 0 warnings, 0 notes**——notes 也要清零，它们将来都是 CRAN 审查的
+必答题。Positron：Run 面板或 Command Palette 搜 "devtools"。
+
+::: {.callout-warning}
+## 高频错误：check 恐惧症
+把 check() 攒到「写完所有函数」才跑，会攒出一屏错误无从下手。
+正确姿势与 3.2 章的测试同理：**每加一个函数就 check 一次**，
+错误一次只有一两个，五分钟就能清完。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+跟着 §2–§6 在本机把 `scorekit` 从零造出来：create_package → use_r →
+写 `grade_letter()` → load_all 试跑 → roxygen2 → document() → check()。
+交付：`?grade_letter` 帮助页 + "0 errors ✓ 0 warnings ✓ 0 notes ✓" 截图。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+给 `scorekit` 增加 `plot_scores(df)`（分数直方图 + 及格线 60 竖线）：
+① ggplot2 放 **Suggests**；② 体内 `requireNamespace()` 探路 + 人话报错；
+③ roxygen2 全套；④ uninstall ggplot2 后调用确认报错可读。最后写两行：
+为什么 Suggests 在这里是对用户更负责的选择？
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：把 1.1 章 capstone 的三个函数（或自选）打成自己的包
+`<yourname>kit`：包名过 `available::available()` 检查；DESCRIPTION 与
+roxygen2 齐全；check() 三个 0。
+**第二轮（开放 AI）**：把 DESCRIPTION 与一个函数的 roxygen2 贴给
+Posit Assistant，只问：「哪些条目会被 R CMD check 或 CRAN 挑刺？」
+修掉 2 条真实问题，标注「AI 发现 / 我自己复核」。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「从脚本到包 0.1」。选定你在 1.1/1.3 章 capstone 里抽象出的函数集，
+升级为真实可安装的包：结构合规、文档齐全、依赖声明诚实、含 `data-raw/`
+数据脚本。验收：**全新 R 会话**里 `library()` 后跑通帮助页 examples。
+交付：Quarto 一页（结构树 + 设计决策）+ 仓库链接 + 演示截图。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 结构规范 | 三个目录各就各位 | 生成物零手改 | data-raw 可复现数据 |
+| 文档质量 | 每个导出函数有 Rd | examples 全部可运行 | 描述句当规格写，无废话 |
+| 依赖卫生 | Imports 声明齐 | 无 library()、全 `::` 调用 | Suggests + requireNamespace 用得其所 |
+| 可安装性 | 本机 install 成功 | check 三个 0 | 新会话/新机器均可复现演示 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§2、§6 工作流；use_r/use_test 成对纪律 | posit::conf(2025) pkg-dev 工作坊 README、materials 与 `testing-prompts.md`（Jenny Bryan，TA Lionel Henry · CC-BY 4.0） | 改编（结构） |
+| DESCRIPTION、roxygen2、目录解剖的工具事实 | R Packages (2e)（Hadley Wickham & Jenny Bryan）<https://r-pkgs.org> | 引用 |
+| scorekit 示例包、版本号侦探、练习、capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

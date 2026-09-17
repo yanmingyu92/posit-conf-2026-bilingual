@@ -1,0 +1,260 @@
+---
+title: "4.4 Agent Skills 工程化 · Packaging Agent Know-How"
+objectives: |
+  学完本章你能：区分 skill、system prompt 与 tool 三层知识注入；解剖并撰写
+  SKILL.md；把重复提示词移植成 skill；布局多技能项目；测试 agent 是否照做；
+  判断何时不该做 skill。
+source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0）；讲义文字为本项目原创"
+---
+
+# 4.4 Agent Skills 工程化
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **distinguish** skill / system prompt / tool 三种机制各自装什么、何时进入上下文
+2. **deconstruct** 一份 SKILL.md：frontmatter 的 `name`/`description` 与正文的分工
+3. **port** 把一段反复粘贴的提示词移植成项目内可复用的 skill
+4. **organize** 多技能项目的目录布局（项目内 `skills/` 与全局 `.agents/skills/`）
+5. **evaluate** 用「只读 description 能否路由」+「正文是否被遵守」测试 skill，
+   并判断一个任务何时不该做成 skill
+
+## 前置自测
+
+- 能用 ellmer 建会话、设 system prompt、注册一个 `tool()`（→ 不熟？先回 [4.1]）
+- 知道 agent 循环「模型决定调用 → R 执行 → 结果回传」（4.3；没学也能跟上，§3 给最小接线）
+
+::: {.callout-note}
+本章情境：llms 工作坊的「最后一家 Blockbuster 录像带店」——你是店里的编码
+agent，skill 文本均为工作坊原素材。
+:::
+
+## 1. Skill 是什么：把「做法」打包成文件夹
+
+一个 skill 就是**一个文件夹 + 一份 `SKILL.md`**：frontmatter 写名字与用途，
+正文写做这件事的完整方法，旁边还可以放模板、词表等附属文件。agent 平时只看
+目录（每条一行），接活时才把正文整份读进来。本工作坊仓库自己就带着一排：
+`help`、`explain`、`check-my-work`、`unslop`——助教 AI 的全部行为举止就来自它们。
+
+| 机制 | 装什么 | 何时进入上下文 | 类比 |
+|---|---|---|---|
+| system prompt | 身份与全局约束（小） | 每次请求都在 | 员工手册首页 |
+| tools | **动作**（R 函数 + 类型签名） | 签名常驻，调用按需 | 工位上的工具 |
+| skills | 领域 know-how（流程 + 资料） | 描述常驻，正文按需加载 | 老带新的口传手册 |
+
+::: {.callout-warning}
+## 高频误区：把 skill 当「更长的 system prompt」
+区别不在长度，在**加载时机**：system prompt 每轮计费、稀释注意力；skill 正文
+只在被 `read_skill()` 调入时才进上下文。铁律和流程塞错位置，两边都白费。
+:::
+
+## 2. SKILL.md 解剖与渐进式披露（progressive disclosure）
+
+看工作坊的 `renewal-letters` skill（`skills/renewal-letters/SKILL.md`）：
+
+::: {.callout-example}
+```markdown
+---
+name: renewal-letters
+description: Draft renewal letters for lapsed Last Blockbuster members.
+  Use when drafting those letters, not when identifying lapsed members
+  or updating store records.
+---
+
+# Renewal letters
+
+Write with the voice of a neighbor who knows the store ...
+Save each letter in `letters/drafts/` ...
+
+Offer Basic members a free-rental code.
+Do not promise an unlisted discount or a title's availability.
+```
+:::
+
+1. **frontmatter 只有 `name`（工种名，kebab-case）与 `description`**
+2. **description 是唯一的广告位**：同时写「什么时候用」**和**「什么时候不用」——
+   邻座 `lapsed-audit` 的描述同样声明了自己的领地，边界互相咬合才不打架
+3. **正文是操作规程**：语气、产物路径、逐条要素、分叉规则、禁止事项
+
+**渐进式披露**（progressive disclosure）：目录极短、人人可见，正文按需加载，
+token 花在刀刃上。
+
+## 3. 演练：把一段重复的提示词移植成 skill
+
+假设你已经第五次把「写信要领」整段粘进对话框——按 4.1 的三次法则，该抽象了。
+移植三步：① 原话搬进 `skills/<job>/SKILL.md` 正文；② 提炼「何时用/何时不用」
+写进 description；③ 给 agent 一个读它的工具。第③步接线（改编自 llms `21_skills-1`）：
+
+::: {.callout-example}
+```r
+library(ellmer)
+
+skills_dir <- "skills"   # 项目内的技能目录
+
+read_skill <- function(skill) {
+  brio::read_file(file.path(skills_dir, skill, "SKILL.md"))
+}
+
+tool_read_skill <- tool(
+  read_skill,
+  description = paste("Read the full instructions for a listed skill.",
+                      "Call this before you do the job the skill describes."),
+  arguments = list(
+    skill = type_string("Name of the skill to read, such as 'renewal-letters'.")
+  )
+)
+
+list_skills <- function(skills_dir) {
+  files <- fs::dir_ls(skills_dir, recurse = TRUE, glob = "**/SKILL.md")
+  skills <- purrr::map_dfr(files, \(p) frontmatter::read_front_matter(p)$data)
+  paste(interpolate("- {{ skills$name }}: {{ skills$description }}"),
+        collapse = "\n")
+}
+
+chat <- chat_posit(
+  system_prompt = interpolate("
+    You are a coding agent for the Last Blockbuster in Bend, Oregon.
+
+    Read a skill with the read_skill tool before you do the job it describes.
+
+    ## Available skills
+
+    {{ list_skills(skills_dir) }}
+  ")
+)
+
+chat$register_tool(tool_read_skill)
+# 再注册 4.3 章的文件工具（read / write / list / edit_file）...
+chat$chat(paste(
+  "Draft renewal letters for the top three members on lapsed.csv.",
+  "Save one file for each member in letters/drafts/."
+))
+
+chat   # 开盖检查：动笔前有没有先调用 read_skill("renewal-letters")？
+```
+:::
+
+关键观察：`list_skills()` 把每个 skill 压成 `- name: description` 一行拼进
+system prompt（这就是「目录」）；打印 `chat` 可见完整工具调用轨迹——
+「先读 skill 再干活」本身就是验收对象；关键指令在 system prompt 与工具描述
+里双保险出现，是刻意为之。
+
+## 4. 多技能项目布局
+
+店里的活不止写信。`22_skills-2` 的 `skills/` 里并排放着四个工种：
+
+| skill | 一句话职责 |
+|---|---|
+| `renewal-letters` | 给流失会员写续约信 |
+| `lapsed-audit` | 判定谁算流失、维护挽回名单 |
+| `tape-tracking` | 追未还录像带、写提醒 |
+| `social-media-voice` | 用店的声音写社媒帖子 |
+
+布局两层：**项目内 `skills/`** 跟着仓库走，适合业务专属工种（上面四个都是），
+工作坊每个练习目录自带一份、互不污染；**仓库/用户级 `.agents/skills/`** 会被
+Positron Assistant 自动发现，适合跨项目习惯（`unslop` 去 AI 腔、审作业）。
+
+::: {.callout-important}
+## Check In：只读 description，预测路由
+
+不运行任何代码，只凭 §4 表格里的四个 description，预测下列请求各触发哪个 skill：
+
+1. 「统计现在还有哪些录像带没还，列个清单」
+2. 「给挽回名单前三位各写一封信」
+3. 「把上周的归还小高峰发个帖子庆祝」
+4. 「会员问自己为什么被标记成 lapsed，去查记录」
+
+然后真的跑起来验证：若 2 触发了 `lapsed-audit`，哪个 description 没把边界写清？
+（改编自 llms 工作坊 `22_skills-2`）
+:::
+
+## 5. 测试 skill：agent 真的照做了吗
+
+skill 是写给「聪明但不了解你上下文的新同事」的说明书，测试对象是**说明书**
+而不是模型。`22_skills-2` 给出四问体检（对着 `renewal-letters`）：
+
+1. **只读 description**：若 agent 只看这一句就要选 skill，它知道该干什么吗？
+2. **正文前两句**：agent 什么时候才读到它们？时机对不对？
+3. **正文对照店里文件**：哪些内容别处已有？重复之处将来会漂移成两个版本
+4. **流程段**：每一步都可执行吗？哪里留了解释空间？
+
+体检后改稿，再跑真实任务，打印 `chat` 查三件事：是否先 `read_skill`、是否遵守
+产物路径约定（`letters/drafts/<member-name>.md`）、是否越权碰 `rentals.csv`
+这类只读导出。
+
+::: {.callout-warning}
+## 高频错误：测一次就收工
+skill 行为有随机性。至少「3 个边界请求 × 新会话」复测：本工种的、邻座的、
+含糊的各一。含糊请求路由到哪，取决于「不用」那半句写得够不够硬。
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+skill 的单位是**工种**，不是提示词片段。判断法：删掉这份 SKILL.md 后，你得把
+正文整段粘进对话框才能开工，它是真工种；模型照常干活的，只是装饰。
+:::
+
+## 6. 何时不该做 skill
+
+| 信号 | 该用 |
+|---|---|
+| 这辈子只做一次 | 普通对话，写完即弃 |
+| 是一个**动作**（读文件、查数据库） | tool（4.3） |
+| 每个任务都需要、且只有几行 | system prompt |
+| 换任务会重复、有流程有禁忌的**工种** | skill |
+
+反向信号：description 比正文还长（没有可打包的知识）；两个 skill 抢同一批
+请求（先合并或划界）；正文与项目文件大量重复（知识放文件里，skill 只写
+「怎么用」——`lapsed-audit` 是范本：定义、顺序、禁区在正文，数据全在 CSV）。
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+照 §2 的解剖复刻一个你领域的 skill：建 `skills/<your-job>/SKILL.md`，
+frontmatter 写清「何时用/何时不用」，正文含语气、产物路径、逐条要素、
+分叉规则、至少两条禁止事项。交文件，不写代码。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把 §3 的接线代码适配到你的项目：技能目录里放**两个**边界相邻的 skill，
+跑 Check In 的四个请求。要求：不许把 skill 正文粘进对话框；
+报告每个请求的路由结果与 `chat` 里的工具调用顺序。
+（改编自 llms 工作坊 `21_skills-1` / `22_skills-2`）
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁 AI 环节）
+
+**第一轮（全程禁用 AI）**：从你的真实工作流挑一个重复工种，写它的
+SKILL.md 初稿，再写 5 个边界请求（2 本工种、2 邻座、1 含糊）。
+**第二轮（开放 AI）**：把 SKILL.md 贴给助手，只问：
+「给出三个会让 agent 误用或漏用这个 skill 的请求，并指出是 description
+还是正文的问题。」修稿后实测。记录 AI 找到的、你没预料的那个。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「技能库 1.0」——为你的领域建三技能以上的 `skills/` 目录 + 最小
+agent 接线（`list_skills()` + `read_skill` 工具 + 文件工具），交付路由测试
+报告：≥9 个边界请求（每对技能间至少一个含糊请求）的预测 vs 实际路由表，
+加正文遵守抽查记录。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| skill 质量 | 三份 SKILL.md 结构完整 | description 边界互斥、无抢活 | 正文零重复、知识放文件不放 prose |
+| 工程性 | 接线代码能跑 | 目录自动生成、工具描述与 system prompt 一致 | 新增 skill 零改代码即被目录收录 |
+| 测试协议 | 跑通一批请求 | 预测先于运行写下 | 新会话复测并报告路由不一致率 |
+| 判断力 | 完成三个 skill | 能指出哪份该合并 | 报告里含一个「决定不做 skill」的案例及理由 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§3 概念、接线代码、Blockbuster 情境 | posit::conf(2026) llms `_exercises/21_skills-1` 及 `.agents/skills/`（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0） | 改编 |
+| §4–§5 四技能布局、四问体检 | llms `_exercises/22_skills-2`（含 `skills/*/SKILL.md` 原文） | 改编/引用 |
+| 三层对照表、反向信号、练习改造、capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

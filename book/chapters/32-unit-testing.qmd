@@ -1,0 +1,222 @@
+---
+title: "3.2 单元测试 · Unit Testing with testthat"
+objectives: |
+  学完本章你能：说出测试承诺的两件事（回归安全网、可执行规格）；用 test_that()
+  与 expect_* 家族写出聚焦的断言；用 use_test() 让 R/ 与 tests/ 成对生长；
+  在 Positron/RStudio 里高效运行测试；用 expect_snapshot 拍下输出；把
+  covr 覆盖率当地图读，而不是当分数刷。
+source-note: "教学结构与练习设计改编自 posit::conf(2025) pkg-dev 工作坊 Testing 环节（Jenny Bryan · CC-BY 4.0，含 testing-prompts.md）；讲义文字为本项目原创"
+---
+
+# 3.2 单元测试 · Unit Testing with testthat
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **explain** 一个测试向你承诺的两件事：回归安全网与可执行规格
+2. **write** 聚焦的 `test_that()` 块——一个块只讲一个行为
+3. **select** 为场景选对断言（`expect_equal` / `expect_error` / `expect_silent` 等）
+4. **organize** 用 `usethis::use_test()` 让 `R/` 与 `tests/` 成对生长，并在 IDE 里高效运行
+5. **apply** 快照测试（snapshot）锁定「人类可读的输出与消息」
+6. **evaluate** 用 covr 覆盖率决定「下一个测试写在哪」，而不是追求百分比
+
+## 前置自测（≤5 分钟）
+
+完成 3.1 章并手上有 `scorekit`（或任一本地包）再继续；否则先回补 3.1：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 1.1 章的「三例检查」（典型/边界/垃圾）是手写在注释里的——
+   说出一轮 `check()` 不会替你做这件事的理由。
+2. `expect_equal(0.1 + 0.2, 0.3)` 会不会失败？为什么？
+:::
+
+## 1. 测试承诺什么：安全网与规格
+
+| 承诺 | 含义 | 没有它时的反例 |
+|---|---|---|
+| 回归安全网（regression safety net） | 改代码时，测试替你盯住老行为 | 修好一个 bug，悄悄弄坏另外两个 |
+| 可执行规格（executable spec） | 测试就是「永远和代码一起运行的文档」 | 注释说一套，代码做另一套 |
+
+推论是一条铁律：**每个修过的 bug，都留一个失败过的测试作纪念**——
+它保证同样的坑只踩一次。
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+「以后再补测试」的那个「以后」，在日历上不存在。写测试的正确时机只有两个：
+**写函数的当下**，和**收到 bug 的当下**。这条纪律比任何覆盖率数字都值钱。
+:::
+
+## 2. test_that()：一个块讲一个行为
+
+::: {.callout-example}
+```r
+# tests/testthat/test-grade_letter.R
+test_that("grade_letter() maps scores to grades", {
+  expect_equal(grade_letter(c(95, 72, 58)), c("A", "C", "F"))
+})
+
+test_that("grade_letter() rejects non-numeric input", {
+  expect_error(grade_letter("95"), "numeric")
+})
+```
+:::
+
+解剖三件套：① 描述句是**规格**——读得出「什么输入应得什么输出」；
+② 一个块只测一个行为，失败时描述句就是错误定位的第一线索；
+③ 文件名 `test-grade_letter.R` 与 `R/grade_letter.R` 严格成对。
+
+## 3. expect_* 家族：选对断言
+
+| 断言 | 何时用 | 例 |
+|---|---|---|
+| `expect_equal()` | 值相等（数值带容差） | `expect_equal(sqrt(2)^2, 2)` |
+| `expect_identical()` | 严格同一（类型/属性都同） | `expect_identical(1L, 1L)` |
+| `expect_error()` | 抛错且消息可匹配 | `expect_error(grade_letter("a"), "numeric")` |
+| `expect_warning()` | 警告但不中断 | `expect_warning(mean(NULL), "length")` |
+| `expect_silent()` | 无错无警无消息 | `expect_silent(grade_letter(c(60, 90)))` |
+| `expect_length()` 等单值断言 | 结构性质 | `expect_length(grade_letter(1:3), 3)` |
+
+`sqrt(2)^2` 与 `2` 的例子值得亲手跑：`expect_equal()` 默认容差放它过关，
+`expect_identical()` 一票否决——**测试数值向量用 equal，测试「类型也不许变」
+才用 identical**。
+
+::: {.callout-warning}
+## 高频错误：expect_error() 不写 regexp
+```r
+expect_error(grade_letter("95"))          # ✗ 任何错误都能过
+expect_error(grade_letter("95"), "numeric")  # ✓ 只认你预期的那条消息
+```
+不锁消息的错误测试是假安全：未来任何一处无关崩溃都会让它「通过」。
+:::
+
+::: {.callout-important}
+## Check In：给场景配断言
+① 函数对不合理输入应抛出 `"must be positive"` 的错；
+② 函数应返回长度为 12 的向量；
+③ 你刚修好一个「重复运行时污染全局选项」的 bug，想锁住「干干净净跑完」。
+各选一个 expect_* 并写出完整断言（≤5 分钟，写在注释里即可）。
+:::
+
+## 4. use_test() 工作流：成对生长，就近运行
+
+::: {.callout-example}
+```r
+usethis::use_test("grade_letter")   # 生成 tests/testthat/test-grade_letter.R
+devtools::test()                    # 跑整包测试
+devtools::test_active_file()        # 只跑当前打开的那个测试文件
+```
+:::
+
+配对纪律：`use_r("x")` 与 `use_test("x")` 像左右脚——新函数落地时测试文件
+同步创建，别攒。运行方式：RStudio 里用 Build 面板；Positron 里用
+Command Palette 搜 test。pkg-dev 工作坊还建议给高频动作**自绑快捷键**
+（键链策略，chord）：比如 `Cmd+'` 后接 `Cmd+T` 触发
+`test_active_file()`，`Cmd+'` 后接 `Cmd+C` 触发
+`test_coverage_active_file()`（思路来自 Emil Hvitfeldt 的 Positron 键位文）。
+
+## 5. 快照测试：把输出拍下来
+
+错误消息、警告、打印输出这类「人类可读文本」，逐字断言很啰嗦——
+快照替你拍一张照片，之后自动对账：
+
+::: {.callout-example}
+```r
+test_that("error messages are stable", {
+  expect_snapshot(grade_letter("95"), error = TRUE)
+})
+```
+:::
+
+流程：第一次运行生成 `tests/testthat/_snaps/grade_letter.md`；此后输出一变，
+测试就红；确认变化合理后 `testthat::snapshot_accept()` 接受新照片。
+`error = TRUE` 这个参数是「从 `expect_error()` 迁移到快照」的关键——
+它声明「这段代码应当报错，请把错误文本拍下来」。
+
+::: {.callout-note}
+快照适合**消息与文本输出**，不适合巨型对象（照片会大到没法 review）。
+`_snaps/` 目录要进 git——它就是你对外的行为合同，改动会出现在 diff 里
+供人审阅。
+:::
+
+## 6. covr：覆盖率是地图，不是分数
+
+::: {.callout-example}
+```r
+pkgcov <- covr::package_coverage()
+covr::report(pkgcov)        # HTML 报告：绿 = 测试跑过的行，红 = 没跑过
+devtools::test_coverage_active_file()   # 只看当前文件的覆盖
+```
+:::
+
+把报告当地图用：红色区域是「没人巡逻的街区」，它回答的问题是——
+**下一个测试写在哪**。优先巡逻：导出函数的主逻辑、错误分支、
+你修过的每个 bug。而「100% 覆盖率」什么也不保证：它只说明每行
+**被执行过**，不说明每行**被断言过**——`expect_true(TRUE)` 式的占位测试
+也能把地图刷绿。分数是地图的副产品，不是目标。
+
+## 7. 测试与 check() 的合流
+
+`check()` 会以非交互模式自动跑全部测试（`devtools::test()` 本地随时跑）。
+所以日常循环完整版是：改 `R/` → `load_all()` 试跑 → `test_active_file()`
+→ 提交前 `check()`。测试红了不丢人，**红了还假装没看见**才丢人。
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+给 3.1 章的 `grade_letter()` 写完整测试文件：至少 3 个 `test_that()` 块，
+覆盖典型值、边界值（0、100、恰在 60/70/80/90 切点上）、`NA` 的行为
+（先 `load_all()` 手工看一眼 `grade_letter(c(90, NA))`，把观察到的行为
+写成断言——发现行为不合理就先修函数再修测试）。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把你 1.1 章的「三例检查」正式迁移成 testthat：每个函数一个测试文件、
+每个函数至少 3 条断言、其中 1 条是带 `regexp` 的 `expect_error()`。
+跑 `devtools::test()` 到全绿，然后回答：哪个旧函数的「三例」在自动化
+之后**失败了**？当初手写检查漏掉了什么？
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：为自己包里最没把握的函数写测试，至少覆盖
+典型/边界/垃圾/`NA` 四类输入，外加 1 个 `expect_snapshot()`。
+**第二轮（开放 AI）**：把**测试文件**（不给实现代码）贴给 Posit Assistant，
+问两个问题：「只看测试，这个函数是干什么的？」「哪个场景没被测到？」
+——第一问在验证「测试即规格」，第二问在找盲区。补上它找到的 1 个真实
+漏测场景，并标注「AI 发现 / 我复核」。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「安全网 0.1」。给 3.1 章 capstone 的包补齐测试：每个导出函数
+有测试；每个「会停机的输入路径」有带 `regexp` 的错误测试；至少 1 个快照
+锁定一条错误消息；用 covr 出一份覆盖率报告（写出数字即可，不设指标）。
+验收演示：故意把一个切点从 60 改成 65，展示测试**变红**并报出正确的
+test_that 描述句，改回去后**复绿**。交付：Quarto 一页（覆盖率报告截图 +
+红/绿演示 + 设计说明）。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 覆盖结构 | 导出函数全有测试 | 错误分支全锁 `regexp` | 每个 bug 级边界都有名字 |
+| 断言质量 | 全部能真失败 | equal/identical 用得其所 | 断言可当规格读给同事听 |
+| 快照纪律 | ≥1 个快照 | `_snaps/` 进 git | 用 diff 审阅过一次有意变更 |
+| 回归演示 | 红绿截图齐 | 描述句精确定位行为 | 附一段「安全网救过我」的变更记录 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§4 结构、use_r/use_test 配对、键链建议 | posit::conf(2025) pkg-dev Testing 环节 slides 与 `testing-prompts.md`（Jenny Bryan · CC-BY 4.0） | 改编 |
+| §5 快照迁移与 `error = TRUE` | `testing-prompts.md`「Modernize testing」 | 改编 |
+| testthat 3e 事实核对 | testthat 官方文档 <https://testthat.r-lib.org> | 引用 |
+| Positron 键位（chord 策略） | Emil Hvitfeldt, Positron key bindings 博文（经 testing-prompts.md 转引） | 引用 |
+| covr 用法 | covr 官方文档 | 引用 |
+| 讲义文字、练习、capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

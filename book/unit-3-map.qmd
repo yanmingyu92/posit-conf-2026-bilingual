@@ -1,11 +1,11 @@
-# Unit 3 · Package Development 包开发 — 章节地图
+﻿# Unit 3 · Package Development 包开发 — 章节地图
 
 > 心智主线：从「脚本能跑」到「代码可被他人信任」。
 > 本单元结束后，你把前两单元的代码打包成一个有文档、有测试的正式 R 包。
 
 | 章 | 主题 | 素材锚点 | 矩阵 | 状态 |
 |---|---|---|---|---|
-| 3.1 | Package Structure | pkg-dev(2025) | A-L2 | 起草中 |
-| 3.2 | Unit Testing | pkg-dev(2025) | A-L2 | 认领 |
-| 3.3 | Debugging | modern-r-workflow 01 + positron debug.R | A-L2 | 认领 |
-| 3.4 | Code Speed & Benchmarking | **半空缺→原创** | A-L3 | 认领 |
+| 3.1 | Package Structure | pkg-dev(2025) | A-L2 | ✅ 已发布 |
+| 3.2 | Unit Testing | pkg-dev(2025) | A-L2 | ✅ 已发布 |
+| 3.3 | Debugging | modern-r-workflow 01 + positron debug.R | A-L2 | ✅ 已发布 |
+| 3.4 | Code Speed & Benchmarking | **半空缺→原创** | A-L3 | ✅ 已发布 |

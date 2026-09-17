@@ -1,15 +1,15 @@
-# Unit 2 · Professional Deliverables 专业交付物 — 章节地图
+﻿# Unit 2 · Professional Deliverables 专业交付物 — 章节地图
 
 > 心智主线：从「讲一个故事」到「给读者一个探索工具」。
 > 本单元结束后，你交付一个兼具静态设计、动态视觉与用户交互的仪表盘。
 
 | 章 | 主题 | 素材锚点 | 矩阵 | 状态 |
 |---|---|---|---|---|
-| 2.1 | Interactive Graphics（plotly） | **空缺→原创** | D-L2 | 认领 |
-| 2.2 | Animation（gganimate） | **空缺→原创** | D-L2 | 认领 |
-| 2.3 | Quarto Dashboards 静态 | quarto-dashboards(2024) | D-L2 | 起草中 |
-| 2.4 | Quarto Dashboards 动态 | 同上 + shiny-r | D/E-L2 | 认领 |
-| 2.5 | Maps（leaflet） | **空缺→原创** | D-L2 | 认领 |
-| 2.6 | ggplot Extensions | ggplot2+quarto-extend | D-L3 | 认领 |
-| 2.7 | Shiny Reactive 设计 | shiny-r(2025)+level-up-shiny | E-L1→2 | 起草中 |
-| 2.8 | 出版级报告（合流章） | practical-quarto(2026)+quarto-brand | D-L2 | 起草中 |
+| 2.1 | Interactive Graphics（plotly） | **空缺→原创** | D-L2 | ✅ 已发布 |
+| 2.2 | Animation（gganimate） | **空缺→原创** | D-L2 | ✅ 已发布 |
+| 2.3 | Quarto Dashboards 静态 | quarto-dashboards(2024) | D-L2 | ✅ 已发布 |
+| 2.4 | Quarto Dashboards 动态 | 同上 + shiny-r | D/E-L2 | ✅ 已发布 |
+| 2.5 | Maps（leaflet） | **空缺→原创** | D-L2 | ✅ 已发布 |
+| 2.6 | ggplot Extensions | ggplot2+quarto-extend | D-L3 | ✅ 已发布 |
+| 2.7 | Shiny Reactive 设计 | shiny-r(2025)+level-up-shiny | E-L1→2 | ✅ 已发布 |
+| 2.8 | 出版级报告（合流章） | practical-quarto(2026)+quarto-brand | D-L2 | ✅ 已发布 |

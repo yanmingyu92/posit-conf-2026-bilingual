@@ -1,0 +1,260 @@
+---
+title: "4.6 数据对话应用 · shinychat & querychat"
+objectives: |
+  学完本章你能：论证聊天框作为数据应用界面的得失；用 shinychat 搭流式
+  聊天应用并按会话隔离状态；给面向用户的 LLM 应用加装护栏；用 querychat
+  把数据框变成自然语言查询应用并理解其安全模型；说明部署要点。
+source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0）；讲义文字为本项目原创"
+---
+
+# 4.6 数据对话应用（shinychat）
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **evaluate** 聊天框作为 UI 的得失：什么任务适合对话、什么任务必须控件
+2. **build** 用 `page_chat()` + `chat_server()` 搭最小聊天应用，并把工具接成 UI 事件
+3. **implement** 每会话独立的 ellmer client，杜绝用户间历史串线
+4. **apply** 四类护栏：system prompt 锚定、工具范围收窄、拒绝体验、路径校验
+5. **assess** querychat 的 NL→SQL 安全模型，并说出为什么**永远不能 eval 模型原文**
+
+## 前置自测
+
+- 会 ellmer 会话、system prompt、工具注册（→ 不熟？先回 [4.1] 与 [4.3]）
+- 知道 Shiny 的 `ui` / `server` 分工与 `session` 概念（→ [2.7] 是完整版）
+- 本章延续 Blockbuster 情境：4.4 那个带 skills 的续约 agent 要住进 Shiny 应用
+
+## 1. 聊天框是一种什么样的界面
+
+chat-as-UI 的本质：**把「说清需求」的成本从设计者转嫁给用户**——探索型
+任务纯赚，精确重复任务纯亏（chat 比按钮慢且不可审计）。
+
+| 任务形态 | 界面 | 理由 |
+|---|---|---|
+| 开放探索、追问式分析 | chat | 需求说不全，对话能补 |
+| 精确、高频、要审计 | 传统控件 | 每次结果必须逐字节一致 |
+| 两者混合 | chat 入口 + 控件收口 | 问出来 → 存成参数化报表 |
+
+::: {.callout-warning}
+## 高频误区：因为「酷」上聊天框
+先问三个问题：用户知道想问什么吗（不知道→控件引导）；答案要进正式流程吗
+（要→可复现的控件产物）；出错谁负责（对话不可回放，控件日志可审计）。
+三个都答「不利」，就别做 chat。
+:::
+
+## 2. 最小 shinychat 应用
+
+`shinychat` 把聊天界面拆成一对组件：UI 侧 `page_chat()`，服务器侧 `chat_server()`（改编自 llms `24_shinychat-1`）：
+
+::: {.callout-example}
+```r
+library(ellmer)
+library(shiny)
+library(shinychat)
+
+greeting <- paste(
+  "## Welcome to the renewal desk\n\nChoose a starting point, or write your own request.\n",
+  "* <span class=\"suggestion submit\">Draft renewal letters for the top three lapsed members.</span>",
+  "* <span class=\"suggestion submit\">List the draft letters already in the workspace.</span>",
+  "* <span class=\"suggestion submit\">Explain the renewal-letter skill.</span>",
+  sep = "\n"
+)
+
+ui <- page_chat(
+  "Blockbuster renewal assistant",
+  id = "chat",
+  greeting = chat_greeting(greeting),
+  placeholder = "Ask about the renewal campaign..."
+)
+
+server <- function(input, output, session) {
+  client <- chat_posit()
+  # 4.4 章的接线：Blockbuster system prompt + 文件工具 + skills
+  prep_blockbuster_agent(client, project_dir, skills_dir)
+
+  chat_server("chat", client)   # 流式输出、输入框、会话历史全由它接管
+}
+
+shinyApp(ui, server)
+```
+:::
+
+UI 细节：`chat_greeting()` 里可用 Markdown，`<span class="suggestion submit">`
+渲染成可点击的**建议卡片**——新用户的第一句话最难，卡片替他问出口。
+
+## 3. 会话状态：每个用户一台独立对话机
+
+§2 里 `chat_posit()` 在 **`server()` 内部**创建。server 函数**每个用户会话
+各跑一份**，于是每个浏览器标签页拿到自己的 ellmer client 和对话历史——
+这是特性不是巧合：
+
+::: {.callout-warning}
+## 高频错误：client 放到全局环境
+全应用共用一个会话对象——A 的历史出现在 B 的上下文里（**隐私事故**），
+所有人的轮次还互相抬价（4.1 的历史重发计费）。规则：**一 session 一 client**，
+每会话独立计费，建议卡片就是把第一句话引上便宜轨道的第一道闸。
+:::
+
+::: {.callout-important}
+## Check In：观察会话隔离
+
+开两个浏览器窗口连本地 app，各自问一个问题，再各问一句「我刚才问了什么？」
+验证：每个窗口只记得自己的历史。再把 `client <- chat_posit()` 移到全局环境
+复跑一次，观察串线，用 4.1 的「模型无记忆，ellmer 重发历史」解释现象。
+:::
+
+## 4. 工具即 UI 事件：让模型操作界面
+
+聊天应用真正的杠杆：**模型调用工具的瞬间，恰好是 R 在跑代码的瞬间**——顺手
+就能更新 Shiny UI。`25_shinychat-2` 加了「草稿抽屉」：模型写完信，调用工具
+把信展示到抽屉里供人编辑（UI 在 `page_chat()` 里加 `drawer = chat_drawer(...)`）：
+
+::: {.callout-example}
+```r
+ui <- page_chat(
+  "Blockbuster renewal assistant", id = "chat",
+  greeting = chat_greeting("## Welcome to the renewal desk\n\nDraft letters, then review them in the drawer."),
+  placeholder = "Ask about the renewal campaign...",
+  drawer = chat_drawer(
+    selectInput("letter", "Draft", choices = character()),
+    bslib::input_code_editor("letter_content", label = "Letter",
+                             language = "markdown", height = "500px"),
+    actionButton("save_letter", "Save letter"),
+    title = "Letter drafts", open = FALSE
+  )
+)
+
+server <- function(input, output, session) {
+  show_letter <- function(path) {
+    filename <- basename(path)                       # 剥掉一切路径
+    files <- sort(list.files(drafts_dir, pattern = "\\.md$"))
+    if (!filename %in% files) {
+      stop("Could not find draft ", filename, ".")   # 拒绝，而不是猜
+    }
+    updateSelectInput(session, "letter", choices = files, selected = filename)
+    chat_drawer_show("chat", session = session)      # 打开抽屉
+    paste0("Opened ", filename, " in the letter drawer.")  # 回给模型的回执
+  }
+
+  tool_show_letter <- tool(
+    show_letter,
+    description = "Open a draft renewal letter in the app's letter drawer.",
+    arguments = list(
+      path = type_string("Path to a draft letter in letters/drafts/.")
+    )
+  )
+  # 其余接线同 §2：register_tool(tool_show_letter) 后 chat_server("chat", client)
+}
+```
+:::
+
+读三点：`basename()` + 白名单把模型路径降级成受控文件名；失败 `stop()` 让
+模型收到错误自行重试；工具的返回串是给**模型**的回执，用户看到的是抽屉开了。
+
+## 5. 面向用户的护栏与上线
+
+终端里的 agent 用户是你自己；进了应用，用户是**任何人**。四条最低配置：1. **锚定**：system prompt 声明身份、数据边界与「工具之外一律不做」
+2. **收窄**：副作用只能经注册的工具发生，路径锁死在 `project_dir` 内
+3. **拒绝体验**：范围外的问题礼貌回「这不在我的工具范围」，refusal 是功能
+4. **输入校验**：模型的每个参数都当**不可信用户输入**处理（§4 的 `basename()` 模式）
+
+上线三件事：去处选 Posit Connect（企业内，服务器级 key 与访问控制）或
+shinyapps.io（`rsconnect` 一键推送）；API key 放服务器环境变量，绝不进代码；
+上线前用 4.1 的成本直觉压估（每会话成本 × 并发数）。
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+八成的数据应用只需要三个下拉框和一个按钮。聊天框适合剩下那两成「用户自己
+也不知道想看什么」的探索——先做控件版，等观察到用户真的开始「连着问」
+了再包一层 chat。反过来做几乎总是过度工程。
+:::
+
+## 6. querychat：自然语言到安全查询
+
+shinychat 给你砖头，querychat 给你整栋楼：数据框进去，带聊天、数据、SQL
+三视图的应用出来（改编自 llms `26_querychat`）：
+
+::: {.callout-example}
+```r
+library(ellmer)
+library(querychat)
+
+airbnb_data <- read.csv(here::here("data/airbnb-austin.csv"))
+
+qc <- QueryChat$new(
+  airbnb_data,
+  "airbnb_data",
+  client = chat_posit(),
+  greeting = "Ask me about Austin Airbnb listings.",
+  data_dict = here::here("data/airbnb-austin_data-dict.yaml")
+)
+
+qc$app()
+```
+:::
+
+上手动作：问「Which neighborhood has the most private rooms?」，打开数据
+抽屉选 **Show Query**——生成的 SQL 在那里，点开即可审计；再追问「那个街区里
+最便宜的私房呢？」，体会**会话内上下文**如何被带回查询。`data_dict`（YAML
+数据字典）逐列告诉模型真实含义，是回答质量最便宜的放大器。
+
+::: {.callout-warning}
+## 安全红线：永远不要 eval 模型输出
+任何把模型回复拼成 R 代码再 `eval()`/`parse()` 执行的方案，都是把服务器钥匙
+交给输入框。querychat 的做法值得抄：约束模型只生成针对单表的 SQL，交给受限
+引擎执行——查询是可审视的数据操作，不是可执行代码。通用姿势二选一：
+受约束的 DSL（SQL），或让模型产出**结构化参数**（4.2 的 `extract_data()`）
+由你的 R 函数安全执行。模型给参数，代码给动作。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+用你自己的数据集复刻 §2：`page_chat()` + 三张建议卡片 + 定制 placeholder。
+卡片覆盖「一个好问题、一个清单问题、一个元问题（问应用能干什么）」。
+（改编自 llms 工作坊 `24_shinychat-1`）
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+给 §2 的应用加一个你自己的 UI 工具（参照 §4）：让模型把某次分析结果「钉」到
+侧边栏（`chat_drawer()` 或一个 `valueBox`）。硬性要求：`basename()` 等价校验 +
+白名单 + 失败 `stop()`；演示一次模型传非法值时应用如何安全拒绝。
+（改编自 llms 工作坊 `25_shinychat-2`）
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁 AI 环节）
+
+**第一轮（全程禁用 AI）**：假设应用要公开发布，手写威胁清单（≥10 条）：
+数据里的提示词注入、路径穿越、PII 泄漏、成本攻击……每条写
+「入口 → 后果 → 一句缓解」。
+**第二轮（开放 AI）**：把清单交给助手做红队评审，只问：「哪三条我最可能
+低估？给出攻击演示请求。」补齐后实测其中两条，记录应用的行为。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「领域数据对话应用」——二选一：① shinychat 路线：你的数据 +
+锚定 system prompt + ≥1 个带校验的 UI 工具 + 建议卡片开局；② querychat
+路线：你的数据 + 手写 `data_dict`。都要交付：部署说明（Connect 或 shinyapps）
++ 10 问测试脚本（含 2 个范围外问题的拒绝记录）+ 每会话成本压估。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 交互设计 | 应用能跑、流式输出 | 建议卡片引导第一问 | 对话产物可「收口」为控件/报表 |
+| 安全护栏 | client 按会话隔离 | 工具全带校验+白名单 | 威胁清单逐条映射到实现并实测两条 |
+| 状态与成本 | 会话互不串线 | 成本压估有分轮计算 | 给出并发上限估算或限流建议 |
+| 证据边界 | 范围外问题有拒绝 | 拒绝话术礼貌且指路 | 测试脚本含对抗性请求的记录 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §2 最小应用与建议卡片、§4 抽屉与 UI 工具 | posit::conf(2026) llms `_exercises/24_shinychat-1`、`25_shinychat-2` 及对应 `_solutions/`（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0） | 改编 |
+| §6 querychat 用法与 Show Query | llms `_exercises/26_querychat` / `_solutions/26_querychat` | 改编 |
+| chat-as-UI 得失表、护栏四条、eval 红线论述、练习改造、capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

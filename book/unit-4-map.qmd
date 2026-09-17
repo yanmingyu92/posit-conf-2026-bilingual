@@ -1,4 +1,4 @@
-# Unit 4 · AI & Domain Applications AI 与领域应用 — 章节地图
+﻿# Unit 4 · AI & Domain Applications AI 与领域应用 — 章节地图
 
 > 心智主线：让 AI 放大前三单元的一切，并落到专业领域。
 > 本单元是我们的差异化主打：素材 100% 来自 2026 年最新工作坊。
@@ -6,10 +6,10 @@
 | 章 | 主题 | 素材锚点 | 矩阵 | 状态 |
 |---|---|---|---|---|
 | [4.1](chapters/41-llm-basics.qmd) | LLM 编程基础（ellmer） | llms(2026) 01–11 | F | ✅ 已发布 |
-| 4.2 | 结构化输出与评测 | llms(2026) 10/15 | F | 起草中 |
-| 4.3 | Agents 与工具调用 | llms(2026) 19–20 | F | 起草中 |
-| 4.4 | Agent Skills 工程化 | llms(2026) 21–22 | F/A-L3 | 认领 |
-| 4.5 | RAG 与 MCP | llms(2026) 51–52 | F/B-L3 | 认领 |
-| 4.6 | shinychat 数据对话 | llms(2026) 24–26 | E-L2 | 认领 |
-| 4.7 | 临床报告（pharmaverse） | pharmaverse(2026) | E-L3 | 起草中 |
-| 4.8 | 受监管环境（GxP） | r-pharma-regulated(2026) | E-L3 | 认领 |
+| 4.2 | 结构化输出与评测 | llms(2026) 10/15 | F | ✅ 已发布 |
+| 4.3 | Agents 与工具调用 | llms(2026) 19–20 | F | ✅ 已发布 |
+| 4.4 | Agent Skills 工程化 | llms(2026) 21–22 | F/A-L3 | ✅ 已发布 |
+| 4.5 | RAG 与 MCP | llms(2026) 51–52 | F/B-L3 | ✅ 已发布 |
+| 4.6 | shinychat 数据对话 | llms(2026) 24–26 | E-L2 | ✅ 已发布 |
+| 4.7 | 临床报告（pharmaverse） | pharmaverse(2026) | E-L3 | ✅ 已发布 |
+| 4.8 | 受监管环境（GxP） | r-pharma-regulated(2026) | E-L3 | ✅ 已发布 |

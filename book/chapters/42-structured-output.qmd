@@ -1,0 +1,260 @@
+---
+title: "4.2 结构化输出与评测 · Structured Output & Evals"
+objectives: |
+  学完本章你能：用 type_*() 七件套为真实文档设计嵌套数据合同；为批量
+  任务选并行/批处理模式；建 10–20 例金标评测集并用 vitals 打分；按评测
+  迭代提示词并判断何时够好上线。
+source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0）；讲义文字为本项目原创"
+---
+
+# 4.2 结构化输出与评测
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **design** 用 `type_*()` 类型系统为一份真实文档设计嵌套 schema
+2. **explain** 字段描述符（description）为什么既是类型签名又是提示词
+3. **select** 在「一次调用多条」与「多次调用各一条」之间做批量决策
+4. **construct** 建一个 10–20 例的金标评测集（gold set / eval dataset）
+5. **evaluate** 用 vitals 跑评测（eval），按结果迭代提示词并判断能否上线
+
+## 前置自测
+
+- 跑通过 4.1 的 `extract_data()`、见过 `type_object()` / `type_array()`，并记得铁律：**模型负责格式，事实必须有来源**（→ 不熟？先回 [4.1] §5）
+
+::: {.callout-note}
+命名提示：ellmer 新版把 4.1 的 `extract_data()` 更名为 `chat_structured()`、
+`set_system()` 更名为 `set_system_prompt()`——同一契约，本章统一用新名。
+:::
+
+## 1. 为什么 schema 完胜解析散文
+
+不签合同的提取长这样：模型「体贴地」回你 `Name: Alex; Age: 42`，要入库
+就得写正则剥字符串——它哪天换成 `Alex, 42 years old`，解析就炸。4.1 的
+结论在此升格：**不要解析散文，要在请求里签合同**——schema 写进调用，
+返回的直接是带类型校验的 R 对象。
+
+::: {.callout-example}
+```r
+library(ellmer)
+chat <- chat_posit()
+chat$set_system_prompt("你是数据提取助手，只依据给定文本作答。")
+
+type_person <- type_object(
+  name = type_string("此人的姓名"),
+  age  = type_integer("此人的周岁年龄")
+)
+
+chat$chat_structured("我叫陈默，按周岁算 42 了。", type = type_person)
+#> $name: "陈默"   $age: 42
+```
+:::
+
+::: {.callout-warning}
+## 高频误区：schema 合同 ≠ 事实合同
+类型系统保证 `age`**是整数**，不保证它**是真的**——文本里没写的，
+模型可能编一个凑数。所以 §2 要学 `required = FALSE`，让「没有」诚实
+地表达为缺失，而不是被捏造。
+:::
+
+## 2. 类型系统全表：七件套与两个旋钮
+
+| 函数 | 装什么 | 典型字段 |
+|---|---|---|
+| `type_string()` | 字符串 | 标题、备注 |
+| `type_number()` | 数值（含小数） | 剂量、金额 |
+| `type_integer()` | 整数 | 样本量、人次 |
+| `type_boolean()` | 逻辑值 | 是否入选 |
+| `type_enum()` | **受限词表** | 分级、类别 |
+| `type_array()` | 序列（元素类型作参数） | 步骤列表、行记录 |
+| `type_object()` | 记录（命名字段） | 一条结构化记录 |
+
+两个旋钮比七件套更重要：**description**——`type_string("...")` 的第一个
+参数会原样发给模型，所以它**就是写给模型的提示词**（含义、单位、判定
+标准都写在这里）；**required = FALSE**——允许字段缺失返回 `NULL`，
+而不是逼模型编造。
+
+::: {.callout-example}
+```r
+type_flag <- type_object(
+  severity = type_enum(
+    c("mild", "moderate", "severe"),
+    description = "严重程度三档；拿不准时选 moderate，不许自创档位"
+  ),
+  icu_days = type_integer("ICU 天数；未进 ICU 则缺失", required = FALSE)
+)
+```
+`type_enum()` 把自由文本锁进词表，下游可以放心 `factor()`。
+:::
+
+## 3. 嵌套 schema：为真实文档建模
+
+单层对象装不下真实文档。工作坊的菜谱（`10_structured-output`）是范本：配料是**对象数组**（名称/数量/单位/备注），步骤是**字符串数组**——`type_array()` 的参数就是「元素长什么样」。
+
+::: {.callout-example}
+```r
+type_recipe <- type_object(
+  title = type_string(),
+  description = type_string(),
+  ingredients = type_array(
+    type_object(
+      name = type_string(),
+      quantity = type_string(required = FALSE),  # 「盐 适量」没有数量
+      unit = type_string(required = FALSE),
+      notes = type_string(required = FALSE)
+    )
+  ),
+  instructions = type_array(type_string())
+)
+
+txt <- brio::read_file("data/recipes/text/CinnamonPeachOatWaffles.md")
+chat$chat_structured(txt, type = type_recipe)
+```
+配料三个字段全部可选——「适量」「少许」大量存在，逼模型填空只会收获编造的单位。
+:::
+
+::: {.callout-important}
+## Check In：给体检报告设计 schema
+
+为体检报告文本（总检结论 + 指标行：名称/结果/单位/参考范围/箭头）设计
+`type_checkup`：至少一个对象数组、一个 `type_enum()`（箭头 ↑/↓/正常
+该 enum 还是 string？说出理由）、一个 `required = FALSE`。先写 schema
+再试跑：哪个字段失败率最高？（改编自 `10_structured-output`）
+:::
+
+## 4. 批量模式：一次很多条 vs 很多次
+
+| 路线 | 做法 | 适合 | 风险 |
+|---|---|---|---|
+| 一次调用多条 | `type_array(type_object())`（4.1 已见） | 条目少、短 | 挤爆上下文；一条跑偏全批返工 |
+| 多次调用各一条 | 每份文档单独一次调用 | 文档长、量大 | 慢；要管理并发与失败 |
+
+第二条路线有个坑：`chat$chat_structured()`**不吃向量**——把字符串列表整个传进去直接报错。正确的工具是 `parallel_chat_structured()`；还有第三条路 `batch_chat_structured()`（provider 批处理队列，更便宜但可能等数小时，Posit AI 不转发）——知道存在即可。
+
+::: {.callout-example}
+```r
+recipes <- fs::dir_ls("data/recipes/text") |> purrr::map(brio::read_file)
+recipes_data <- parallel_chat_structured(     # 改编自 llms `11_parallel`
+  chat_posit(model = "claude-haiku-4-5"),     # 简单任务用小模型，便宜
+  prompts = recipes,
+  type = type_recipe,
+  max_active = 4,                             # 限流阀：并发烧的是真钱
+  on_error = "stop"
+)
+dplyr::as_tibble(recipes_data)
+```
+:::
+
+## 5. 评测心智：prompt 是假设，eval 是实验
+
+结构化输出保证了**格式**，保证不了**质量**。工作坊的 bluffbench 实验
+是一记闷棍：悄悄改掉熟悉的 `mtcars` 散点关系再让模型解读——多数模型
+**描述它期望看到的图，而不是眼前的图**（温度日志里连着六个一模一样的
+54.1°F 卡死读数，模型照常夸数据平滑）。「哪个 prompt 更好？哪个模型更
+强？」靠 vibes（试一次凭感觉）答不了，评测心智只有一句话：
+
+> **prompt 是假设，eval 是实验。** 改一次提示词，就要重跑一次实验。
+
+一个 eval 三件套（vitals 的词汇）：**dataset** = 测试用例（input 提问 +
+target 标准答案或评分指南）；**solver** = 把 input 变成 output 的代码；**scorer** = 判分规则（§6）。金标集不用大：**10–20 例、覆盖典型与
+边界**即可；开放任务的 target 写「好回答必须包含什么」。
+
+::: {.callout-example}
+```r
+library(vitals)
+vitals::vitals_log_dir_set("./logs")
+cases <- tibble::tibble(
+  id = c("sensor", "units", "plants"),
+  input = c(sensor_prompt, units_prompt, plants_prompt),
+  target = c(sensor_criteria, units_criteria, plants_criteria)
+)  # 每条 input 埋一个数据质量瑕疵，target 写明「发现它」的标准（llms `15_evals`）
+
+task <- Task$new(
+  dataset = cases,
+  solver = generate(chat_posit(model = "claude-haiku-4-5")),
+  scorer = model_graded_qa(scorer_chat = chat_posit(model = "claude-sonnet-5"))
+)
+
+task$eval(epochs = 2)  # 跑 2 遍看方差；vitals_view() 可逐例查看判分
+task$get_samples() |>
+  dplyr::summarise(pass_rate = mean(score == "C"), .by = id)  # C = Correct
+```
+:::
+
+## 6. 打分器、迭代与上线门槛
+
+| 方法 | 怎么判 | 代价 |
+|---|---|---|
+| 确定性 | 精确匹配 / 正则 / 跑测试代码 | 快而稳，只适合封闭输出 |
+| 模型打分 | 另一个 LLM 当法官（judge model） | 灵活，但**法官本身要被抽查验证** |
+| 人工 + 评分细则 | 人按 rubric 逐条勾 | 最可信，规模化贵 |
+
+::: {.callout-warning}
+## 高频错误：盲信法官模型
+`model_graded_qa()` 的判分也是模型生成的。上线前抽查 10–20 条判分记录：
+法官把错的判对了吗？判分标准收紧能降低法官漂移——与 §1 同源：格式合同不是事实合同。
+:::
+
+评测的价值在迭代时兑现。循环：**基线 → 只改一处（prompt / 字段
+description / 模型档位）→ 重跑 eval → 对比 pass_rate 与成本**；同一 eval
+换 `solver_chat` 即可横向对比模型——新模型发布时重跑一遍，就是你的
+**回归测试**。「够好」的三个门槛，缺一不上线：
+
+1. **通过率阈值先于实验写下**（如 ≥85%），防止事后找补
+2. **失败案例人工过一遍**：失败模式可接受、不系统性伤及某类输入
+3. **方差检查**：epochs ≥ 2 的两轮通过率接近，波动大说明用例或判分不稳
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+顺序反了是最大的浪费：多数人先调十轮 prompt、最后才想评测；正确顺序是
+**先花一小时建 15 条金标，再调 prompt**——没有 eval 的十轮调整，是把
+「感觉变好了」当证据。金标集是资产：模型会换，用例不会。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+用 §3 的 `type_recipe` 原样提取 `data/recipes/text/` 里另一份菜谱，
+`as_tibble()` 后找出为空或提取错的字段；改一句对应 description 再跑，
+记录「改动前 vs 改动后」。（改编自 `10_structured-output`）
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把 §4 的并行模式适配到自备的 ≥10 条文本（摘要、工单、简历皆可）：自定
+嵌套 schema，`max_active = 4`；用 4.1 的成本函数估算总花费，并回答：
+该用大模型还是小模型？依据是什么？（改编自 `11_parallel`）
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · 禁 AI 环节）
+
+**第一轮（全程禁用 AI）**：为你领域的一个提取任务手写 12–15 条金标用例
+（input + target），并从三种打分器里选一种、写出完整判分规则。
+**第二轮（开放 AI）**：把判分规则贴给助手，只问：「给出三类能骗过这个
+评分器的坏输出。」补上漏洞后实跑一次，记录 AI 找到的、你没预料的那一类。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「金标评测台」——选你领域的一个真实提取任务（≥15 份文档），交付：嵌套 schema + 15–20 例金标集 + vitals 评测脚本 + 一轮完整迭代报告（基线 → 一处修改 → 新通过率 → 成本对比 → 上线建议）。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| schema 质量 | 嵌套结构完整可跑 | description 写成可判定标准 | optional 克制，缺失语义诚实 |
+| 金标集 | 15 例齐 | 覆盖典型与边界两类 | 含至少 3 例「故意刁难」用例 |
+| 评测工程 | 能跑出通过率 | 阈值先写下、判分被抽查 | 两模型横向对比 + 成本纳入决策 |
+| 决策诚实 | 有上线结论 | 失败案例被逐条过目 | 明确写出「什么情况不该用这条 pipeline」 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§3 类型系统与菜谱嵌套 schema | llms `_exercises/10_structured-output` 及 slides-04 | 改编 |
+| §4 并行与批处理 | llms `_solutions/11_parallel` | 改编 |
+| §5–§6 评测三件套、bluffbench、打分器 | llms `15_evals`、`_solutions/15_evals`、slides-05（vitals） | 改编 |
+| 体检报告 Check In、上线门槛、练习与 capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

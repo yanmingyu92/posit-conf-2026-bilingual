@@ -1,0 +1,260 @@
+---
+title: "1.5 Web Scraping · 网页抓取"
+objectives: |
+  学完本章你能：用 CSS 选择器在 HTML 里定位内容；用 rvest 的四件套
+  提取文本与表格；用 polite 协议礼貌抓取；判断法律与伦理边界；
+  在爬虫失败时转向「先找 API」策略。
+source-note: "本章为 100% 原创；技术细节以 rvest 与 polite 官方文档为准（引用见 SOURCES）"
+---
+
+# 1.5 Web Scraping · 网页抓取
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **model** HTML 的三层心智模型：标签（tag）/ 类（class）/ 标识（id）
+2. **extract** 用 rvest 四件套：`read_html()` / `html_elements()` / `html_text2()` / `html_table()`
+3. **locate** 用浏览器开发者工具找到目标内容的选择器并验证
+4. **apply** polite 协议：`bow()` → `scrape()` → `nod()`，尊重 robots.txt 与限速
+5. **judge** 一次抓取的法律/伦理边界（ToS、个人数据、版权、频率）
+6. **pivot** 当页面由 JS 渲染时，切换到「先找 API/JSON 端点」策略
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下两问再继续；第 1 题不会请回 1.4 §2（list 选步）：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. `x <- list(a = list(b = c("p", "q")))`，取出 `"q"` 的代码是？
+2. 猜猜选择器 `.price`、`#main`、`li a` 各匹配什么？
+（猜不出没关系——§1 就是讲这个。）
+:::
+
+## 1. HTML 的心智模型：标签、class 与 id
+
+网页 = 一棵带标签的树。对抓取而言，只需要三层心智模型：
+
+| 概念 | 语法 | 选择器 | 特点 |
+|---|---|---|---|
+| 标签（tag） | `<p>...</p>` | `p` | 元素类型，一页成百上千个 |
+| 类（class） | `<p class="note">` | `.note` | 可复用标签，一页可多个 |
+| 标识（id） | `<p id="notice">` | `#notice` | 全页唯一 |
+
+::: {.callout-example}
+把这段"微型网页"存成字符串——离线可复现，我们先用它把工具学会：
+
+```r
+html <- '
+<div id="shop" class="page">
+  <h2>本周菜单</h2>
+  <p class="note">周三店休</p>
+  <ul>
+    <li class="dish">宫保鸡丁 <span class="price">28</span></li>
+    <li class="dish">麻婆豆腐 <span class="price">22</span></li>
+  </ul>
+  <a href="menu-full.html">完整菜单</a>
+</div>
+'
+```
+:::
+
+组合规则（够用版）：`div.page`（既是 div 又有类 page）、
+`.dish .price`（dish 后代里的 price）、`a[href]`（带 href 属性的链接）。
+
+## 2. rvest 四件套：读、找、取文本、取表
+
+::: {.callout-example}
+```r
+library(rvest)
+
+page <- read_html(html)              # ① 读：字符串 / 本地文件 / URL 皆可
+
+page |> html_elements("h2")          # ② 找：返回所有匹配
+page |> html_elements(".price") |>
+  html_text2()                       # ③ 取文本: c("28", "22")
+
+page |> html_element("a") |>
+  html_attr("href")                  # 取属性: "menu-full.html"
+```
+:::
+
+第四件套专治表格——很多"想抓的数据"其实就躺在 `<table>` 里：
+
+::: {.callout-example}
+```r
+page2 <- read_html('
+<table>
+  <tr><th>菜名</th><th>价格</th></tr>
+  <tr><td>宫保鸡丁</td><td>28</td></tr>
+  <tr><td>麻婆豆腐</td><td>22</td></tr>
+</table>')
+
+page2 |> html_element("table") |> html_table()
+# 一个 2 行 2 列的 tibble：菜名 + 价格
+```
+:::
+
+::: {.callout-warning}
+## 高频错误：html_elements() vs html_element()
+复数版返回**所有**匹配（可以是空集）；单数版只取**第一个**。
+抓单个表格用单数 + `html_table()`；批量取文本用复数。
+选错版式的典型症状：结果只有 1 行或长度 0，而你确信页面上明明有几十个。
+:::
+
+::: {.callout-note}
+`html_text2()` 整理空白（换行/缩进压成一个空格），抓正文首选；
+`html_text()` 保留原始字符，偶尔调试时用。
+:::
+
+::: {.callout-important}
+## Check In：选择器靶场
+对 §1 的 `html`，**先写出选择器、再运行验证**：
+① 抓出两个菜名（不含价格数字）；② 抓出 `div` 里所有 `li` 的文本；
+③ 把两个价格变成数值向量 `c(28, 22)`（提示：`as.numeric()`）。
+:::
+
+## 3. 找选择器：浏览器开发者工具
+
+真实页面比教学字符串乱得多。定位选择器的标准流程：
+
+1. 浏览器打开目标页 → 右键目标内容 → **检查（Inspect）**
+2. 高亮元素上右键 → Copy → **Copy selector**——但**先别直接用**（见下）
+3. 带回 R 验证：`read_html(url) |> html_elements(sel) |> html_text2()`，长度与内容对得上才算找到
+
+::: {.callout-warning}
+## 高频错误：机器生成的选择器很脆
+浏览器 "Copy selector" 常给出
+`#root > div:nth-child(3) > div > span:nth-child(2)` 这种**位置路径**——
+网站改版（哪怕只挪一个 div）立刻失效。优先用**语义选择器**：
+目标元素自带的 class / id，或紧邻的稳定容器；
+一串 `:nth-child` 的，退回去找人类可读的类名。
+:::
+
+## 4. polite 协议：bow() → scrape() → nod()
+
+对真实网站抓取，请把 `read_html(url)` 升级为 **polite 三步曲**。
+polite（"礼貌的"）替你做三件事：查 robots.txt、自动限速、登记会话。
+
+::: {.callout-example}
+```r
+library(polite)
+library(rvest)
+
+session <- bow(
+  "https://rvest.tidyverse.org/",         # 先向主机"鞠躬"
+  user_agent = "posit-conf-2026 课程练习（联系: me@example.com）"
+)
+session        # 打印：robots.txt 是否允许、延迟多少秒
+
+page <- scrape(session)                    # 遵守延迟后取回页面
+page |> html_elements("a") |> html_attr("href") |> head()
+
+session <- nod(session, "reference/")      # 同一主机换路径："点头"即可
+scrape(session) |> html_elements("a") |> length()
+```
+:::
+
+polite 要点：`bow()` 一个主机只做一次（换主机要重新 bow）；`scrape()` 前会自动等够
+该等的秒数；`nod()` 换路径沿用同一会话与限速。抓多页时**顺序**执行——不要并发。
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+我每学期都跟学生说：**90% 的"我需要爬虫"，其实是一个没被发现的 API 或
+下载按钮**。写爬虫前先花十分钟找 "Data / Download / API" 链接——
+爬虫应是最后手段，不是第一反应。这条意见值你一周的调试图。
+:::
+
+## 5. 法律与伦理：爬之前问四个问题
+
+| 问题 | 判断要点 |
+|---|---|
+| robots.txt 允许吗？ | 礼仪层：polite 已替你查，但**允许 ≠ 随便抓** |
+| 服务条款（ToS）禁止吗？ | 合同层：不少站点明确禁止抓取，违规可能封号追责 |
+| 数据涉及个人吗？ | 法律层：个人信息受 GDPR / PIPL 等保护，需合法事由 |
+| 内容受版权保护吗？ | 事实数据可整理；成段文字/图片再发布要授权 |
+
+再加一条频率伦理：**把请求频率控制得像一个人手动浏览**。
+服务器不是你的，流量账单是别人的。
+
+::: {.callout-note}
+学术稳妥姿势：记录来源 URL 与访问日期；只抓研究所需的最小范围；
+产出物标注数据来源；涉人数据先过伦理审查（必要时匿名化）。
+:::
+
+## 6. 当爬虫失败：JS 渲染页面与「先找 API」
+
+症状：内容在浏览器里看得见，`read_html()` 拿到的 HTML 里却没有。
+原因：页面骨架只是一层壳，数据由 **JavaScript** 在你浏览器里现场渲染。
+
+诊断：浏览器按 Ctrl+U 看**网页源代码**（view-source）——那是服务器发给 R 的原始内容；里面没有 = rvest 拿不到。
+
+应对阶梯（按优先级）：
+
+1. **找底层数据接口**：开发者工具 → Network → XHR/Fetch，刷新页面，
+   找返回 JSON 的请求——它就是网站的"后门 API"。复制 URL 与参数，
+   回到 1.4 的 httr2 管道。JSON 往往比 HTML 干净十倍。
+2. **找官方出口**：数据下载页、官方 API、开放数据集，都排在爬虫前面。
+3. **最后手段**：无头浏览器（如 chromote 驱动真实 Chrome）——
+   慢、脆、维护贵，本课不展开，知道存在即可。
+
+::: {.callout-warning}
+## 高频错误：把 JS 渲染页当"选择器写错了"
+排查顺序：先用 view-source 确认**内容在不在原始 HTML 里**，
+再怀疑选择器。否则你会在选择器上 debug 一整晚，方向全是错的。
+:::
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+用 §1 的 `html` 字符串：抓出 `{菜名, 价格}` 两列的 tibble。
+提示：`html_elements(".dish")` 逐个再 `html_element(".price")`
+（rvest 对节点集会逐元素取第一个匹配），或分别取两个向量再 `tibble()`。
+要求菜名列不带价格数字与多余空白。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+写 `polite_text(url, selector, delay = 5)`：内部 `bow()` + `scrape()`，
+返回匹配选择器的字符向量。在 `https://rvest.tidyverse.org/` 上
+测试两个选择器（如 `"h1"` 与 `"a"`），并在注释里记录：
+session 打印里 robots.txt 的结论是什么、延迟是多少秒？
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：选一个公开数据页面（建议：带 `<table>` 的
+维基百科统计类条目），走完整礼貌流程：检查 robots.txt → `bow()` →
+`scrape()` → `html_table()` → 清洗成 tidy tibble，标注来源与访问日期。
+**第二轮（开放 AI）**：把代码贴给 Posit Assistant，只问一个问题：
+「如果网站明天改版，这段代码哪里最先断？怎么让它断得更有用？」
+按建议改一版，并记录：接受了哪条、拒绝了哪条、为什么。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「数据侦察兵」——为你的领域找一个**必须抓取**才能获得的数据源
+（先证明它没有 API / 下载出口——这本身就是任务的一部分），完成：
+① 合规档案（robots.txt 结论、ToS 摘录、频率计划）；
+② polite 会话抓取 ≥1 张表格 + ≥1 个列表，清洗成 tidy tibble；
+③ 一页 Quarto 报告：数据、来源、访问日期、伦理说明。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 合规礼仪 | 有 robots.txt 记录 | ToS / 频率计划齐 | 主动最小化抓取范围 |
+| 提取正确 | 表格内容与网页一致 | 清洗后成 tidy tibble | 处理了缺失单元格 / 脚注 |
+| 健壮性 | 能跑通 | 关键选择器带验证 | 断点报错信息可行动 |
+| 伦理报告 | 有来源标注 | 有访问日期 | 说明个人数据 / 版权考量 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §2–§3 rvest 函数行为与选择器 | [rvest 官方文档](https://rvest.tidyverse.org) | 引用 |
+| §4 polite 协议 | [polite 官方文档](https://dmi3kno.github.io/polite/) | 引用 |
+| 微型网页示例、选择器靶场、伦理框架、练习、capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。
