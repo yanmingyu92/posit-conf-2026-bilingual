@@ -1,0 +1,38 @@
+---
+title: Practical Quarto
+subtitle: Patterns, templates, and tooling
+---
+
+> September 14th, 2026  
+> `posit::conf(2026)`
+
+## Setup
+
+Please check the [Setup Instructions](setup.qmd) for recommended steps to take before the workshop.
+
+## Schedule
+
+| Time          | Activity         |
+| :------------ | :--------------- |
+| 09:00 - 09:15 | [Welcome](modules/00-welcome.qmd) |
+| 09:15 - 10:30 | [Productive workflows in Positron](modules/01-positron.qmd) |
+| 10:30 - 11:00 | *Coffee break*   |
+| 11:00 - 12:10 | [Design once, use anywhere](modules/02-brand.qmd) |
+| 12:10 - 12:30 | Interlude: q2    |
+| 12:30 - 13:30 | *Lunch break*    |
+| 13:30 - 15:00 | [Build reusable structures](modules/03-partials.qmd) |
+| 15:00 - 15:30 | *Coffee break*   |
+| 15:30 - 16:30 | [Why Typst matters](modules/04-typst.qmd) |
+| 16:30 - 17:00 | [Wrap-up + Q&A](modules/05-wrap-up.qmd)    |
+
+## Instructors
+
+[Charlotte Wickham](https://cwick.co.nz) is a Senior Developer Advocate at Posit with a focus on [Quarto](https://quarto.org). Before Posit, she taught Statistics and Data Science at Oregon State University. [{{< iconify fa7-brands:linkedin >}}](https://www.linkedin.com/in/cvwickham/)
+
+[Mine Çetinkaya-Rundel](https://mine-cr.com/) is Professor of the Practice at Duke University in the Department of Statistical Science and Senior Developer Advocate at Posit, PBC, where she's part of the tidyverse team. Mine is a co-author of influential open textbooks like R for Data Science and OpenIntro Statistics, and her contributions to education and open science have earned her several accolades, including the Waller Education Award by the American Statistical Association, the Robert V. Hogg Award by the Mathematical Association of America, and the Pickard Award by Harvard University's Department of Statistics. [{{< iconify fa7-brands:linkedin >}}](https://www.linkedin.com/in/minec/)
+
+## Description
+
+{{< include _description.md >}}
+
+{{< include _license.md >}}

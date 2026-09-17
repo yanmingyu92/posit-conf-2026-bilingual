@@ -1,0 +1,32 @@
+---
+title: "Recap and More"
+logo: "../../images/pharmaverse-hex.png"
+footer: "[posit-conf-2026.github.io/pharmaverse/](https://posit-conf-2026.github.io/pharmaverse/)" 
+editor: source
+engine: knitr
+format: 
+  revealjs: 
+    theme: ../slides.scss
+    transition: fade
+    slide-number: true
+    chalkboard: true
+execute:
+  echo: true
+  freeze: false
+cache: false
+--- 
+
+
+<!-- {{< include 01-recap.qmd >}} -->
+
+<!-- {{< include 02-examples.qmd >}} -->
+
+# Advanced AI
+
+{{< include 03-advanced-ai.qmd >}}
+
+# Submissions Working Group
+
+{{< include 04-submissions-wg.qmd >}}
+
+{{< include 05-goodbye.qmd >}}

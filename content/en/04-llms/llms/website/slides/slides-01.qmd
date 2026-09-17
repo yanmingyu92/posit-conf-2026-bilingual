@@ -1,0 +1,307 @@
+---
+title: Welcome!
+subtitle: Programming with LLMs in R and Python
+author: <code>posit::conf(2026)</code>
+date: 2026-09-14
+
+footer: posit-conf-2026.github.io/llms
+
+editor:
+  render-on-save: true
+---
+
+## Welcome to [Programming&nbsp;with&nbsp;LLM&nbsp;APIs&nbsp;]{.dark-blue}! {.fs-step-2 background-image="assets/retro-mac.jpg" background-size="cover" background-position="bottom left"}
+
+* Find a seat where you can see the screen!
+
+* Update your local copy of the workshop: \
+  [posit-conf-2026.github.io/llms/setup.html]{.code .b .orange}
+
+* Join the Discord: [pos.it/joinconf26](https://pos.it/joinconf26){.code .orange .b}
+
+* [wifi(<br>&nbsp;&nbsp;network="{{< meta workshop.wifi.network >}}",<br>&nbsp;&nbsp;password="{{< meta workshop.wifi.password >}}"<br>)]{.code}
+
+* Conference details: [conf.posit.co/2026]{.code .orange .b}
+
+```{=html}
+<style>
+.reveal .footer {
+  font-size: 0.5em !important;
+}
+</style>
+```
+
+# 🤝 Introductions 🤝 {.middle}
+
+## Meet us {.center .text-center}
+
+**Instructors**
+
+Garrick Aden-Buie and Sara Altman
+
+**Teaching assistants**
+
+Kristin Bott, Alex Chisholm, and Carson Sievert
+
+## Code of Conduct
+
+**Please Review:** [posit.co/code-of-conduct](https://posit.co/code-of-conduct/)
+
+💙 Treat everyone with respect \
+🧡 Everyone should feel welcome and safe
+
+**Reporting:**
+
+🗣️ any posit::conf staff member (t-shirt) or Info desk \
+📧 `codeofconduct@posit.co`
+
+## Meet each other
+
+* 👋 Hi, my name is ...
+
+* 🤖 I'd call myself an AI... [\[skeptic, pragmatist, enthusiast\]]{.gray}
+
+* ⚡ Share a moment when AI surprised you
+
+# About posit::conf(2026)
+
+## Wi-Fi {.text-center .center}
+
+[wifi("{{< meta workshop.wifi.network >}}", password="{{< meta workshop.wifi.password >}}")]{.code .f1}
+
+## posit::conf(2026) Things to Know
+
+::: incremental
+*  🚻 **Gender-neutral bathroom**: _____
+
+*  🧘 **Meditation/prayer room**: _____
+
+*  🤱 **Lactation room**: _____
+
+*  🎉 **Welcome reception**: _____
+
+:::
+
+## posit::conf(2026) Social Media
+
+* [Red lanyards]{.red .b} available to those who don't wish to be photographed
+
+* Conference hashtag: `TODO`
+
+## Conference details {.center .text-center}
+
+**September 14-16, 2026**
+
+Hilton Americas-Houston
+
+[conf.posit.co/2026](https://conf.posit.co/2026/)
+
+## [Questions]{.hidden} {.center}
+
+::: {.text-center style="font-size: 3em"}
+🙋 🙋‍♀️ 🙋‍♂️ \
+Please ask questions!
+:::
+
+# About this workshop
+
+## 🏡 [posit-conf-2026.github.io/llms]{.code} {.center .text-center}
+
+Everything you need, in one place.
+
+## Discord
+
+::: {.easy-columns .items-center}
+::: col
+1. Open [pos.it/joinconf26](https://pos.it/joinconf26)
+1. Accept the Discord invitation
+1. Set your display name to the name you used to register
+1. Join us in [{{< meta workshop.discord_channel >}}]{.code .purple}
+:::
+::: text-center
+![](assets/discord-banner.png){style="max-height: 80vh"}
+:::
+:::
+
+## Schedule
+
+{{< partial ../partials/schedule.qmd >}}
+
+## Schedule (the important bits)
+
+::: {.table-highlight-even}
+{{< partial ../partials/schedule.qmd >}}
+:::
+
+
+## Stickies {.center .text-center}
+
+::: {.easy-columns style="font-size: 1.5em;"}
+::: {.flex .flex-column .items-center .justify-center .text-center}
+[🟩]{style="font-size: 2em"}
+
+All good \
+I'm done
+:::
+::: {.flex .flex-column .items-center .justify-center .text-center}
+[🟥]{style="font-size: 2em"}
+
+Not great \
+Need time or help
+:::
+:::
+
+
+# Computering {.middle .text-center}
+
+## Setup
+
+1. Head to [posit-conf-2026.github.io/llms/setup.html](https://posit-conf-2026.github.io/llms/setup.html)
+
+2. Clone our workshop repo `posit-conf-2026/llms`
+
+3. Open the project in **Positron**
+
+4. Install all the packages:
+
+    * R: `pak::local_install_deps()`
+    * Python: `uv sync -p 3.14`
+
+## We're using Positron
+
+::: text-center
+![](../assets/positron-astropy.png){style="max-height: 600px"}
+:::
+
+::: footer
+RStudio and VS Code are great, too!
+:::
+
+
+## Set up your Posit Cloud space
+
+Join us at [https://bit.ly/conf26-llms]{.orange .b}
+
+::: tr
+Pick: Positron or RStudio?
+:::
+
+![](../assets/posit-cloud-space.png){width="100%"}
+
+## Positron: Open the project
+
+::: tc
+![](../assets/positron-open-project.png){style="max-height: 80%"}
+:::
+
+## File organization
+
+::: {.table-no-border style="--row-padding: 0.5em;"}
+|  |  |
+|:---|:------------|
+| `_exercises/` | Files for **Your Turn** exercises |
+| `_solutions/` | Solutions to those exercises |
+| `_demos/` | Files for stuff we demo |
+| `website/` | The website and slides |
+| `./*` | Lots of project related files you can ignore |
+:::
+
+## Exercise Solutions
+
+::: {.flex .flex-column .justify-center-ns .items-center-ns style="min-height: 20vh"}
+👨‍💻 👩‍💻 `_exercises/01_hello-llm/01_hello-llm.R` \
+[&nbsp;&nbsp;&nbsp;🫣&nbsp;&nbsp;&nbsp; `_solutions/01_hello-llm/01_hello-llm.R`]{.fragment}
+:::
+
+::: {.fragment .flex .flex-column .justify-center-ns .items-center-ns}
+**Also in Python:** \
+👨‍💻 👩‍💻 `_exercises/01_hello-llm/01_hello-llm.py` \
+&nbsp;&nbsp;&nbsp;📓&nbsp;&nbsp;&nbsp; `_exercises/01_hello-llm/01_hello-llm.pynb` \
+&nbsp;&nbsp;&nbsp;🫣&nbsp;&nbsp;&nbsp; `_solutions/01_hello-llm/01_hello-llm.py`
+:::
+
+# Let's Dive In!
+
+::: fragment
+..to our first activity!
+:::
+
+## To use an AI API you need... {.center}
+
+::: {.fragment style="font-size: 2em;"}
+an account with a provider!
+:::
+
+## How to use an AI provider, the usual way {.center}
+
+[aka. how to give OpenAI your money]{.i .gray}
+
+::: {.incremental .mt4}
+1. 🆙 Sign up for an account with [OpenAI](https://platform.openai.com/) or [Anthropic](https://www.anthropic.com/)
+
+2. 💳 Add a payment method
+
+3. 🔑 Get an API key
+
+4. 💾 Store it in `.Renviron` or `.env` file<br>as `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`
+:::
+
+## Today we'll use Posit AI Pass! {.center style="height: 90%"}
+
+![](../assets/logos/posit-ai.svg){height="175" .absolute bottom=0 right=450}
+
+::: incremental
+1. Go to [posit.ai](https://posit.ai/) and sign up for a **Free** account \
+   with the email you used to sign up for the workshop
+
+2. You'll get a credit grant for the day -- \
+   no API keys, no payment info, no subscription needed
+
+3. Use it for all of our activities today. \
+   Play and explore! But please be considerate :)
+:::
+
+## Turn on Posit Assistant {.center .tc}
+
+![](assets/posit-assistant-rstudio-step-01.png){style="height: 350px"}
+
+## Install Posit Assistant {.center .tc}
+
+![](assets/posit-assistant-rstudio-step-02.png)
+
+## Trust the workspace {.center .tc}
+
+![](assets/posit-assistant-rstudio-step-03.png)
+
+## Sign in to Posit AI {.center .tc}
+
+![](assets/posit-assistant-rstudio-step-04.png)
+
+## You're ready to chat {.center .tc}
+
+![](assets/posit-assistant-rstudio-step-05.png)
+
+## Ask Posit Assistant when you're stuck {.center .tc}
+
+::: incremental
+* Just ask it for help directly!
+
+* Use `/help` if you get stuck
+
+* Or `/explain` if you want an explanation for anything
+
+* Or `/check-my-work` if you want kudos or a second look
+:::
+
+## Your Turn `01_hello-llm` {background-image="assets/your-turn.png" background-size="30%" background-position="bottom right"}
+
+::: {style="--li-margin: 0.66em;"}
+1. 🔑 Log in to [Posit Assistant](https://assistant.posit.co/) or [posit.ai](https://posit.ai) \
+   with the email you
+   used to sign up for the workshop
+
+2. 🤖 Run the code in [_exercises/01_hello-llm]{.b}
+
+3. 💬 Paste the result into **Posit Assistant** and ask it to \
+   critique your social media post
+:::

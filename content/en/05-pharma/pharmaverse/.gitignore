@@ -1,0 +1,33 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+
+/.quarto/
+
+docs
+site_libs
+
+# Quarto per-document render artifacts
+**/*_files/
+
+**/*.quarto_ipynb
+
+
+# stuff from workshop setup
+README.qmd
+languages.qmd
+project.Rproj
+data/
+
+
+.posit/assistant
+
+# renv package cache (persisted across rebuilds)
+.renv-cache/
+
+.DS_Store
+
+# live plan-mode demo output (slides/07-advancedai-wrapup)
+plan-example/

@@ -1,0 +1,129 @@
+---
+title: "AGENTS.md and skills"
+duration: 30
+deliverer: Hadley
+---
+
+## Two ways to provide additional context
+
+* Suggestion/advice not rules!
+* Written in markdown
+* Primary motivation:
+  * Avoid repeating yourself across multiple conversations
+  * Save tokens by avoiding common wheel-spinning
+* Difference is when they're sent to the model
+
+# `AGENTS.md`
+
+## Let's make a package (take two)
+
+```R
+usethis::create_package("~/desktop/compliment2")
+usethis::use_tidy_agents()
+```
+
+> Create a new R package called compliment in the current directory.
+> It should generate randomized compliments.
+
+## Your turn {.your-turn}
+
+* Try it yourself. What differences do you notice in the workflow?
+* Read `AGENTS.md`. What advice does it contain?
+
+## Project level `AGENTS.md`
+
+* `AGENTS.md` in the project root
+* Checked into git; shared with your whole team
+* Applies to everything below it in the directory tree
+* If you're using Claude you also need `CLAUDE.md` that contains `@AGENTS.md`
+* This repos `AGENTS.md`
+
+## User level `AGENTS.md`
+
+*  `~/.posit/assistant/AGENTS.md`
+* Personal preferences that apply across all your projects
+* Good place for pet peeves
+* (You need to symlink if you're using multiple harnesses)
+* Project (generally) beats user when they conflict
+* My `AGENTS.md`
+
+## What belongs there?
+
+* Keep it minimal!
+* Have you told an agent to do it three times? Put it in `AGENTS.md`
+* `AGENTS.md` is included in every request and you're paying for it
+* Overfitting advice to one model will lead to worse results when the model inevitably changes (e.g. you can't make Claude write good)
+* Lots of text for a specialised purpose? Use a skill (up next)
+
+## Your turn {.your-turn}
+
+* Share your personal customisations with your neighbour
+
+Then: 
+
+* Update the project `AGENTS.md` to record some specific conventions for this package
+* e.g.: Use British English; give over-the-top compliments; pretend to be your favourite R developer
+* Then ask it to update your code, or add a new function
+
+# Skills
+
+## Your turn {.your-turn}
+
+`use_tidy_agents()` includes three skills.
+
+* What are they?
+* How do you think they work?
+* How can you tell when a skill is used? (Look at your chat history, or try asking your agent to deprecate a function.)
+
+## What is a skill?
+
+* Formal definition at <https://agentskills.io/>, but IMO this is overwrought
+* Two parts to a skill:
+  * **When** should you use it?
+  * **What** do you need to do?
+* All the "when"s are always sent to the model
+* Agent loads the "what" on demand
+
+## Other forms of skills
+
+* Directory of markdown files with index/README
+* [Quarto website](https://quarto.org/docs/websites/website-llms.html)
+  * Use `llms-text: true`
+  * Basic idea: <https://design.tidyverse.org>
+* R documentation
+* R functions
+
+## General advice
+
+* Hold on to them loosely
+* Keep them personal, local, timely
+* Don't write them prospectively
+* Relatively little benefit to using same model to both write and read
+
+## Creating a skill
+
+* Where do they live? I don't know!
+* Just ask an agent to create the file for you :)
+* But don't ask the agent to write the skill for you
+  * Unless you're using a smarter than usual model
+  * Or extracting important bits from a conversation
+
+## Some example skills
+
+* Jenny and I don't use skills very much
+* `usethis::learn_tidy_skill()`
+* Simplification prompt
+
+## Winston's simplification prompt
+
+<!-- Extracted from https://github.com/posit-dev/assistant/blob/main/.agents/skills/assistant-review/SKILL.md -->
+
+Make a deliberate pass over each non-trivial change looking for opportunities for simplification:
+
+* Could this change be achieved by deleting or restructuring instead of adding — removing a branch, mode, layer, or special case rather than bolting one on? It's always better to remove than add.
+
+* Is each new or changed interface narrow relative to what it hides — or must callers know its internals, keep duplicated logic in sync, or work around documented gaps ("does NOT handle X")?
+
+* Does anything re-implement what the codebase already provides — a bespoke helper shadowing a canonical one, logic in the wrong layer, or wrapper/cast/any churn obscuring the real contract?
+
+When you find opportunities for simplification, be clear about the pros and cons. Produce either a list of potential simplifications or "No simplifications found".

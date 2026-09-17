@@ -1,0 +1,135 @@
+﻿[
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "shiny-r",
+        "url":  "https://github.com/posit-conf-2025/shiny-r",
+        "sha":  "50a5838d3b5f19e1fb4ae16341752f602b278b1d",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "shiny-py",
+        "url":  "https://github.com/posit-conf-2025/shiny-py",
+        "sha":  "4e5a042069e5882a94a0f0e20ee1eed720bb28e7",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "pkg-dev",
+        "url":  "https://github.com/posit-conf-2025/pkg-dev",
+        "sha":  "28c29a9b99878fd1c40c3c65a836358082e8f8c2",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "r-programming",
+        "url":  "https://github.com/posit-conf-2025/r-programming",
+        "sha":  "8a5d9384b727435c214c51ed23f19c1accce1ff7",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "r-programming-exercises",
+        "url":  "https://github.com/posit-conf-2025/r-programming-exercises",
+        "sha":  "fc75cda5c4f9cb882852d027e1c6de5991a879e6",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "ggplot2",
+        "url":  "https://github.com/posit-conf-2025/ggplot2",
+        "sha":  "133e2a4a75b500c9cd0541ca09b7851261f04ff8",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "tidymodels",
+        "url":  "https://github.com/posit-conf-2025/tidymodels",
+        "sha":  "f97e8a8ff65083f202d773ef81bcd620dccd8f32",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "scikit-learn",
+        "url":  "https://github.com/posit-conf-2025/scikit-learn",
+        "sha":  "6eb6472bf88abd26f340e8b4d62787cac77cd7cb",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "causal",
+        "url":  "https://github.com/posit-conf-2025/causal",
+        "sha":  "562066ec983c944e3e4a0a55214b70fe751b787a",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "quarto-brand",
+        "url":  "https://github.com/posit-conf-2025/quarto-brand",
+        "sha":  "12984d63e56e3058bf9a1923a8435d696a6696ca",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "quarto-extend",
+        "url":  "https://github.com/posit-conf-2025/quarto-extend",
+        "sha":  "3a58d4f74cdfc7459b01d06d1e9511a362897b28",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "quarto-extend-exercises",
+        "url":  "https://github.com/posit-conf-2025/quarto-extend-exercises",
+        "sha":  "5de550723040e6b10bd97d055465996c2761b1ee",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2025",
+        "repo":  "reproducible-environments",
+        "url":  "https://github.com/posit-conf-2025/reproducible-environments",
+        "sha":  "b40e3f7ef033962bd11fc233c662bff568f51bf3",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2024",
+        "repo":  "level-up-shiny",
+        "url":  "https://github.com/posit-conf-2024/level-up-shiny",
+        "sha":  "12ca83223395af0c681def927a8bcb74a7f8aee3",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2024",
+        "repo":  "quarto-intro",
+        "url":  "https://github.com/posit-conf-2024/quarto-intro",
+        "sha":  "dce6ef0a48c573741fa777c89435067f8b1c6290",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2024",
+        "repo":  "databases",
+        "url":  "https://github.com/posit-conf-2024/databases",
+        "sha":  "625367b0a28ff1795c5b0905155ec96a917eaca4",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2024",
+        "repo":  "arrow",
+        "url":  "https://github.com/posit-conf-2024/arrow",
+        "sha":  "8315d034e666edf735f1d067fb0fc797a5f2a1c4",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2024",
+        "repo":  "r-in-production",
+        "url":  "https://github.com/posit-conf-2024/r-in-production",
+        "sha":  "7f2b4ad7a9b564f6c588a8694b240350465e5409",
+        "catalog_only":  true
+    },
+    {
+        "org":  "posit-conf-2024",
+        "repo":  "vetiver",
+        "url":  "https://github.com/posit-conf-2024/vetiver",
+        "sha":  "7a6c45838fb8834c3aeb8fb8f63e1fcffcec720d",
+        "catalog_only":  true
+    }
+]

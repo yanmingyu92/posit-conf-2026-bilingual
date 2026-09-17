@@ -1,0 +1,6 @@
+.DS_Store
+.quarto/
+report.html
+report_files/
+report.pdf
+report.typ

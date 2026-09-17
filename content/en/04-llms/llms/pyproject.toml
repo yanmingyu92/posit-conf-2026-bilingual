@@ -1,0 +1,43 @@
+[project]
+name = "posit-conf-2026-llms"
+version = "0.1.0"
+description = "Programming with LLMs in R and Python at posit::conf(2026)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "chatlas[eval,posit]==0.23.0",
+    "duckduckgo-search>=8.1.1",
+    "faicons>=0.2.2",
+    "htmltools>=0.7.0",
+    "matplotlib>=3.11.1",
+    "nws>=1.3",
+    "numpy>=2.5.2",
+    "pandas>=3.0.5",
+    "playsound3>=3.3.2",
+    "plotly>=7.0.0",
+    "plotnine>=0.15.8",
+    "polars>=1.44.1",
+    "pydantic>=2.13.4",
+    "pyhere>=1.0.3",
+    "querychat>=0.7.0",
+    "shiny>=1.7.0",
+    "shinychat>=0.7.1",
+    "shinywidgets>=0.8.1",
+    "tqdm>=4.70.0",
+    "python-frontmatter>=1.3.0",
+    "pyarrow>=25.0.1",
+]
+
+[dependency-groups]
+demos = [
+    "anthropic>=1.0.0",
+    "openai>=2.50.0",
+]
+bonus = [
+    "raghilda>=0.2.1",
+]
+dev = [
+    "ipykernel>=6.30.0",
+    "jupytext>=1.19.5",
+    "nbconvert>=7.17.1",
+]

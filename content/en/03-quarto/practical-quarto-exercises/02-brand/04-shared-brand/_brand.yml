@@ -1,0 +1,45 @@
+# Pick up from the previous exercise
+
+logo:
+  images:
+    mark:
+      path: brs-logo.svg
+      alt: Bureau of Regional Statistics
+    mark-reversed:
+      path: brs-logo-white.svg
+      alt: Bureau of Regional Statistics
+  small:
+    light: mark
+    dark: mark-reversed
+  medium:
+    light: mark
+    dark: mark-reversed
+
+color:
+  palette:
+    forest: "#1B5E4F"
+    mint: "#7FBFA8"
+    slate: "#3D4A54"
+    sand: "#EFE9DD"
+    ink: "#1F2A2E"
+
+  # A role can differ by mode. A palette color cannot.
+  background:
+    light: white
+    dark: ink
+  foreground:
+    light: ink
+    dark: sand
+  primary:
+    light: forest
+    dark: mint
+  secondary: slate
+
+typography:
+  fonts:
+    - family: Atkinson Hyperlegible
+      source: google
+  base: Atkinson Hyperlegible
+  headings:
+    family: Atkinson Hyperlegible
+    weight: 600

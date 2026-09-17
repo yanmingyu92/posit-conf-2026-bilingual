@@ -1,0 +1,74 @@
+﻿[
+    {
+        "org":  "posit-conf-2026",
+        "repo":  "positron",
+        "url":  "https://github.com/posit-conf-2026/positron",
+        "sha":  "6087dbe58c7041f8bef678a53fb4da54610579ea",
+        "track":  "01-positron",
+        "mirrored_into":  "content/en/01-positron/positron",
+        "files":  8
+    },
+    {
+        "org":  "posit-conf-2026",
+        "repo":  "modern-r-workflow",
+        "url":  "https://github.com/posit-conf-2026/modern-r-workflow",
+        "sha":  "b8ce7b76ecfeb17132d5ae1076f7e4ed5fc0fd0f",
+        "track":  "02-modern-r-workflow",
+        "mirrored_into":  "content/en/02-modern-r-workflow/modern-r-workflow",
+        "files":  141
+    },
+    {
+        "org":  "posit-conf-2026",
+        "repo":  "practical-quarto",
+        "url":  "https://github.com/posit-conf-2026/practical-quarto",
+        "sha":  "3e61760214fb765c1836061a65d87fa542453067",
+        "track":  "03-quarto",
+        "mirrored_into":  "content/en/03-quarto/practical-quarto",
+        "files":  113
+    },
+    {
+        "org":  "posit-conf-2026",
+        "repo":  "practical-quarto-exercises",
+        "url":  "https://github.com/posit-conf-2026/practical-quarto-exercises",
+        "sha":  "ba4a81bffc4491c9873674e9b29cc18f82f0d41a",
+        "track":  "03-quarto",
+        "mirrored_into":  "content/en/03-quarto/practical-quarto-exercises",
+        "files":  79
+    },
+    {
+        "org":  "posit-conf-2026",
+        "repo":  "llms",
+        "url":  "https://github.com/posit-conf-2026/llms",
+        "sha":  "165cb237684b42d6bf33ae347ba0c61aad88dba4",
+        "track":  "04-llms",
+        "mirrored_into":  "content/en/04-llms/llms",
+        "files":  671
+    },
+    {
+        "org":  "posit-conf-2026",
+        "repo":  "pharmaverse",
+        "url":  "https://github.com/posit-conf-2026/pharmaverse",
+        "sha":  "626f9a23c0d4ccf95795ad372842b2e22d999e34",
+        "track":  "05-pharma",
+        "mirrored_into":  "content/en/05-pharma/pharmaverse",
+        "files":  215
+    },
+    {
+        "org":  "posit-conf-2026",
+        "repo":  "r-pharma-regulated",
+        "url":  "https://github.com/posit-conf-2026/r-pharma-regulated",
+        "sha":  "caf9a41c1de5bf97dcddc3f7b9757b5eff48a14d",
+        "track":  "05-pharma",
+        "mirrored_into":  "content/en/05-pharma/r-pharma-regulated",
+        "files":  12
+    },
+    {
+        "org":  "posit-conf-2026",
+        "repo":  "modern-ds-python",
+        "url":  "https://github.com/posit-conf-2026/modern-ds-python",
+        "sha":  "b7c60a23ca46bae672f074b8c8aca03c56d88b54",
+        "track":  "06-python",
+        "mirrored_into":  "content/en/06-python/modern-ds-python",
+        "files":  157
+    }
+]

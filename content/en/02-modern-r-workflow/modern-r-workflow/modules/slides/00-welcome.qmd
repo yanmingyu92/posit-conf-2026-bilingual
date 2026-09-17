@@ -1,0 +1,187 @@
+---
+title: "Welcome"
+format:
+  revealjs:
+    footer: "[pos.it/modern-r-workflow](../../index.html)"
+---
+
+## {.center}
+
+::: {.r-fit-text}
+[pos.it/modern-r-workflow](https://pos.it/modern-r-workflow)
+:::
+
+## Welcome to Our Modern R Workflow
+
+* <https://pos.it/modern-r-workflow>
+
+::: columns
+::: {.column width="50%"}
+
+<center>
+
+### <i class="fa fa-wifi"></i>
+
+Wi-Fi network name
+
+`Posit Conf 2026`
+
+</center>
+
+:::
+
+::: {.column width="50%"}
+
+<center>
+
+### <i class="fa fa-key"></i>
+
+Wi-Fi password
+
+`conf2026`
+
+</center>
+
+:::
+:::
+
+* Please make sure you can see the slides
+* And you're ready to with Posit Assistant and a posit.ai account
+
+## Venue information
+
+-   Meditation/Prayer Room: Room 332
+
+-   Mother's Room: Room 333
+
+-   Speaker's Lounge: Room 334
+
+-   Gender-neutral bathrooms: 4th floor, one on either side of ballroom
+
+## Workshop policies
+
+-   Please review the posit::conf code of conduct, which applies to all workshops: <https://posit.co/code-of-conduct>
+
+-   The Code of Conduct site has info on how to report a problem (in person, email, phone)
+
+-   Please do not photograph people wearing red lanyards
+
+## Who are your TAs?
+
+-   Julia Silge
+-   Katie Masiello
+-   Simon Couch
+-   Thomas Pedersen
+
+## Join us on Discord
+
+Join the posit::conf Discord server:\
+[pos.it/joinconf26](https://pos.it/joinconf26)
+
+Then head to the workshop channel:\
+[#workshop-modern-r-workflow](https://discord.com/channels/1381993558437007490/1532807523524939927)
+
+##  {.center}
+
+### Introduce yourself to your neighbors 👋
+
+-   Do you have a hidden talent?
+-   Do you have a pet or hobby?
+-   What's your biggest pet peeve with R?
+-   What's your favorite thing to do in R?
+
+## Positron
+
+![](/images/positron-welcome.png)
+
+If you haven't already, now's a good time to install Positron.
+
+-   Download here: <https://positron.posit.co/download.html>
+
+## Already have Positron?
+
+Is Positron telling you it's time to update? Do it!
+
+::: columns
+::: {.column width="33%"}
+![](/images/signs-you-need-to-update-positron-lower-left.png)
+:::
+
+::: {.column width="33%"}
+![](/images/signs-you-need-to-update-positron-upper-right.png)
+:::
+
+::: {.column width="33%"}
+![](/images/signs-you-need-to-update-positron-menu.png)
+:::
+:::
+
+## Check your R setup {.smaller}
+
+Let's make sure everyone's R installation is ready to go.
+
+1.  Confirm you're on a recent version of R. Ideally R 4.6.
+
+2.  Install pak, if you haven't already:
+
+    ```r
+    install.packages("pak")
+    ```
+
+3.  Install/update devtools and friends:
+
+    ```r
+    pak::pak("devtools")
+    # or maybe the more update-happy version:
+    pak::pak("devtools", upgrade = TRUE)
+    ```
+
+4.  Run a situation report and check that everything looks good:
+
+    ```r
+    devtools::dev_sitrep()
+    ```
+
+<!-- HW: do we want to mention air, rig, and quarto here? -->
+<!-- JB: air and quarto ship with Positron, so I think no. And no one should be installing R at this point in the workshop, so I think no for rig. They'll come up later, but don't need installation at this point. -->
+
+## Posit AI Pass {.smaller}
+
+Sign up for Posit AI Pass, so you're ready to use Posit Assistant during the workshop.
+
+-   Sign up: <https://posit.ai>
+-   **Make sure to use the same email address as you used to register for conf!** This is what lets us give you free credits to use today.
+-   If you need to use Posit AI Pass with a different email than your conf registration, ask a TA to help you sort this out.
+-   The "Using Posit AI Pass token credits" section of the [Workshop Tech Setup](https://posit-workshop-setup.share.connect.posit.cloud/) is relevant to our workshop.
+
+## Check that Posit Assistant is alive
+
+In Posit Assistant, sign in with your Posit AI Pass.
+
+![](/images/posit-assistant-hi.png)
+
+## What's changed?
+
+Where are the significant changes since [R Packages](https://r-pkgs.org)?
+
+* 80% AI
+* 15% Positron
+* 5% standalone CLIs written in rust (e.g. air, rig, quarto)
+
+## Overall
+
+* More changes in the last year than last 10 years combined, and doesn't look like the pace is going to slow down
+* Non-obvious consequences because the cost-benefit ratio for many tasks has radically changed
+* We are still figuring out what it all means
+* Keep exploring and experimenting; hold loosely to your hypthoeses
+* We hope you'll learn something useful; and we also expect to learn from you!
+
+## The good news
+
+On the whole you're well positioned to benefit from AI:
+
+* Plain text workflows are equally accessible to humans and agents
+* Baseline scepticism will serve you well (but don't let it imprison you)
+* Human knowledge still super important!
+* Subject matter expertise now more important that programming skill
+* Development best practices now much more accessible

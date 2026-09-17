@@ -1,0 +1,22 @@
+---
+title: "Pre-Conference Communications"
+editor: source
+---
+
+## September 13, 2026
+
+Hello everyone! We are excited to spend the day with you for the AI-Powered Clinical Reporting in R with the Pharmaverse workshop at posit::conf on Monday, September 14!
+
+In this workshop, you’ll learn an end-to-end clinical reporting workflow in R using the Pharmaverse tools (SDTM through outputs) with an AI flavor. Our hope is that you walk away with an understanding of how to use R for every stage of the workflow, leveraging AI assisted coding tools for increased efficiency. A basic understanding of R and tidyverse is expected for this workshop. More information about the workshop can be found here: https://posit-conf-2026.github.io/pharmaverse/ (will be updated up to the workshop).
+
+For the day to run smoothly, please be sure to bring your own laptop and charger so you can follow along and do the exercises. We will be using Posit Cloud with Posit AI, so you don’t need to worry about getting anything installed on your computer. Please take 5-10 minutes in advance and do the following pre-work:
+
+1. Make a free [Posit Cloud](https://posit.cloud/) account
+
+2. Create your Posit AI account at [posit.ai](https://posit.ai/) using the same email you registered for the workshop with — that's how your workshop credits attach.
+
+If you have any questions before the workshop, please feel free to reply-all to this message. See you in Houston!
+
+Your instructors,
+
+Becca, Ben, Daniel, and Magda

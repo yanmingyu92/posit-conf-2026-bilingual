@@ -1,0 +1,15 @@
+[project]
+name = "modern-ds-python"
+version = "0.1.0"
+description = "Workshop materials for Modern Data Science in Python at posit::conf(2026)"
+requires-python = ">=3.12"
+dependencies = [
+    "great-tables>=0.24.0",
+    "palmerpenguins",
+    "plotnine",
+    "polars>=1.44.2",
+    "pyarrow",
+    "scikit-learn",
+    "xlsxwriter",
+    "lxml"
+]

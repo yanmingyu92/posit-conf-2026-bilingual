@@ -1,0 +1,51 @@
+---
+title: "Regional Employment Indicators"
+subtitle: "Quarterly statistical release"
+author: "Bureau of Regional Statistics"
+date: 2026-09-14
+brs-release:
+  period: "Q3 2026"
+  region: Oregon
+  status: Provisional
+format:
+  html: default
+  typst:
+    keep-typ: true
+---
+
+## Summary
+
+This is a {{< meta brs-release.status >}} release covering
+{{< meta brs-release.region >}} for the reference period
+{{< meta brs-release.period >}}.
+
+Total employment in the region rose by 4,300 jobs over the quarter, an
+increase of 0.4%. Sector detail is in @tbl-sectors, and the full method is in
+the [methodology notes](https://example.gov/brs/methods).
+
+**All figures in this release are *provisional*.**
+
+> Benchmarking aligns the survey estimates with the annual census of
+> employment.
+
+## Industry detail
+
+Health care and social assistance accounted for most of the quarterly gain.
+
+| Sector | Jobs (000s) | Change |
+|:-------|------------:|-------:|
+| Health care | 271.4 | +3.1 |
+| Construction | 112.8 | +1.9 |
+| Manufacturing | 189.2 | -0.4 |
+
+: Non-farm payroll employment by sector {#tbl-sectors}
+
+### Manufacturing
+
+Employment fell for a third consecutive quarter, the longest run of declines
+since 2019.
+
+## Notes
+
+Estimates are seasonally adjusted and rounded to the nearest hundred. A
+release is marked Provisional until the annual benchmark is applied.

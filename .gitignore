@@ -1,0 +1,19 @@
+# Rendered site / 构建产物
+/_site/
+/docs/
+/.quarto/
+
+# R
+.Rproj.user/
+.Rhistory/
+.RData/
+renv/library/
+
+# Python
+__pycache__/
+.venv/
+.ipynb_checkpoints/
+
+# OS / editor
+.Thumbs.db
+.DS_Store

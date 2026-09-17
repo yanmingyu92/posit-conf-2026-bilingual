@@ -1,0 +1,21 @@
+---
+title: Evals and Prompt Engineering
+description: Getting LLMs to do what you want through effective prompting.
+description-short: Getting LLMs to do what you want
+duration: 50min
+---
+
+## Slides
+
+{{< revealjs "slides/slides-05.html" class="ratio ratio-16x9" >}}
+
+## Outline
+
+- (15m) Evals
+  - Datasets, solvers, and scorers
+  - Evals with vitals in R and Inspect with chatlas in Python
+  - Scorer options and the bluffbench example
+  - Your Turn [`_exercises/15_evals`](https://github.com/posit-conf-2026/llms/tree/main/_exercises/15_evals): compare model behavior
+
+- (35m) Prompt engineering
+  - Your Turn [`_exercises/12_plot-image-1`](https://github.com/posit-conf-2026/llms/tree/main/_exercises/12_plot-image-1): ask an LLM to interpret a scatter plot

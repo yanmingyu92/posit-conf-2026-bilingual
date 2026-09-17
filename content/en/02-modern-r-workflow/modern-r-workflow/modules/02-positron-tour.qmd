@@ -1,0 +1,98 @@
+---
+title: "Positron tour"
+---
+
+[Slides (PDF)](slides/02-positron-tour.pdf)
+
+```{=html}
+<iframe src="slides/02-positron-tour.pdf" style="width: 100%; aspect-ratio: 16 / 9; border: 1px solid #dee2e6;"></iframe>
+```
+
+## Hands-on activities
+
+Take about 10 minutes to try one or more of the following activities in Positron
+
+- [Positron bingo](#activity-a)
+- [Customize your Positron settings](#activity-b)
+- [Multiple R sessions (option 1 of 2)](#activity-c)
+- [Multiple R versions (option 2 of 2)](#activity-d)
+- [Format some ugly R code](#activity-e)
+
+## Positron bingo {#activity-a}
+
+Pick a bingo card, any card!
+
+For the Data Explorer cells: first run `View(mtcars)` in the Console.
+
+::: {style="column-count: 2;"}
+- [positron-rules](/_bingo/cards/positron-rules.pdf){target="_blank"}
+- [positron-rocks](/_bingo/cards/positron-rocks.pdf){target="_blank"}
+- [positron-power](/_bingo/cards/positron-power.pdf){target="_blank"}
+- [positron-vibes](/_bingo/cards/positron-vibes.pdf){target="_blank"}
+- [positron-magic](/_bingo/cards/positron-magic.pdf){target="_blank"}
+- [positron-forever](/_bingo/cards/positron-forever.pdf){target="_blank"}
+- [positron-fanclub](/_bingo/cards/positron-fanclub.pdf){target="_blank"}
+- [positron-nation](/_bingo/cards/positron-nation.pdf){target="_blank"}
+- [positron-energy](/_bingo/cards/positron-energy.pdf){target="_blank"}
+- [positron-express](/_bingo/cards/positron-express.pdf){target="_blank"}
+:::
+
+::: {.callout-warning collapse="true"}
+## Bingo solutions: don't peek!
+
+[Solutions](https://posit-dev.github.io/positron-workshop/bingo-solutions/index.html){target="_blank"}
+:::
+
+## Customize your Positron settings {#activity-b}
+
+If you're new-ish to Positron, there's a good chance you haven't tuned it to your taste yet. Pick a few of the following to try:
+
+- If you're coming from RStudio, turn on RStudio keybindings: open Settings and search for "RStudio keybindings"
+- Experiment with layouts: try the layout picker in the top right, or move panes around and see what sticks
+- Search settings for "quiet mode" and consider turning it on to skip R's startup banner
+- Subscribe to the "dailies" release channel if you want to try new features early, and don't mind occasional instability
+- Open the Data Explorer on a data frame (e.g. `View(mtcars)` or click one in the Variables pane) and try sorting, filtering, or summarizing a column
+- Open the Packages pane and check whether any of your packages have updates available
+- If you like inline Quarto output, turn that setting on and test drive one of your Quarto documents
+- If you're on macOS, experiment with Positron native tabs support as a way of managing multiple windows
+- Poke around other settings you care about, such as those for the R, Quarto, or Shiny extensions
+
+::: {.callout-note collapse="true"}
+## Where to find these
+
+- Layout picker: top-right corner of the window
+- How to get to your Settings:
+  * Cmd/Ctrl + ,
+  * the gear icon in the lower left
+  * via the command palette: Cmd/Ctrl + Shift + P, then "Preferences: Open Settings"
+- RStudio keybindings: `workbench.keybindings.rstudioKeybindings`
+- Quiet mode: `positron.r.quietMode` (suppresses R's startup banner)
+- Dailies release channel: `update.positron.channel`, set to `"dailies"`
+- Inline Quarto output: `quarto.inlineOutput.enabled`
+- Native tabs (macOS only): `window.nativeTabs` (you'll have to restart Positron to apply a change)
+:::
+
+## Multiple R sessions (option 1 of 2) {#activity-c}
+
+- Create 2 (or more!) concurrent R sessions of the same or different versions
+- Create different objects in each session and explore how that plays out in the Variables pane
+- Restart 1 session (but not the other(s)). What do you see in the Variables pane now?
+- Click the ⓘ in the Console action bar to see session metadata. Can you find the R executable path?
+- Can you figure out how to rename an R session?
+
+## Multiple R versions (option 2 of 2) {#activity-d}
+
+- Install rig: <https://github.com/r-lib/rig>. Note the docs in repo's README
+- Use rig to list your existing R versions. Which one is the system default?
+- Ask rig to list all available R versions
+- Install another R version. Make it the new default (or not)
+- Launch Positron and see that the new R version is now also available
+- Consider going back to your previous default R version
+
+## Format some ugly R code {#activity-e}
+
+- Download [air-practice.R](https://github.com/posit-dev/positron-workshop-project/blob/main/air-practice.R){target="_blank"} (poorly formatted R code, on purpose). Alternatively, open a personal R file with questionable formatting
+- Open it in Positron
+- Remove the `# fmt: skip` file line, so that Air will format the file
+- Experiment with the Format Selection and/or Format Document commands to see how Air would reformat it
+- Inspect the Git diff to see what's changed

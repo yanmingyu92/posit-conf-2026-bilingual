@@ -1,0 +1,66 @@
+# In Closing
+
+## Three ideas to take home
+
+::: {.fragment}
+### `r fontawesome::fa("table-cells", fill = fa_fill)` Consistent verbs, every table
+
+One consistent set of `tbl_*()` verbs — from a *demographics table* to AE and lab tables.
+:::
+
+::: {.fragment}
+### `r fontawesome::fa("shield-halved", fill = fa_fill)` ARD-backed means trust
+
+Every cell is [traceable and QC-ready]{.emphasis} via `gather_ard()` — submission-ready by construction.
+:::
+
+::: {.fragment}
+### `r fontawesome::fa("arrow-up-right-dots", fill = fa_fill)` Encode it, then scale it
+
+A shared theme and reusable wrappers capture your house standards; a [coding agent applies them]{.emphasis} without reminders.
+:::
+
+
+## Where to go next
+
+::: columns
+::: {.column width="50%"}
+`r fontawesome::fa("book", fill = fa_fill)` Docs & cheat sheet — [danieldsjoberg.com/gtsummary](https://www.danieldsjoberg.com/gtsummary/)
+
+::: {.small}
+The [full function reference](http://www.danieldsjoberg.com/gtsummary/reference/index.html), and a detailed [`tbl_summary()` vignette](http://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html)
+:::
+:::
+
+::: {.column width="50%"}
+`r fontawesome::fa("hospital", fill = fa_fill)` [{cardinal}](https://pharmaverse.github.io/cardinal/) — FDA safety-table catalog
+
+<br>
+
+`r fontawesome::fa("stack-overflow", fill = fa_fill)` Ask on [stackoverflow.com](https://stackoverflow.com/questions/tagged/gtsummary) — *use the gtsummary tag*. Just kidding — nobody uses Stack Overflow anymore; ask an AI.
+:::
+:::
+
+## Thank you
+
+::: {.columns .v-center-container}
+::: {.column width="55%"}
+<img src="images/gtsummary-logo.png" width="60%"/>
+
+::: {.small}
+[`r gtsummary_downloads` installations]{.emphasis} — go build something cute.
+:::
+:::
+
+::: {.column width="45%"}
+`r fontawesome::fa("link", fill = fa_fill)` [danieldsjoberg.com](https://www.danieldsjoberg.com/)
+
+`r fontawesome::fa("bluesky", fill = fa_fill)` [ddsjoberg.bsky.social](https://bsky.app/profile/ddsjoberg.bsky.social)
+
+`r fontawesome::fa("linkedin", fill = fa_fill)` [linkedin.com/in/ddsjoberg/](https://www.linkedin.com/in/ddsjoberg/)
+
+`r fontawesome::fa("github", fill = fa_fill)` [github.com/ddsjoberg](https://github.com/ddsjoberg/)
+:::
+:::
+
+

@@ -1,0 +1,173 @@
+---
+title: "Best practices feedback loop"
+duration: 90
+deliverer: Hadley
+---
+
+## Overview
+
+* LLMs both amplify best practices, and make them more achievable
+* As you improve tests and docs, it makes it easier for agents to work with your package
+* Really good news for non-professional developers
+* Do it as you go, and also useful as part of regular upkeep
+
+## Development best practices
+
+* Git/GitHub
+* Code style
+* Testing
+* Performance
+* CI/CD
+* Downstream & upstream changes
+
+# Git / GitHub
+
+## Git
+* Merge conflicts? Ask your agent to fix
+* Commit messages? Ask your agent to write
+* PR descriptions? Ask your agent to **draft**
+* Ask agent to use `git bisect` to figure out when something broke
+* No reason for anyone not to use git
+
+## GitHub actions
+
+* Agents know more about writing GitHub actions than I do
+* `use_github_action()` for common stuff
+* Use agents for anything custom
+* Agents are also great at fixing problems thus revealed
+* Great for your data scraping projects too!
+
+## usethis functions
+
+* All that said, I still use the usethis family of functions for working with PRs
+* Especially `pr_init()`, `pr_fetch()` and `pr_finish()`
+* Even when the project isn't in R!
+
+# Code style
+
+## Just use air
+
+* No longer worth manually enforcing a coding style
+* Just use `air`
+* Get started with `usethis::use_air()` + `Air: format workspace file`
+* Our `AGENTS.md` reminds the agent to use it
+* Try [yamark](https://t-kalinowski.github.io/yamark/) or [panache](https://panache.bz) for markdown/Quarto
+
+## Agents love comments
+
+* Agents (esp. Claude) LOVE to write wordy comments
+* Sometimes the comments are useful; often they are not
+* Code-comment mismatch just as dangerous with agents since they'll often just believe the comment
+* I've had relatively little success prompting this behaviour away
+* Better luck with prompt to remove (esp with non-Claude model)
+
+## Commenting best practices
+
+* Comments should explain the why
+* Comments shouldn't need to explain the what. If you can't understand the code, refactor it.
+* Comments don't need to give the entire history that led to a decision
+
+## More smaller files
+
+* Agents can more easily load just the context they need with smaller, well-named files
+* If you have very large files, ask to break them up
+  * If you can easily see a good category, ask for that
+  * Otherwise brainstorm together to come up with a good solution
+  * For complicated moves, ask for a summary table and a todo list
+* Good file names are really important!
+
+# Unit testing
+
+## Agents love to write tests
+
+* Generally don't need to explicitly ask for them
+* (Assuming you have tests already set up e.g. with `use_testthat()`)
+* Explicitly request code coverage
+* May want to explicitly request TDD (i.e. write the test first)
+
+## Your job is to:
+
+* Keep them well organised
+  * "Tests for R/{foo}.R should live in tests/testthat/test-{foo}.R"
+* Keep them fast
+  * "Run the tests in parallel"
+  * "Use SlowReporter and speed up the slowest tests"
+  * "Compare coverage before and after"
+* Keep them minimal
+  * "Carefully consider the tests and remove any that are no longer necessary"
+
+## Test coverage
+
+* Previously 100% test coverage was not worth it
+* Probably worth reconsidering now
+* You can ask an agent to do this
+
+## Test hygiene
+
+* Agents generally produce tests with good hygiene
+  * Tests should not produce output
+  * Each test should be standalone function
+* But they will also copy bad patterns in existing code
+* Easier than ever to fix!
+* Might tell your agent to read `?testthat::set_state_inspector`
+
+## `local_` functions
+
+* Agents not great at spotting opportunities for code de-duplication
+* You may want to explicitly tell it to create [`local_`](https://r-pkgs.org/testing-advanced.html#create-and-destroy-a-local-useful_thing) helpers.
+
+# Performance
+
+## Overview
+
+* LLMs are very good at improving the performance of code
+* They are better than me at reading the results of `RProf()`
+* They are better than me at writing C/C++ code
+* They are not very good at experimental design
+* They are not very good at managing complexity/performance tradeoffs
+
+## Prompting
+
+* Always start by ensuring test coverage is good so you don't accidentally break existing behaviour
+* "Make XXX faster"
+* Ensure it records its work
+* Request both microbenchmarks and meaningful user actions
+* Pay attention!
+
+## C/C++
+
+* Previously C++ (via Rcpp/cpp11) had good balance of effort vs. results
+* Now for small amounts of compiled code, pure C has no dependencies and LLMs are good at writing it
+* You will need to give it hints as to latest C API
+* I spent an hour or so updating <http://hadley.github.io/r-internals/>
+
+# Downstream & upstream
+
+## Downstream changes
+
+* You made a backward incompatible change or want to help people handle deprecations?
+* Ask your agent to do it! 
+* <https://blog.davisvaughan.com/posts/2026-01-09-claude-200-pull-requests/>
+
+## Upstream changes
+
+* You can now use these skills to fix problems upstream that might have previously been out of reach
+* The primary drawback of this is maintainer overload
+* Your job is to bring your human judgement and expertise into play
+* Be upfront about AI usage
+* Spend human time on communication
+* Don't be a meat proxy
+
+# Your turn
+
+## Your turn {.your-turn}
+
+Take this opportunity to experiment with these workflows for your own work!
+
+## Survey
+
+<http://pos.it/conf26-workshop-survey>
+
+<center>
+![](images/survey-qr.svg){width=300}
+</center>

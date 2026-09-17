@@ -1,0 +1,25 @@
+---
+title: Wrap-up
+description: A closing conversation about the future of AI, feedback, and goodbye.
+description-short: The future of AI and goodbye
+duration: 35min
+---
+
+## Slides
+
+{{< revealjs "slides/slides-13.html" class="ratio ratio-16x9" >}}
+
+## Outline
+
+- (30m) The future of AI
+  - Joe Cheng joins for a closing conversation
+  - Where do we go from here? Let's talk fears and hopes.
+
+- (5m) Wrap-up
+  - Feedback survey and goodbye
+
+## Workshop Survey
+
+Please take 5-10 minutes to fill out the workshop survey. Your feedback is important to us!
+
+[pos.it/conf26-workshop-survey](https://pos.it/conf26-workshop-survey)

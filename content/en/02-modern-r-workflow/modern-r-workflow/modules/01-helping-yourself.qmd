@@ -1,0 +1,9 @@
+---
+title: "Helping yourself"
+---
+
+[Slides (full screen)](slides/01-helping-yourself.qmd)
+
+```{=html}
+<iframe src="slides/01-helping-yourself.html" style="width: 100%; aspect-ratio: 16 / 9; border: 1px solid #dee2e6;"></iframe>
+```

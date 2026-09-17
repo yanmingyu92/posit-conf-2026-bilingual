@@ -1,0 +1,349 @@
+---
+title: Agent Skills
+subtitle: Programming with LLMs in R and Python
+author: <code>posit::conf(2026)</code>
+date: 2026-09-14
+
+editor:
+  render-on-save: true
+---
+
+# [Agent Skills]{.hidden} {.no-invert-dark-mode .center background-image="assets/robot-agent.jpg" background-size="cover" background-position="center"}
+
+::: {.tc .white .pa1 .br3 .w-50 .absolute bottom="-5em" left=0 style="font-size: 3em; background-color: rgba(0, 0, 0, 0.8);"}
+Agent Skills
+:::
+
+## Have you used a skill today? {.center style="font-size: 1.4em"}
+
+::: fragment
+If you asked Posit Assistant for `/help` today, you have!
+:::
+
+::: fragment
+Let's look at it in `.agents/skills/help/SKILL.md`
+:::
+
+::: notes
+Open `.agents/skills/help/SKILL.md` live and scroll through it. Attendees have been on the receiving end of this skill all morning.
+
+The same format works across agents: Posit Assistant, Claude Code, and many others follow the Agent Skills spec.
+
+Skills are plain markdown, checked into your project — no packaging, no build step.
+:::
+
+## SKILL.md
+
+````{.markdown code-line-numbers="|2|3|6-10"}
+---
+name: renewal-letters
+description: Draft a renewal letter for a lapsed Last Blockbuster member.
+---
+
+# Renewal letters
+
+Offer Basic members a free-rental code.
+Offer Family members a family-night bundle.
+Offer Founders members a commemorative card.
+````
+
+::: footer
+[Agent Skills specification](https://agentskills.io/specification){preview-link=true} &middot; agentskills.io
+:::
+
+::: notes
+Two required frontmatter fields:
+
+- `name`: lowercase, hyphens, max 64 characters, must match the folder name.
+- `description`: max 1024 characters, and it must say what the skill does AND when to use it.
+
+The description is the only thing the agent sees at startup, so it decides whether your skill ever gets used.
+
+The body is free markdown: steps, rules, gotchas, a template.
+:::
+
+## Anatomy of a skill
+
+```{.plain code-line-numbers="|1|2|3|4|5-6"}
+.agents/skills/
+└── renewal-letters/
+    ├── SKILL.md      # Required: metadata + instructions
+    ├── references/   # Optional: documentation
+    ├── scripts/      # Optional: executable code
+    └── assets/       # Optional: templates, data files
+```
+
+## Progressive disclosure {.center style="font-size: 1.33em"}
+
+::: incremental
+1. **Discovery** \
+   the agent starts with `name` and `description`
+
+1. **Activation** \
+   when it decides to, the agent reads the full `SKILL.md`
+
+1. **Execution** \
+   after that, it's in the agent's robot hands
+:::
+
+::: notes
+This is why skills scale: you can keep 100 skills on hand for the cost of their descriptions.
+
+The full instructions load only when a task calls for them.
+
+Same idea you'll implement by hand in the exercise: the system prompt lists the skill, a tool loads the body.
+
+TODO: excalidraw diagram in the style of the tools sequence in slides-07.
+:::
+
+## Why not just use the system prompt? {.tc .center style="font-size: 1.25em"}
+
+::: {.easy-columns .mt5}
+::: fragment
+**System prompt**
+
+instructions for every session
+:::
+
+::: fragment
+**Skills**
+
+on-demand instructions
+:::
+:::
+
+
+::: notes
+* The system prompt is **always** in context — every token, every request
+
+* Skills load **on demand** — only when a task matches
+
+* So skills let you give an agent deep expertise without paying for it up front
+
+You wrote a system prompt for the Blockbuster agent. That works for one small set of rules.
+
+Now imagine 50 jobs: renewal letters, store opening procedures, staff notes, rental policies, and social media voice.
+
+Stuffed into the system prompt, they crowd out the conversation and cost tokens on every request.
+
+As skills, they cost about 100 tokens each until the moment one is needed.
+:::
+
+## System prompt vs. user prompt
+
+Short answer: Put instructions and background knowledge in the system prompt.
+
+Put the current task in the user prompt.
+
+::: notes
+Anthropic's [_Prompt Engineering Overview_](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview) and OpenAI's [_OpenAI Cookbook_](https://cookbook.openai.com/) are excellent, and contain lots of tips and examples.
+
+Google's [_Prompt Design Strategies_](https://ai.google.dev/gemini-api/docs/prompting-strategies) may also be useful.
+:::
+
+## The scene: win-back letters {.center}
+
+Your win-back work paid off and found three Founders members we really want to keep.
+Your job is to write those letters.
+
+| Member | Tier | Last rented |
+|:----------|:-------|:------------------|
+| Elaine Wu | Founders | The Princess Bride |
+| Theo Bennett | Founders | The Matrix |
+| Marisol Vega | Founders | The Goonies |
+
+::: notes
+This is the ground truth for the exercise: the win-back list from the last round narrowed to three members, and all three are Founders tier — the ones we most want to keep — so each letter should offer the commemorative card, not a free-rental code or family bundle.
+
+A good letter also greets the member by name, references their last rented title, invites them back, and never mentions overdue fees or unlisted discounts. Letters land in `letters/drafts/`, named like `elaine-wu.md`.
+
+You don't need to read the skill or the CSVs in detail to judge the agent: right three people, right perk, warm voice, no fee talk, three files.
+
+If your agent drafts for a Basic member like Malik Johnson, or invents a tier fact, you'll now spot it immediately.
+:::
+
+# Your Turn `21_skills-1` {.slide-your-turn}
+
+1. Your Blockbuster agent gets a skill: `renewal-letters` holds the letter-writing instructions.
+
+1. List the skill in the system prompt, and give the agent a tool to read it.
+
+1. Draft letters for the top three lapsed members. Watch the agent read the skill **before** it starts drafting — and check them against the scene we just saw.
+
+{{< countdown 5:00 left=0 bottom="-2em" >}}
+
+::: notes
+The read_skill tool is like the read_file tool, pointed at the skills folder.
+
+The system prompt listing is the manual version of what real harnesses generate automatically at startup.
+
+The trace should show read_skill firing when the agent starts the letter task.
+:::
+
+## Discussion: Did your agent...? {.center}
+
+::: incremental
+* Read the skill **before** it drafted a single letter?
+
+* Pick the right top three members from `lapsed.csv`?
+
+* Invent tier facts — a Founders perk for someone who isn't one?
+
+* Mention overdue fees, even though the skill forbids it?
+
+* Leave the data files untouched?
+:::
+
+::: notes
+Stress-test evidence, five runs: the mechanism you built works — `read_skill` fired first in every single run, before any drafting.
+
+But the agent picked the wrong "top three" in one of five runs, drafting for Malik Johnson instead of Elaine Wu — reading the file isn't the same as reading it carefully.
+
+That same run compounded the error: it called a Basic-tier member "one of our Founders members" and gave him a commemorative card. Wrong pick, wrong perk.
+
+Another run wrote "late fees we won't dwell on" in a letter — a direct brush with the skill's no-fees rule.
+
+The good news: in all five runs the data files were left untouched, tool calls were clean, and four of five letter sets were correct.
+
+Close on the failure modes: skills load reliably, but grounding — who are the top three, what tier are they — still depends on the agent checking its sources.
+:::
+
+
+## Writing a skill that works {.center style="font-size: 1.33em"}
+
+::: incremental
+* Add what the agent lacks; omit what it knows
+
+* The **description is the trigger**
+
+* Concrete beats generic
+
+* Keep it short
+:::
+
+::: footer
+[Best practices for skill creators](https://agentskills.io/skill-creation/best-practices){preview-link=true}
+:::
+
+::: notes
+The test for every line: would the agent get this wrong without it?
+
+If the agent already writes clean markdown, don't tell it to write clean markdown.
+
+Give a default, not a menu: one way to do it, with an escape hatch.
+
+Gotchas are the highest-value content: the environment-specific facts that defy reasonable assumptions.
+:::
+
+# Your Turn `22_skills-2` {.slide-your-turn}
+
+1. The skill has been swapped for a **first draft** with common problems.
+
+1. Use the diagnostic questions to fix `SKILL.md`, then re-run the letter task.
+
+1. Compare: same agent, same tools, different skill, different letters and token spend.
+
+{{< countdown 5:00 left=0 bottom="-2em" >}}
+
+::: notes
+The planted problems: the description is background about the manager's notes, while the actual trigger sits in the body. The body also repeats policies, generic advice, and conflicting process instructions.
+
+Four questions lead attendees from the misplaced trigger to the repeated facts and conflicting process. They move and delete text; they do not need to invent new instructions.
+
+The good skill says when to draft a renewal letter and keeps only the voice, letter structure, tier incentives, filename rule, and promises caveat.
+:::
+
+## Discussion: Did your agent...? {.center}
+
+::: incremental
+* Pick `renewal-letters` first, out of the four skills on offer?
+
+* Read a *second* skill before it started writing?
+
+* Follow the bad skill's rules straight past the letter checklist?
+
+* Treat a vague description as a reason to hedge?
+
+* Write the same letters before and after your fix?
+:::
+
+::: notes
+Stress-test evidence, three runs per skill version, four skills competing: the fixed skill was read first and only, in every run. Rival skills never won the first slot.
+
+But under the bad skill, the agent read a second skill (`lapsed-audit`) in two of three runs — a vague description with no use-when boundary made it hedge, and hedging costs tokens and attention.
+
+The bad skill's planted rules fought the checklist: "mention the title only if it was a recent release" deleted all three title references in one run, and "start every letter with the tier incentive" was ignored in two of three. A bad skill doesn't just misinform — it makes behavior unpredictable.
+
+What stayed right the whole time: correct members, correct Founders perk, correct filenames, no fee talk, in all six runs.
+
+Close on the before/after: same agent, same tools, same task — the only change was the skill, and the letters changed with it.
+:::
+
+## Skills in Posit Assistant {.center style="font-size: 1.33em"}
+
+::: incremental
+* Built-ins: `create-skill`, `r-package-development`, `quarto-authoring`, ...
+
+* Yours: `~/.posit/assistant/skills/` (all projects) or `.agents/skills/` (this project)
+
+* Most skills also run as slash commands: `/check-my-work`
+:::
+
+::: footer
+[Skills — Posit Assistant docs](https://assistant.posit.co/docs/features/skills/){preview-link=true}
+:::
+
+::: notes
+`.agents/skills/` is the portable location: any spec-following agent can read it.
+
+The built-in create-skill skill walks you through making a new one interactively.
+
+Skills double as commands when you want to trigger a workflow deliberately instead of hoping the model picks it.
+:::
+
+## Skills in the ecosystem {.center .tc style="font-size: 2em"}
+
+::: fragment
+[skill.sh](https://skill.sh)
+:::
+
+::: fragment
+[posit-dev/skills](https://github.com/posit-dev/skills)
+:::
+
+::: fragment
+`npx skills add`
+:::
+
+::: fragment
+_Can you install the skill from..._
+:::
+
+
+::: notes
+AGENTS.md and the system prompt shape everything the agent does.
+
+Skills carry the long tail of knowledge: too specific to always pay for, too valuable to leave out.
+
+MCP servers are about tools — connections to databases, APIs, other software. Bonus material covers MCP.
+:::
+
+## Skills, recap {style="font-size: 1.2em"}
+
+::: incremental
+* A skill is 📂 with `SKILL.md`: metadata plus instructions
+
+* Progressive disclosure: descriptions init, body on demand
+
+* Same format in Posit Assistant, Claude Code, Codex
+:::
+
+::: notes
+You built the mechanism yourself today: listing, loading, and writing skills.
+
+Next: put skills to work inside the assistant you use every day.
+:::
+
+## Next up: using a complete agent {.center .tc}
+
+[Posit Assistant](slides-10.qmd)

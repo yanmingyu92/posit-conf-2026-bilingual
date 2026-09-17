@@ -1,0 +1,15 @@
+[project]
+name = "clearbot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "chatlas==0.23.0",
+    "dotenv>=0.9.9",
+    "duckduckgo-search>=8.1.1",
+    "pandoc>=2.4",
+    "pydantic>=2.11.7",
+    "shiny>=1.7.0",
+    "shinychat>=0.7.1",
+]

@@ -1,0 +1,9 @@
+---
+title: "Deep thoughts"
+---
+
+[Slides (full screen)](slides/deep-thoughts.qmd)
+
+```{=html}
+<iframe src="slides/deep-thoughts.html" style="width: 100%; aspect-ratio: 16 / 9; border: 1px solid #dee2e6;"></iframe>
+```

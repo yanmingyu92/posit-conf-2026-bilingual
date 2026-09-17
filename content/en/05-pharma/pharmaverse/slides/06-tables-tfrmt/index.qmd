@@ -1,0 +1,34 @@
+---
+title: "Tables in R using {tfrmt} and {docorator}"
+subtitle: "Pharmaverse Workshop"
+author: "Becca Krouse"
+event: "posit::conf(2026)"
+logo: "../../images/pharmaverse-hex.png"
+footer:  "[Pharmaverse Workshop (posit-conf-2026.github.io/pharmaverse)](https://posit-conf-2026.github.io/pharmaverse/)"
+editor: source
+engine: knitr
+format: 
+  revealjs: 
+    theme: [../slides.scss, title.scss]
+    template-partials:
+      - title-slide.html
+    transition: fade
+    slide-number: true
+    chalkboard: true
+execute:
+  echo: true
+  freeze: false
+cache: false
+--- 
+
+
+```{r}
+#| echo: false
+#| cache: false
+#| warnings: false
+library(tfrmt)
+library(docorator)
+```
+
+{{< include tfrmt.qmd >}}
+

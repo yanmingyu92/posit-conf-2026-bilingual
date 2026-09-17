@@ -1,0 +1,31 @@
+color:
+  palette:
+    navy: "#030A5F"
+    lime: "#BBF81B"
+    blue: "#419CF5"
+    magenta: "#C514C8"
+    pink: "#EB4FEE"
+    indigo: "#4D44AA"
+    purple: "#7B0D84"
+    dark-blue: "#0B70D5"
+    gray: "#909090"
+    off-white: "#F5FAFF"
+    black: "#151515"
+    white: "#FFFFFF"
+  primary: navy
+  foreground: black
+
+typography: 
+  fonts:
+    - family: Atkinson Hyperlegible
+      source: google
+  base: Atkinson Hyperlegible
+  link: 
+    decoration: underline
+
+defaults:
+  bootstrap:
+    rules: |
+      h2 {
+          border: none;
+        }

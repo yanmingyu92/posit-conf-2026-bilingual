@@ -1,0 +1,92 @@
+---
+title: "Intro to Posit Assistant"
+format:
+  revealjs:
+    footer: "[pos.it/modern-r-workflow](../../index.html)"
+---
+
+##
+
+![](/images/posit-assistant-basic.png)
+
+## Posit Assistant (PA)
+
+* <https://assistant.posit.co/>
+* An AI agent geared towards the needs of data scientists
+* Works in Positron and RStudio
+* Connects to your live R and Python sessions
+
+## Sign in to a provider
+
+::: {.columns}
+
+::: {.column width="50%"}
+![](/images/posit-assistant-gear-configure-ai-providers.png){style="max-height: 520px;"}
+:::
+
+::: {.column width="50%"}
+![](/images/posit-assistant-configure-llm-providers.png){style="max-height: 520px;"}
+:::
+
+:::
+
+<!-- Full-bleed image slide from the "Posit Team: Governance [AI]" deck -->
+## {background-image="/images/posit-assistant-byo-model-provider.png" background-size="contain"}
+
+## Is this thing on?
+
+![](/images/posit-assistant-hi.png)
+
+## All the things you will confuse Posit Assistant with {.smaller}
+
+* Posit Assistant supersedes:
+  - Positron Assistant, superseded now, going away Q4 2026.
+  - Databot, deprecated July 2026.
+  - [A brief and biased history of Posit data science agents](https://opensource.posit.co/blog/2026-06-11_history-of-posit-data-science-agents/), June 2026 blog post by Joe Cheng
+* Posit Assistant can be used with many providers
+  - Posit AI Pass is one of the supported providers
+  - Posit AI Pass lets you access many models through one subscription service
+  - Posit AI Pass was previously known as Posit AI (no pass)
+
+## Choose from your provider's models
+
+![](/images/posit-assistant-model-picker.png){fig-align="center" style="max-height: 540px;"}
+
+## `/clear` early, `/clear` often
+
+* `/clear` begins a new conversation
+* All the usual benefits of turning the thing off and back on again
+
+![](/images/posit-assistant-clear.png)
+
+## Conversations are not lost
+
+* Don't worry: you can get back to earlier conversations!
+  - To read
+  - To resume
+
+![](/images/posit-assistant-conversation-history.png)
+
+## Implicit context is usually "enough"
+
+* Posit Assistant knows, e.g.:
+  - Which files you have open
+  - Which file is active
+  - Your current selection
+  - The current workspace/folder
+* You rarely need to explicitly attach a file as context
+* But there are ways to explicitly attach content:
+  - [Chat Features: File Attachments](https://assistant.posit.co/docs/features/chat-features/)
+
+## Special two-way relationship with R console
+
+* PA sees and can drive the R session in your console
+
+![](/images/posit-assistant-r-session.png)
+
+## Your turn {.your-turn}
+
+* Experiment to probe how much PA knows about, e.g., the file you are looking at or your current selection
+* Define a couple R objects then ask PA about them
+* Prompt PA to create an R object and to mutate it
+* Ask PA about itself or Positron to probe its self-knowledge

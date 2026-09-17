@@ -1,0 +1,197 @@
+---
+title: "Helping yourself"
+format:
+  revealjs:
+    footer: "[pos.it/modern-r-workflow](../../index.html)"
+---
+
+##
+
+::: {style="position: relative; width: fit-content; margin: 0 auto;"}
+![](/images/help-yourself-let-me-google-that-for-you.png){width="900" style="max-width: none; max-height: none; margin: 0; display: block;"}
+
+[2010s]{style="position: absolute; bottom: 0.5em; right: 0.5em; padding: 0.1em 0.45em; background: rgba(0, 0, 0, 0.75); color: white; font-weight: bold; border-radius: 6px;"}
+:::
+
+##
+
+:::: {style="position: relative; width: fit-content; margin: 0 auto;"}
+::: {style="padding: 0.2em 0.5em; background: rgba(0, 0, 0, 0.75); color: white; font-weight: bold; text-align: center;"}
+Let me GitHub search that for you
+:::
+
+![](/images/help-yourself-github-search.png){width="880" style="max-width: none; max-height: none; margin: 0; display: block;"}
+
+[2020s]{style="position: absolute; bottom: 0.5em; right: 0.5em; padding: 0.1em 0.45em; background: rgba(0, 0, 0, 0.75); color: white; font-weight: bold; border-radius: 6px;"}
+::::
+
+<small><https://github.com/search?type=code></small>
+
+##
+
+:::: {style="position: relative; width: fit-content; margin: 0 auto;"}
+::: {style="padding: 0.2em 0.5em; background: rgba(0, 0, 0, 0.75); color: white; font-weight: bold; text-align: center;"}
+Let me ask an LLM for you
+:::
+
+::: {style="display: flex; gap: 0.5em;"}
+![](/images/help-yourself-claude-ai.png){height="500" style="max-width: none; max-height: none; margin: 0; display: block;"}
+
+![](/images/help-yourself-posit-assistant.png){height="500" style="max-width: none; max-height: none; margin: 0; display: block;"}
+:::
+
+[2026]{style="position: absolute; bottom: 0.5em; left: 0.5em; padding: 0.1em 0.45em; background: rgba(0, 0, 0, 0.75); color: white; font-weight: bold; border-radius: 6px;"}
+::::
+
+<small><https://claude.ai> · [Posit Assistant](https://positron.posit.co/assistant)</small>
+
+## Effective self-help tips
+
+* Being 20% more specific improves your results by 80%
+* Ways to introduce specificity
+  - Your own language
+  - Narrow the scope, e.g., to a specific codebase
+  - Use a tool with unique access to, e.g., a specific codebase
+  - Commision a script to do something exhaustively
+* Don't be shy to ask for receipts! E.g. show me where this appears in the codebase or the docs
+
+## Talk like an expert {.center .smaller}
+
+*Terence Tao discussing a surprising math result with ChatGPT*
+
+> > It is remarkable that the jacobian is constant, that is an exceptional amount of cancellation. Does this polynomial map have any symmetry or other structure that makes this cancelation less miraculous?
+>
+> What stands out is the **shape** of the interaction. Tao starts his inquiry by noting a single, precise detail that intrigues him.
+
+<small>[Code is the byproduct](https://yagmin.com/blog/code-is-the-byproduct/) — yagmin.com</small>
+
+## Terse and precise {.center .smaller}
+
+> Note what Tao is not doing.
+>
+> He is not building a rich contextual background for the LLM to unpack. He does not list his credentials or say, "you are a mathematical genius, make no mistakes."
+>
+> Instead, he is terse and precise. He asks narrow questions and gets narrow responses.
+>
+> Keep your requests narrow and specific. Let the output compound through repeated inquiries. Engage with the goal of improving your personal understanding.
+
+<small>[Code is the byproduct](https://yagmin.com/blog/code-is-the-byproduct/) — yagmin.com</small>
+
+##
+
+<h2 class="r-fit-text">Chat: where can an R package write user files?</h2>
+
+::: {style="display: flex; gap: 0.5em; align-items: center; justify-content: center;"}
+![](/images/help-yourself-claude-ai-user-dir.png){height="460"}
+
+![](/images/help-yourself-posit-assistant-user-dir.png){height="460"}
+:::
+
+##
+
+<h2 style="font-size: 1em;">GitHub search: Show usage of <code>tools::R_user_dir()</code><br> in CRAN packages</h2>
+
+![](/images/help-yourself-github-search-tools-r-user-dir.png){width="850"}
+
+<small>[Run this search](https://github.com/search?q=user%3Acran+tools%3A%3AR_user_dir&type=code)</small>
+
+## DeepWiki: What does pkgdown use `tools::R_user_dir()` for? {.smaller-title}
+
+![](/images/help-yourself-deep-wiki-pkgdown-r-user-dir-prompt.png){width="850"}
+
+<small><https://deepwiki.com/r-lib/pkgdown></small>
+
+## DeepWiki: What does pkgdown use `tools::R_user_dir()` for? {.smaller-title}
+
+![](/images/help-yourself-deep-wiki-pkgdown-r-user-dir-result.png){width="850"}
+
+## GitHub Chat with Copilot: When did pkgdown introduce `tools::R_user_dir()`? {.smaller-title}
+
+![](/images/help-yourself-github-chat-copilot-tools-r-user-dir-prompt.png){height="520"}
+
+<small>Visit <https://github.com/r-lib/pkgdown> and click the Chat with Copilot button</small>
+
+## GitHub Chat with Copilot: When did pkgdown introduce `tools::R_user_dir()`? {.smaller-title}
+
+![](/images/help-yourself-github-chat-copilot-tools-r-user-dir-result.png){height="520"}
+
+<small>Visit <https://github.com/r-lib/pkgdown> and click the Chat with Copilot button</small>
+
+## Agent: Create a Quarto document surveying `tools::R_user_dir()` usage {.smaller-title}
+
+OK I'm not actually *doing* this one, but you could imagine directing an agent to:
+
+* Enumerate all uses of `tools::R_user_dir()` in CRAN packages
+* Create a raw report of GitHub permalinks to these call sites
+* Analyze each call site re: how it's being used and when it was introduced
+* Summarize the findings
+
+## It's a great time to answer your own questions!
+
+::: {style="font-size: 0.75em;"}
+* Chat: be as precise as your current understanding allows
+* [GitHub search](https://github.com/search?type=code): [qualifiers](https://docs.github.com/en/search-github/github-code-search/understanding-github-code-search-syntax) are powerful, e.g.
+  - `user:cran` searches across source of every CRAN package
+  - `user:tidyverse` searches within the tidyverse organization
+  - `path:*.yaml` search within YAML files
+  - `repo:wch/r-source` searches the GitHub mirror of R's source
+  - `language:R` searches R code
+* [GitHub Chat with Copilot](https://github.com/copilot): knows about commits, issues, pull requests, in addition to code
+* [DeepWiki](https://deepwiki.com): chat on top of an LLM-generated wiki for a codebase
+:::
+
+## Code is the byproduct of understanding {.center .smaller}
+
+> How do you construct shared understanding? By narrowing the LLM's focus through domain-specific wording and keeping requests specific and cumulative.
+>
+> Tao pins ChatGPT to a "deep mathematics" headspace through terminology and the specificity of his question.
+>
+> If you don't understand something, set the stage for the LLM and it will capably fill in the missing 20%.
+
+<small>[Code is the byproduct](https://yagmin.com/blog/code-is-the-byproduct/) — yagmin.com</small>
+
+## {visibility="hidden"}
+
+![](/images/chat-with-copilot-on-github-dot-com.png)
+
+## {visibility="hidden"}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+![](/images/chat-with-copilot-prompt.png)
+:::
+
+::: {.column width="50%"}
+![](/images/chat-with-copilot-response.png)
+:::
+
+::::
+
+## DeepWiki {visibility="hidden"}
+
+An LLM-generated wiki for a GitHub repo, plus a chat interface over it.
+
+Take any repo URL and swap the domain:
+
+* `github.com/posit-dev/positron`
+* `deepwiki.com/posit-dev/positron`
+
+## DeepWiki for Positron's source {visibility="hidden"}
+
+<https://deepwiki.com/posit-dev/positron>
+
+![](/images/help-yourself-deep-wiki.png)
+
+## DeepWiki for Positron prompt {visibility="hidden"}
+
+> Documentation for Positron's settings are sprinkled around its website. Specifically I'm interested in R-related settings. Is there somewhere in the code where I can just see a list of all the settings?
+
+## DeepWiki for Positron answer {visibility="hidden"}
+
+TODO: There's at least one more screenshot lying around for this!
+
+## Your turn {.your-turn}  {visibility="hidden"}
+
+You can find some GitHub code search challenges in the workshop repo:
+<https://github.com/posit-conf-2025/pkg-dev/blob/main/github-code-search-prompts.md>

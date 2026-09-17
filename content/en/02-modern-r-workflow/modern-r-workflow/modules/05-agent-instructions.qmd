@@ -1,0 +1,9 @@
+---
+title: "Skills and AGENTS.md"
+---
+
+[Slides (full screen)](slides/05-agent-instructions.qmd)
+
+```{=html}
+<iframe src="slides/05-agent-instructions.html" style="width: 100%; aspect-ratio: 16 / 9; border: 1px solid #dee2e6;"></iframe>
+```

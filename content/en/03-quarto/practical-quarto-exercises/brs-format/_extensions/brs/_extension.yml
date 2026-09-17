@@ -1,0 +1,13 @@
+title: BRS Report
+author: Bureau of Regional Statistics
+version: 1.0.0
+quarto-required: ">=1.4.0"
+contributes:
+  formats:
+    html:
+      masthead: brs-logo.svg
+      template-partials:
+        - title-block.html
+      theme:
+        - default
+        - brs.scss

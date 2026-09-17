@@ -1,0 +1,81 @@
+library(shiny)
+library(bslib)
+library(beepr)
+library(ellmer)
+library(shinychat)
+
+# Tools ------------------------------------------------------------------------
+# Going further: tool results can carry a custom title and icon via
+# ellmer::ContentToolResult, rendered by shinychat:
+# https://ellmer.tidyverse.org/reference/Content.html
+# https://shiny.posit.co/blog/posts/shinychat-tool-ui/
+
+#' Plays a sound effect.
+#'
+#' @param sound Which sound effect to play: `"correct"`, `"incorrect"`,
+#'   `"new-round"`, or `"you-win"`.
+#' @returns A confirmation that the sound was played.
+play_sound <- function(
+  sound = c("correct", "incorrect", "new-round", "you-win")
+) {
+  sound <- match.arg(sound)
+
+  switch(
+    sound,
+    correct = beepr::beep("coin"),
+    incorrect = beepr::beep("wilhelm"),
+    "new-round" = beepr::beep("fanfare"),
+    "you-win" = beepr::beep("mario")
+  )
+
+  glue::glue("The '{sound}' sound was played.")
+}
+
+tool_play_sound <- tool(
+  play_sound,
+  description = "Play a sound effect",
+  arguments = list(
+    sound = type_enum(
+      c("correct", "incorrect", "new-round", "you-win"),
+      description = paste(
+        "Which sound effect to play.",
+        "Play 'new-round' after the user picks a theme for the round.",
+        "Play 'correct' or 'incorrect' after the user answers a question.",
+        "Play 'you-win' at the end of a round of questions."
+      )
+    )
+  ),
+  # STEP 1: Add nice title and icon for the tool button ----
+  annotations = ____(
+    ____ = "____",
+    # Pick a Font Awesome icon from the "free" choices
+    # https://fontawesome.com/search?q=speaker&ic=free&o=r
+    ____ = fontawesome::fa_i("____")
+  )
+)
+
+
+# UI ---------------------------------------------------------------------------
+
+ui <- page_chat("Quiz Game", id = "chat")
+
+# Server -----------------------------------------------------------------------
+
+server <- function(input, output, session) {
+  client <- chat_posit(
+    model = "claude-haiku-4-5",
+    system_prompt = interpolate_file(
+      here::here("_exercises/18_quiz-game-3/prompt.md")
+    )
+  )
+
+  client$register_tool(tool_play_sound)
+
+  chat_server(
+    "chat",
+    client,
+    greeting = "## 🎉 Welcome to the Quiz Game!\n\nChoose a theme:\n\n- 🔬 Science\n- 🏛️ History\n- 🎬 Movies\n- 🏆 Sports\n- 🎵 Music"
+  )
+}
+
+shinyApp(ui, server)

@@ -1,0 +1,39 @@
+project:
+  type: website
+  render:
+    - "*.qmd"
+    - "!LICENSE.md"
+
+website:
+  page-navigation: true
+  site-url: https://posit-conf-2026.github.io/practical-quarto
+  title: "Practical Quarto: Patterns, templates, and tooling"
+  description: "A one day workshop at posit::conf(2026) on patterns, templates, and tooling for Quarto."
+  repo-url: https://github.com/posit-conf-2026/practical-quarto
+  page-footer:
+    center:
+      - icon: github
+        aria-label: Github
+        href: https://github.com/posit-conf-2026/practical-quarto
+    right: "This page is built with 💙 and [Quarto](https://quarto.org/)."
+  open-graph: true
+  sidebar:
+    id: main
+    logo: images/practical-quarto.png
+    logo-alt: Quarto logo with the word practical placed above it at an angle
+    title: Patterns, templates, and tooling
+    pinned: true
+    align: center
+    search: true
+    collapse-level: 2
+    contents:
+      - href: index.qmd
+        text: Home
+      - href: setup.qmd
+      - text: "---"
+      - auto: modules/
+
+format:
+  html:
+    syntax-highlighting: arrow-light
+    code-overflow: wrap

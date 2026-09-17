@@ -1,0 +1,44 @@
+/*-- scss:rules --*/
+
+// Accent rule under the whole masthead block.
+#title-block-header {
+  border-bottom: 3px solid $primary;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  // Clear the floated masthead so the description/metadata sit below.
+  overflow: hidden;
+}
+
+// Logo floats to the right of the title text.
+.report-masthead {
+  float: right;
+  width: auto;
+  max-height: 4rem;
+  margin-left: 1.5rem;
+}
+
+.subtitle {
+  color: $secondary;
+}
+
+// Release period reads as secondary metadata.
+.report-period {
+  color: $text-muted;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+// Status pill. $primary rather than $brand-forest so the extension renders
+// without a brand installed, and follows the brand when there is one.
+// color-contrast() picks a readable foreground instead of hard-coding one.
+.report-status {
+  display: inline-block;
+  padding: 0.25em 0.75em;
+  border-radius: 999px;
+  background-color: $primary;
+  color: color-contrast($primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}

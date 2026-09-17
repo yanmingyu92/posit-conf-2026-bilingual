@@ -1,0 +1,27 @@
+---
+title: "Regional Employment Indicators"
+subtitle: "Quarterly statistical release"
+author: "Bureau of Regional Statistics"
+date: 2026-09-14
+brs-release:
+  period: "Q3 2026"
+  region: Oregon
+format:
+  html:
+    template-partials:
+      - title-block.html
+---
+
+## Summary
+
+Total employment in the region rose by 4,300 jobs over the quarter, an
+increase of 0.4%. The unemployment rate was unchanged at 4.1%.
+
+## Industry detail
+
+Health care and social assistance accounted for most of the quarterly gain.
+Manufacturing employment fell for a third consecutive quarter.
+
+## Notes
+
+Estimates are seasonally adjusted and rounded to the nearest hundred.

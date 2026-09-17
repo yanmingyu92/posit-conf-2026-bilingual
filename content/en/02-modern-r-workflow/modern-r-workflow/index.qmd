@@ -1,0 +1,45 @@
+---
+title: "Modern R workflow (ft. Positron and AI)"
+---
+
+> September 14, 2026
+> `posit::conf(2026)`
+
+Shortlink to this page: [pos.it/modern-r-workflow](https://pos.it/modern-r-workflow)
+
+## Setup
+
+Please check the [Setup Instructions](setup.qmd) for recommended steps to take before the workshop.
+
+## Schedule
+
+| Time          | Activity                                                                                            |
+| :------------ | :--------------------------------------------------------------------------------------------------- |
+| 09:00 | [Welcome](modules/00-welcome.qmd)                                                                    |
+| 09:00 - 10:30 | [Helping yourself](modules/01-helping-yourself.qmd) <br>[Positron tour](modules/02-positron-tour.qmd)|
+| 10:30 - 11:00 | *Coffee break*                                                                                       |
+| 11:00 - 12:30 | [Intro to Posit Assistant](modules/03-posit-assistant-intro.qmd)<br>[How do agents work?](modules/04-agent-explainer.qmd)<br>[Skills and AGENTS.md](modules/05-agent-instructions.qmd) |
+| 12:30 - 13:30 | *Lunch break*                                                                                        |
+| 13:30 - 15:00 | [Workflow](modules/06-workflow.qmd) |
+| 15:00 - 15:30 | *Coffee break*                                                                                       |
+| 15:30 - 17:00 | [Best practices feedback loop](modules/07-best-practices-feedback-loop.qmd)<br>|
+
+## Instructors
+
+### Hadley Wickham
+
+Hadley Wickham is Chief Scientist at [Posit](https://posit.co), where (among other things) he leads the [tidyverse](https://www.tidyverse.org) team. He builds tools (both computational and cognitive) that make data science easier, faster, and more fun. He's the creator of packages like [ggplot2](https://ggplot2.tidyverse.org), [dplyr](https://dplyr.tidyverse.org), and [devtools](https://devtools.r-lib.org) and an author of several books on R, including [R for Data Science](https://r4ds.hadley.nz) and [R Packages](https://r-pkgs.org).
+
+[GitHub](https://github.com/hadley) · [Bluesky](https://bsky.app/profile/hadley.nz) · [LinkedIn](https://www.linkedin.com/in/hadleywickham/)
+
+### Jenny Bryan
+
+Jenny Bryan is a Senior Software Engineer at [Posit](https://posit.co), where she works on the tidyverse/r-lib and Positron teams. A recovering biostatistician, she takes special delight in eliminating the small agonies of data analysis. She's the creator of packages like [googlesheets4](https://googlesheets4.tidyverse.org) and [reprex](https://reprex.tidyverse.org) and an author of the book [R Packages](https://r-pkgs.org) and the [Happy Git with R](https://happygitwithr.com) guide.
+
+[GitHub](https://github.com/jennybc) · [Bluesky](https://bsky.app/profile/jennybryan.bsky.social)
+
+## Description
+
+{{< include _description.md >}}
+
+{{< include _license.md >}}

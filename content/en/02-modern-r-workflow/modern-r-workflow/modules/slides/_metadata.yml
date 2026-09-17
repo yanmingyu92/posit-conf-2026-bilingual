@@ -1,0 +1,9 @@
+format:
+  revealjs:
+    css: ../../styles.css
+    mainfont: Helvetica
+    headingfont: Helvetica
+    monofont: Fira Code
+
+filters:
+  - external-links-new-tab.lua

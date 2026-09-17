@@ -1,0 +1,38 @@
+# tbl_hierarchical()
+
+## Adverse Event Reporting (and friends)
+
+Use `tbl_hierarchical()` and `tbl_hierarchical_count()` for reporting of AEs, Con Meds, and more.
+
+```{r}
+#| label: create-ae-tbl
+#| output-location: "column"
+tbl_ae <- adae |>
+  tbl_hierarchical(
+    by = "ARM2",
+    variables = c("AESOC", "AEDECOD"),
+    id = "USUBJID",
+    denominator = adsl
+  )
+tbl_ae
+```
+
+::: {.small}
+The same `add_*()` and `modify_*()` verbs work here too, e.g. `add_overall(last = TRUE)` and `add_difference()` for risk differences between arms.
+:::
+
+## Sort and filter the hierarchy
+
+```{r}
+#| label: 'ae-sort-filter'
+#| output-location: "column"
+tbl_ae |>
+  sort_hierarchical() |>
+  filter_hierarchical(sum(n) >= 5)
+```
+
+::: {.small}
+-   `sort_hierarchical()`: orders rows by descending event frequency (default). Use `sort = everything() ~ "alphanumeric"` to sort alphabetically instead
+
+-   `filter_hierarchical()`: keeps AEs meeting an occurrence threshold. The filter is an expression on the underlying counts, e.g. `sum(n) >= 5`, `n_overall > 20`, or `p_overall > 0.05`
+:::

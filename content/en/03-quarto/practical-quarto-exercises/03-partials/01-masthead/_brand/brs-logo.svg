@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 200 40" role="img" aria-label="Bureau of Regional Statistics">
+  <rect width="40" height="40" rx="8" fill="#1B5E4F"/>
+  <rect x="8" y="22" width="6" height="10" fill="#FFFFFF"/>
+  <rect x="17" y="14" width="6" height="18" fill="#FFFFFF"/>
+  <rect x="26" y="8" width="6" height="24" fill="#FFFFFF"/>
+  <text x="48" y="18" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#1B5E4F">Bureau of</text>
+  <text x="48" y="33" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#1B5E4F">Regional Statistics</text>
+</svg>

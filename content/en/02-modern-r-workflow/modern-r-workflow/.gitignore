@@ -1,0 +1,8 @@
+jenny-scratch.md
+
+/.quarto/
+**/*.quarto_ipynb
+/_site/
+/_keynote/
+site_libs/
+posit-assistant-byo-model-provider.pdf

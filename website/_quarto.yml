@@ -1,0 +1,31 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "posit::conf Workshop Hub"
+  site-url: "https://YOUR-USER.github.io/posit-conf-2026-bilingual/"
+  description: |
+    Bilingual (EN/中文) learning hub combining official posit::conf workshop
+    materials, 2024–2026, organized into 9 tracks. 中英双语 posit::conf 学习中心。
+  navbar:
+    left:
+      - text: "Tracks · 轨道目录"
+        file: catalog.qmd
+      - text: "Learning Plan · 学习计划"
+        file: plan.qmd
+      - text: "Attribution · 署名"
+        file: attribution.qmd
+    right:
+      - icon: github
+        href: "https://github.com/YOUR-USER/posit-conf-2026-bilingual"
+  page-footer:
+    center: |
+      Adapted posit::conf materials © original instructors · CC-BY-SA 4.0 ·
+      本站与 Posit, PBC 无官方关联
+
+format:
+  html:
+    theme: cosmo
+    lang: zh-CN
+    toc: true

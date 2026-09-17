@@ -1,0 +1,39 @@
+# tbl_merge()/tbl_stack()
+
+## tbl_merge() for side-by-side tables
+
+```{r}
+#| label: 'tbl_merge'
+tbl_n <- 
+  tbl_summary(adsl, include = ETHNIC, statistic = ETHNIC ~ "{n}") |> 
+  modify_header(all_stat_cols() ~ "**N**") |> # update column header
+  remove_footnote_header() # remove footnote
+tbl_age <-
+  tbl_continuous(adsl, include = ETHNIC, variable = AGE, by = ARM2) |> 
+  modify_header(all_stat_cols() ~ "**{level}**") # update header
+
+# combine the tables side by side
+list(tbl_n, tbl_age) |>
+  tbl_merge(tab_spanner = FALSE) # suppress default header
+```
+
+::: aside
+::: {.small}
+A gtsummary table is just a data frame plus instructions for printing it — break a complex table into simple parts, then cobble them together. You can also modify the underlying data frame directly with `modify_table_body()`.
+:::
+:::
+
+## tbl_stack() to combine vertically
+
+```{r}
+#| label: 'tbl_stack'
+tbl_drug_a <- filter(adsl, ARM2 == "Placebo") |> 
+  tbl_summary(include = ETHNIC)
+tbl_drug_b <- filter(adsl, ARM2 == "Xanomeline") |> 
+  tbl_summary(include = ETHNIC)
+
+# stack the two tables 
+list(tbl_drug_a, tbl_drug_b) |> 
+  tbl_stack(group_header = c("Placebo", "Xanomeline"), quiet = TRUE) |> # optionally include headers for each table
+  modify_header(all_stat_cols() ~ "**Summary Statistics**")
+```

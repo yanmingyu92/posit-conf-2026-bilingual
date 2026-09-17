@@ -1,0 +1,5 @@
+---
+title: "Learning Plan · 学习计划"
+---
+
+{{< include ../translations/zh/LEARNING-PLAN.zh.md >}}

@@ -1,0 +1,169 @@
+---
+title: "Workflow"
+duration: 90
+deliverer: Hadley
+---
+
+## Goals
+
+* Introduce/review the classic package development workflow
+* Introduce key AI-powered workflows
+* Show my workflow by fixing testthat issues 😂
+
+## The classic workflow is unchanged
+
+1. Write a function in `R/`
+1. `load_all()` (⌘⇧L) and try it in the console
+1. Create test file with `use_test()` then write tests
+1. `test()` (⌘⇧T) and iterate until they pass
+1. `document()` (⌘⇧D) to update docs
+1. `check()` (⌘⇧E) at the end
+1. Restart R with ⌘⇧0 
+
+(Windows/Linux: use Ctrl instead of ⌘)
+
+## We're not going to teach the details
+
+In the past we've talked about the individual components in detail. I no longer think that's worth teaching live. For example, you and your agent can figure out what expectations are available and how roxygen2 works in your own time 🙂
+
+## Your turn {.your-turn}
+
+Try out the workflow with your compliments package.
+
+1. Start with a fresh Positron instance, and confirm you can't run your `compliment()` function.
+1. Load the code and confirm that you can run the function now.
+1. Make a simple change, re-load, re-run and check that you see it in the output.
+1. Tweak the documentation, re-document, and look at the help.
+1. Edit a test so it fails, and check that you see the failure.
+
+## What changes with AI?
+
+* **Code**: you describe it & the agent writes it. Still really important to try it out interactively to see how it feels.
+* **Tests**: agents love to write tests. Your job is to steer towards minimalism.
+* **Documentation**: agents are fine for a first pass but human-to-human communication is possibly the most important activity you can engage in.
+* **Check**: `R CMD check` just as important but agents do a really good job at fixing any problems you find.
+
+## General principles
+
+* You are still important and still in control!
+* Choose what to invest in (e.g. code, tests, planning, design, docs)
+* Start small and grow scope as you grow confidence
+* NEVER make another human read AI slop
+* Restart R and reset your agent frequently
+
+## AI workflows
+
+::: {.incremental}
+* Very low stakes: Implement it
+* Low stakes: Plan it, then implement it
+* Medium stakes: Plan it, review the plan, implement it, review the implementation
+* High stakes: Design it, then repeat cycles above
+:::
+
+# Low-stakes tasks
+
+## Example workflow
+
+> Fix <https://github.com/r-lib/testthat/issues/2344>
+
+> Fix <https://github.com/r-lib/testthat/issues/2317>
+
+## Basic advice
+
+* When you get started, pay attention to what it's doing
+* Can be useful to intervene when it's getting off track
+* Can also be useful to let it run, smacking its head into the wall again and again and again until it eventually figures it out
+
+## Your turn {.your-turn}
+
+Pick one (or more!) of the following:
+
+* Add a new function `farewell()` that generates a random goodbye
+* Add a `mood` argument to `compliment()` so `compliment("grumpy")` gives a backhanded compliment
+* Tackle a simple issue from your own package
+
+Pay attention! Try to read everything it does.
+
+## Git flow
+
+* When you get started, I think it's worth doing all the commits yourself
+* Then, tell it when to commit
+* Then, let it commit by itself, but you do the PR
+* Then, let it make the whole PR
+* (But again NEVER force AI slop on another human's eyeballs)
+
+(This workflow advice can go in your personal `AGENTS.md`)
+
+# Medium-stakes tasks
+
+> An ounce of prevention is worth a pound of cure
+
+## Now it's time to make a plan
+
+* Planning tends to lead to better results, but don't get hung up on it
+* Always ask for a markdown file that you can read and edit
+* Three options for where to put this:
+  * Ephemeral
+  * Persistent, outside of git
+  * Checked in
+
+## Example workflow
+
+> Read <https://github.com/r-lib/testthat/issues/2334>.
+> Construct a minimal reprex, then write a brief plan for fixing the problem.
+> Save your plan in plan.md.
+
+... read and review the plan ...
+
+> Execute the plan
+
+# High-stakes tasks
+
+## Workflow lore
+
+* Claude (esp. Fable/Opus) best at planning
+* Codex best at reviewing
+* Any mid-tier model fine for implementing
+
+## Example workflow
+
+1. Collaboratively brainstorm
+1. Plan it with Fable (or the best model you have access to)
+1. Read and review the plan
+1. Have Codex review the plan (or at least review in a clean session)
+1. Implement with Sonnet or Kimi K3
+1. Review the implementation with Codex
+
+## Live demo
+
+* <https://github.com/r-lib/testthat/issues/2328>
+* <https://github.com/hadley/data-diff>
+
+## Your turn {.your-turn}
+
+I have always wanted a package that provided the stringr API but without the stringi dependency. (This makes the package less good at handling a wide range of international text cases, but would be worth it for many common package development tasks.) This is now easily in scope for a frontier model.
+
+Work with your agent to come up with a design (no need to implement). What's important to include? What can you skip? Start with an analysis of `str_match()` vs the base equivalents. Do you think you need a `str_length()` wrapper?
+
+(Or tackle a more complex task from your own package)
+
+# Bonus workflows
+
+## Voice
+
+* Some people really like using voice inputs
+* Pick your favourite open source app
+* Local models are now very good at transcription
+* Fine to dump a stream of consciousness and let the agent figure it out
+* But good to ask for a plan to ensure that you're both on the same page
+
+## `R CMD check`
+
+* Your first CRAN submission goes through a manual review process that applies additional non-automated checks
+* [extrachecks](https://github.com/DavisVaughan/extrachecks) documents what we know about these
+* Ask your agent to read that README and prepare your package for submission
+* You should still think about it! (But this will get you 90% of the way there)
+
+## Your turn {.your-turn}
+
+Get your compliments package ready for submission to CRAN. What changed?

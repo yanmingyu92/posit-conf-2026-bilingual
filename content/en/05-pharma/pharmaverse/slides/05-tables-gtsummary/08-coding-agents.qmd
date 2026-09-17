@@ -1,0 +1,50 @@
+# Coding agents
+
+## From chat LLM to coding partner
+
+Earlier we [pasted a prompt into a chat LLM]{.emphasis} and copied code back.
+
+A [coding agent]{.emphasis} (e.g. Claude Code) instead lives inside your project: it reads your files, runs R, and iterates — and it follows instructions you [commit to the repo]{.emphasis}.
+
+The goal: a coding partner that adheres to your domain standards *without constant reminders.*
+
+## The golden path
+
+Give the agent an explicit [priority order]{.emphasis} for building a table:
+
+::: {.small}
+
+1.  [Set the theme]{.emphasis} — `crane::theme_gtsummary_roche()` after loading packages.
+
+2.  [Prefer {crane} wrappers]{.emphasis} — `tbl_roche_summary()`, `tbl_baseline_chg()`, … when one fits.
+
+3.  [Fall back to {gtsummary}]{.emphasis} — `tbl_summary()`, `tbl_hierarchical()`, …
+
+4.  [ARD-first for complex/custom]{.emphasis} — build ARDs with {cards}/{cardx}, render with `gtsummary::tbl_ard_*()`.
+
+5.  [Last resort]{.emphasis} — build the ARD yourself, then `gtsummary::as_gtsummary()`.
+
+:::
+
+::: aside
+::: {.small}
+Cross-cutting: prep data with [tidyverse]{.emphasis}; always `gather_ard()` the result for QC and traceability.
+:::
+:::
+
+## A gtsummary Skill {.smaller}
+
+::: {.small}
+The golden path above, encoded. Lives at `.agents/skills/gtsummary-tables/SKILL.md`, with reference files (a crane catalog, worked examples) bundled beside it.
+:::
+
+```{r}
+#| echo: false
+#| output: asis
+cat(
+  "``` md",
+  readLines("../../.agents/skills/gtsummary-tables/SKILL.md"),
+  "```",
+  sep = "\n"
+)
+```

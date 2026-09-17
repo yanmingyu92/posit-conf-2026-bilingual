@@ -1,0 +1,21 @@
+---
+title: Bureau of Regional Statistics
+subtitle: Regional data, clearly reported
+---
+
+{{< brand logo medium >}}
+
+## Welcome
+
+The Bureau of Regional Statistics publishes quarterly statistical releases on regional employment and economic indicators. 
+Our latest release covers **Q3 2026** for the **Oregon** region.
+
+## Latest release
+
+| Indicator | Value |
+|---|---|
+| Non-farm payroll, health care | 271.4k |
+| Non-farm payroll, construction | 112.8k |
+| Non-farm payroll, manufacturing | 189.2k |
+
+See the [methodology notes](https://example.gov/brs) for details on seasonal adjustment and rounding.

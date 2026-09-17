@@ -1,0 +1,155 @@
+/*-- scss:defaults --*/
+
+@import url('https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap');
+
+@font-face {
+  font-family: "Pixel Script";
+  src: url("fonts/pixel-script.otf") format("opentype");
+}
+
+$font-family-sans-serif: "Atkinson Hyperlegible", sans-serif;
+$presentation-heading-color: #030A5F;
+
+// Quarto's default is $code-font-size * 0.55, which lands around 0.48em.
+$code-block-font-size: 0.7em;
+
+/*-- scss:rules --*/
+
+/* title slide */
+
+/* Override link color on light background sections for link on title */
+section.has-light-background a, section.has-light-background a:hover {
+  color: $link-color;
+}
+
+.reveal #title-slide .slide-url {
+  margin-top: 20px;
+}
+
+.reveal #title-slide .subtitle {
+  font-weight: bold;
+}
+
+/* rest of slides */
+
+/* Use .wrap on code cells to avoid scrollbars */
+.reveal pre.sourceCode.wrap code {
+  white-space: pre-wrap;
+}
+
+/* A wrapped line in a numbered block would otherwise start back at the left
+   edge, under the line-number gutter. Hang it under the code instead. */
+.reveal pre.sourceCode.wrap.numberSource code > span {
+  display: inline-block;
+  text-indent: -2.6em;
+  padding-left: 2.6em;
+}
+
+/* Match alignment of filename with code */
+.code-with-filename .code-with-filename-file {
+  padding-left: 9px;
+}
+
+/* Catch images that are the only element in a column */
+div.column > p:only-child:has(img),  div.column > p:only-child > img {
+  margin: 0;
+}
+
+.reveal h2 span.small {
+  font-size: 0.8em;
+}
+
+.ast-diagram {
+  width: 100%; 
+  height: 600px;
+  border:none;
+}
+
+/* Diagram steps stacked with .r-stack: an SVG with only a viewBox has no
+   intrinsic size in a flex context, so pin the width. */
+.reveal .slide .r-stack img {
+  width: 100%;
+  height: auto;
+}
+
+/* Images compiled by typst-render: a firm edge, so a page of Typst output
+   reads as a thing on the slide and not as loose marks. */
+.reveal .slide img.typst-output {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+  background: white;
+  box-sizing: border-box;
+}
+
+/* Screenshots of rendered output: a hairline so the page edge is visible
+   against the slide. Diagrams are not screenshots and do not get this. */
+.reveal .slide img.screenshot {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+}
+
+.box {
+  border: 1px solid grey;
+  border-radius: 5px;
+}
+
+.marker {
+  font-family: "Pixel Script", cursive;
+}
+
+.rotated-text {
+  font-weight: 400;
+  font-size: 100px; 
+  display: inline-block;
+  transform: rotate(20deg);
+}
+
+.handwriting {
+  font-family: "Gochi Hand", cursive;
+}
+
+.center {
+  text-align: center;
+}
+
+.small {
+  font-size: 0.75em;
+}
+
+.xsmall {
+  font-size: 0.6em;
+}
+
+.large {
+  font-size: 1.5em;
+}
+
+.reveal .slide .your-turn {
+  border-left: 3px solid #030A5F;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  padding-top: 0.25em;
+  padding-bottom: 0.25em;
+  background: #BBF81B30;
+}
+
+.reveal .slide .exercise-folder {
+  border-left: 3px solid #419CF5;
+  padding-left: 0.5em;
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
+  margin-bottom: 0.25em;
+  background: #419CF530;
+  font-size: 0.8em;
+}
+
+.reveal .slide .example-folder {
+  border-left: 3px solid #909090;
+  padding-left: 0.5em;
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
+  margin-top: 0.25em;
+  background: #F5FAFF;
+  font-size: 0.8em;
+}

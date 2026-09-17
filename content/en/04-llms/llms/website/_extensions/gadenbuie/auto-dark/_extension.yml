@@ -1,0 +1,10 @@
+title: Auto Dark Mode
+author: Garrick Aden-Buie
+version: 1.0.0
+quarto-required: ">=1.4.0"
+contributes:
+  filters:
+    - auto-dark.lua
+
+source: gadenbuie/quarto-auto-dark@311a8a1
+source-type: github

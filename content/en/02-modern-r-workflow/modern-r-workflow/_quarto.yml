@@ -1,0 +1,40 @@
+project:
+  type: website
+  render:
+    - "*.qmd"
+    - "!LICENSE.md"
+  resources:
+    - "!_keynote/"
+
+website:
+  page-navigation: true
+  favicon: favicon.ico
+  site-url: https://posit-conf-2026.github.io/modern-r-workflow
+  title: "Modern R Workflow (ft. Positron and AI)"
+  description: "A one day workshop at posit::conf(2026) on modern R development practices, AI-assisted coding, and Positron."
+  repo-url: https://github.com/posit-conf-2026/modern-r-workflow
+  page-footer:
+    center:
+      - icon: github
+        aria-label: Github
+        href: https://github.com/posit-conf-2026/modern-r-workflow
+    right: "This page is built with 💙 and [Quarto](https://quarto.org/)."
+  open-graph: true
+  sidebar:
+    id: main
+    title: Modern R Workflow
+    pinned: true
+    align: center
+    search: true
+    collapse-level: 2
+    contents:
+      - href: index.qmd
+        text: Home
+      - href: setup.qmd
+      - text: "---"
+      - auto: modules/*.qmd
+
+format:
+  html:
+    code-overflow: wrap
+    css: styles.css

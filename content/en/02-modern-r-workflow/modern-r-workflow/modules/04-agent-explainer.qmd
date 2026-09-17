@@ -1,0 +1,9 @@
+---
+title: "How do agents work?"
+---
+
+[Slides (full screen)](slides/04-agent-explainer.qmd)
+
+```{=html}
+<iframe src="slides/04-agent-explainer.html" style="width: 100%; aspect-ratio: 16 / 9; border: 1px solid #dee2e6;"></iframe>
+```

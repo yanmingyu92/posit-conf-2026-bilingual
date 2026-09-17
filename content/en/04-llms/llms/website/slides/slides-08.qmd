@@ -1,0 +1,235 @@
+---
+title: Agents
+subtitle: Programming with LLMs in R and Python
+author: <code>posit::conf(2026)</code>
+date: 2026-09-14
+
+editor:
+  render-on-save: true
+---
+
+# [Agents]{.hidden} {.no-invert-dark-mode .center background-image="assets/robot-agent.jpg" background-size="cover" background-position="center"}
+
+::: {.tc .white .pa1 .br3 .w-50 .absolute bottom="-5em" left=0 style="font-size: 3em; background-color: rgba(0, 0, 0, 0.8);"}
+Agents
+:::
+
+## What's an agent? {.center style="font-size: 1.5em"}
+
+::: incremental
+* An LLM, in a **harness**, that calls tools repeatedly in a loop
+
+* Deciding each next step from the last result
+:::
+
+::: {.footer}
+[What is an agent?](https://tidydesign.substack.com/p/what-is-an-agent){preview-link=true} by Hadley Wickham
+:::
+
+## How many tools does it take<br>to make an agent? {.center .tc style="font-size: 1.5em"}
+
+_Did we just make a quiz game agent?_
+
+::: notes
+Recall the Quiz Game app: we registered one tool, and the model called it to play sounds during the game.
+
+Each user message produced at most one tool call before the final answer.
+
+An agent keeps calling tools in a loop, deciding each next step from the result of the last one.
+:::
+
+## What kind of tools? {.center style="font-size: 1.5em"}
+
+::: incremental
+* **read** tools to observe the world
+
+* **write** tools to change it
+:::
+
+::: notes
+This is Hadley Wickham's definition, from his "What is an agent?" post on Substack.
+
+Simon Willison's shorter version: an LLM with a read tool and a write tool.
+
+The "you know it when you see it" version: an autonomous system that needs minimal intervention to finish a task.
+
+All three describe the same thing. The loop is what makes it an agent.
+:::
+
+## The agent loop {.center style="font-size: 1.33em"}
+
+::: incremental
+* **Explore**: the agent reads to understand the world
+
+* **Act**: the agent writes to change it
+
+* **Observe**: the agent reads again to see what changed
+
+* ...and repeat until the task is done
+:::
+
+::: notes
+TODO: replace with an excalidraw diagram, in the style of the tools-how-it-works sequence in slides-07.
+
+The loop is why agents feel different from a chat: the model, not the user, chooses the next step.
+
+The harness (ellmer or chatlas) does the busy work: it runs each tool, sends the result back, and lets the model continue.
+:::
+
+## Brainstorm: tools for agents
+
+::: {.easy-columns}
+::: {}
+**Read tools**
+
+::: {contenteditable="true"}
+* Read a file
+*
+:::
+:::
+
+::: {}
+**Write tools**
+
+::: {contenteditable="true"}
+* Write a file
+*
+:::
+:::
+:::
+
+::: notes
+Read and write is the smallest split that still makes an agent useful.
+
+A coding agent is just an agent whose tools mirror how a human works on a codebase.
+
+Hadley: "A coding agent is six functions in a trenchcoat" — read file, write file, edit file, list files, search, run command, plus a big system prompt of advice.
+:::
+
+## Oh, and prompting! {.center .tc style="font-size: 1.6em"}
+
+# [Blockbuster Agent]{.hidden} {.no-invert-dark-mode background-image="assets/robot-blockbuster.png" background-size="cover"}
+
+## Welcome to the Last Blockbuster {.center}
+
+::: incremental
+* You work at the Last Blockbuster in the universe, in Bend, Oregon.
+
+* The store runs on its annual membership renewal drive.
+
+* Your job is to find members who have gone quiet and win them back.
+:::
+
+::: notes
+This is the story world for the rest of the workshop: every exercise is a shift at the Last Blockbuster, with a real-ish records folder — `members.csv`, `rentals.csv`, `dues.csv`, and the manager's `notes.md`.
+
+The manager is a recurring character: a new task arrives mid-shift, or an old paper register turns up and changes yesterday's task. When that happens in an exercise, roll with it — real work looks like that too.
+
+A nice side effect: as the human, you'll often know the ground truth before you hand the task to the agent. That's what makes it possible to judge the agent's work instead of just accepting it.
+:::
+
+# Your Turn `19_agent-1` {.slide-your-turn}
+
+1. Your agent works in the Last Blockbuster's records folder.
+
+1. **Wrap up** a read tool and a **write** tool for it to use, then ask it to build the win-back list.
+
+1. Run the script it writes, then inspect the trace. Did it read the store rules before it wrote code?
+
+{{< countdown 5:00 left=0 bottom="-2em" >}}
+
+::: notes
+The coding-agent system prompt is given. Attendees wrap the file operations into functions (inputs, work, outputs), document the tools, register them, and ask the agent to write `find_lapsed.R` or `find_lapsed.py`.
+
+The attendee runs that script from inside `blockbuster/`.
+
+Watch for the key choice: the agent writes a script instead of trying to read 1,500 rental rows through the tool.
+
+Dry run in both R and Python: the trace reads `README.md`, then `notes.md`, then writes `find_lapsed.*`.
+Both generated scripts produced 11 rows.
+:::
+
+## Discussion: Did your agent...? {.center}
+
+::: incremental
+* Read `README.md` and `notes.md` before it decided anything?
+
+* Write a script, instead of reading all 1,500 rentals through its tools?
+
+* Say things about the store's rules that it never actually read?
+
+* Would you hand this list to your manager?
+
+* If you ran the code: how many lapsed members did it find?
+:::
+
+::: notes
+Most agents find all 11 lapsed members but skip `dues.csv`, the unreturned-tape rule, or the sort order — so the lists differ by 2–3 names.
+
+The hallucination question is the important one: agents confidently cite "store rules" they never read. Compare what your agent claimed against `notes.md`.
+
+Ask the room: the manager calls whoever is on this list — what would make you trust it?
+:::
+
+# Your Turn `20_agent-2` {.slide-your-turn}
+
+1. Give your agent a **list files** tool and an **edit** tool.
+
+1. Build the win-back list script again. Do these tools make your agent more effective?
+
+1. Your manager found **an old paper register**!
+
+1. Without naming the file, ask the agent to bring the list up to date.
+
+{{< countdown 5:00 left=0 bottom="-2em" >}}
+
+::: notes
+`list_files` surfaces `rentals-old.csv` without the prompt naming it.
+
+`edit_file` patches `find_lapsed.R` or `find_lapsed.py` instead of rewriting it.
+
+A failed exact-match edit is a loud, safe error instead of a silent change.
+
+The count changing from 11 to 8 makes the effect of the two new tools visible.
+
+Dry run in both R and Python: the follow-up trace calls `list_files`, then patches `find_lapsed.*` with `edit_file`.
+Both patched scripts produced eight rows without Greta Moss, Peter Ibarra, or Nora Ellis.
+:::
+
+## Discussion: Did your agent...? {.center}
+
+::: incremental
+* Write a better `find_lapsed` script than in the last exercise, even before the export arrived?
+
+* Use `list_files` to find the export, instead of guessing the filename?
+
+* Patch the `find_lapsed` script with `edit_file`, or rewrite the whole script?
+
+* Hit an `edit_file` error — and was the error loud and safe?
+
+* Still get the right answer even when it skipped a tool?
+:::
+
+::: notes
+Yes to the first question: every test run's first script encoded the full lapsed rules — the dues window, the unreturned-tape exception, the tier ordering — and named the right 11 members, while last exercise's scripts always missed two or three. The difference tracked whether the agent read `README.md` and `notes.md` first: it did every time here, and never in the last exercise.
+
+In test runs the agent always found the export via `list_files`, but patched the script only about half the time — sometimes it rewrote the file with `write_file`, and sometimes its prompt-1 script already globbed `rentals*.csv`, so no patch was needed.
+
+The `edit_file` error question matters: wrong argument names produced a loud error the agent recovered from, which is exactly the failure mode you want compared to a silent wrong edit.
+
+Close on the last bullet: tools guide the agent, but they don't force it — the same answer can arrive by different routes, which is why traces matter.
+:::
+
+## Agents, recap
+
+::: incremental
+* An agent is an LLM, in a harness, calling tools in a loop
+
+* Read tools observe; write tools change
+
+* The harness does the busy work — you write the tools and the system prompt
+:::
+
+::: notes
+Next: how to give an agent knowledge without making the system prompt enormous.
+:::

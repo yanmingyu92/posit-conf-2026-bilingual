@@ -1,0 +1,14 @@
+numpy==2.5.2
+pandas==3.0.5
+plotnine==0.15.8
+great-tables==0.24.0
+scikit-learn==1.9.0
+statsmodels==0.15.0
+scipy==1.18.1
+matplotlib==3.11.1
+shiny==1.7.0
+jupyter==1.1.1
+ipykernel==7.3.0
+nbclient==0.11.0
+nbformat==5.11.1
+PyYAML==6.0.3

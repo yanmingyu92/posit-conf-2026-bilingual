@@ -1,0 +1,15 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+/.quarto/
+_site/
+
+**/*.quarto_ipynb
+/.luarc.json
+
+# Local working notes and repros (not for publication)
+_local-notes/
+# Images compiled by the typst-render extension
+slides/assets/typst-render/

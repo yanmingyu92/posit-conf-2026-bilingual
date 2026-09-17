@@ -1,0 +1,46 @@
+---
+title: "posit::conf Workshop Hub · 中英双语学习中心"
+---
+
+# Welcome · 欢迎
+
+This hub **combines, reorganizes, and translates** official
+[posit::conf](https://conf.posit.co/) workshop materials from three conference years
+(2024–2026) into **9 topic tracks** with guided bilingual learning paths.
+
+本中心将 **2024–2026 三届 posit::conf 官方工作坊材料**合并、重组并翻译，按 **9 大主题
+轨道**组织，配中英双语学习路线。
+
+## 9 Tracks · 九大轨道
+
+| # | Track · 轨道 | Anchor workshop · 核心材料 |
+|---|---|---|
+| 1 | R Language Foundations · R 语言基础 | r-programming (2025), pkg-dev (2025) |
+| 2 | IDE & Tooling · 开发环境 | positron, modern-r-workflow (2026) |
+| 3 | Quarto & Publishing · 文档出版 | practical-quarto (2026), quarto-intro (2024) |
+| 4 | Data Engineering · 数据工程 | databases, arrow (2024), Polars (2026) |
+| 5 | Visualization & Tables · 可视化与表格 | ggplot2 (2025), Great Tables (2026) |
+| 6 | Shiny & Interactive Apps · 交互应用 | shiny-r (2025), level-up-shiny (2024) |
+| 7 | Statistics & ML · 统计与机器学习 | tidymodels (2025), causal (2025), vetiver (2024) |
+| 8 | LLM & AI Programming · 大模型编程 | llms (2026): ellmer/chatlas, agents, skills, MCP |
+| 9 | Pharma & Regulated · 制药与合规 | pharmaverse, r-pharma-regulated (2026) |
+
+## Start here · 从这里开始
+
+- 📖 [Full track catalog · 轨道总目录](catalog.qmd)
+- 🗓️ [Bilingual learning plan · 中文学习计划](plan.qmd)
+- ⚖️ [Attribution & licenses · 署名与协议](attribution.qmd)
+
+## Featured for 2026 · 2026 年亮点
+
+- **Programming with LLMs** — ellmer (R) / chatlas (Python)，从会话解剖到 agents、
+  agent skills、RAG 与 MCP（21 组练习含全套答案）
+- **Modern R Workflow** — Hadley Wickham & Jenny Bryan 亲授，Positron × AI 工作流
+- **AI-Powered Clinical Reporting with the pharmaverse** — SDTM→ADaM→ARD→TFL 临床
+  报告全链路
+
+## Contribute · 参与贡献
+
+翻译进行中（translations welcome）！流程见仓库
+[CONTRIBUTING.md](https://github.com/YOUR-USER/posit-conf-2026-bilingual)，从
+`translations/zh/modules/` 认领一个模块即可起步。
