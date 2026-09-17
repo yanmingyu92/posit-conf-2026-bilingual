@@ -85,6 +85,8 @@ token 花在刀刃上。
 假设你已经第五次把「写信要领」整段粘进对话框——按 4.1 的三次法则，该抽象了。
 移植三步：① 原话搬进 `skills/<job>/SKILL.md` 正文；② 提炼「何时用/何时不用」
 写进 description；③ 给 agent 一个读它的工具。第③步接线（改编自 llms `21_skills-1`）：
+先在练习项目中放好 `skills/` 与 `blockbuster/`，并运行 4.3 的四件文件工具定义。
+这两个目录可从上游 `_solutions/21_skills-1/` 复制。
 
 ::: {.callout-example}
 ```r
@@ -125,7 +127,10 @@ chat <- chat_posit(
 )
 
 chat$register_tool(tool_read_skill)
-# 再注册 4.3 章的文件工具（read / write / list / edit_file）...
+chat$register_tool(tool_read_file)
+chat$register_tool(tool_write_file)
+chat$register_tool(tool_list_files)
+chat$register_tool(tool_edit_file)
 chat$chat(paste(
   "Draft renewal letters for the top three members on lapsed.csv.",
   "Save one file for each member in letters/drafts/."

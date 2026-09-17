@@ -21,11 +21,12 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 
 ## 前置自测
 
-- 跑通过 4.1 的 `extract_data()`、见过 `type_object()` / `type_array()`，并记得铁律：**模型负责格式，事实必须有来源**（→ 不熟？先回 [4.1] §5）
+- 跑通过 4.1 的 `chat_structured()`、见过 `type_object()` / `type_array()`，并记得铁律：**模型负责格式，事实必须有来源**（→ 不熟？先回 [4.1] §5）
 
 ::: {.callout-note}
-命名提示：ellmer 新版把 4.1 的 `extract_data()` 更名为 `chat_structured()`、
-`set_system()` 更名为 `set_system_prompt()`——同一契约，本章统一用新名。
+命名提示：与 4.1 一致，本章使用工作坊的 `chat_structured()` 与
+`set_system_prompt()`；旧资料中可能写作 `extract_data()` 与 `set_system()`。
+含 `data/` 和 `_solutions/` 的示例需在上游 `llms` 项目根目录运行，保留其配套数据。
 :::
 
 ## 1. 为什么 schema 完胜解析散文
@@ -164,19 +165,19 @@ target 标准答案或评分指南）；**solver** = 把 input 变成 output 的
 ```r
 library(vitals)
 vitals::vitals_log_dir_set("./logs")
-cases <- tibble::tibble(
-  id = c("sensor", "units", "plants"),
-  input = c(sensor_prompt, units_prompt, plants_prompt),
-  target = c(sensor_criteria, units_criteria, plants_criteria)
-)  # 每条 input 埋一个数据质量瑕疵，target 写明「发现它」的标准（llms `15_evals`）
+source(here::here("_solutions/15_evals/_cases.R"))
+cases <- bluff_mini_cases()  # input 埋数据质量瑕疵，target 写明判分标准
 
 task <- Task$new(
   dataset = cases,
-  solver = generate(chat_posit(model = "claude-haiku-4-5")),
+  solver = generate(),
   scorer = model_graded_qa(scorer_chat = chat_posit(model = "claude-sonnet-5"))
 )
 
-task$eval(epochs = 2)  # 跑 2 遍看方差；vitals_view() 可逐例查看判分
+task$eval(
+  solver_chat = chat_posit(model = "claude-haiku-4-5"),
+  epochs = 2
+)  # 跑 2 遍看方差；vitals_view() 可逐例查看判分
 task$get_samples() |>
   dplyr::summarise(pass_rate = mean(score == "C"), .by = id)  # C = Correct
 ```

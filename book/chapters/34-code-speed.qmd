@@ -42,10 +42,11 @@ source-note: "本章为本项目原创（半原创章）· CC-BY-SA 4.0；bench 
 ::: {.callout-example}
 ```r
 library(bench)
-scores <- runif(1e5)
+scores <- runif(1e5, min = 0, max = 100)
 mark(
   cut_default = as.character(cut(scores, c(0, 60, 70, 80, 90, 100),
-                    labels = c("F", "D", "C", "B", "A"))),
+                    labels = c("F", "D", "C", "B", "A"),
+                    right = FALSE, include.lowest = TRUE)),
   nested_ifelse = ifelse(scores >= 90, "A", ifelse(scores >= 80, "B",
                    ifelse(scores >= 70, "C", ifelse(scores >= 60, "D", "F")))),
   iterations = 50
@@ -80,7 +81,7 @@ R 的慢，九成不是 R 慢，是「把别的语言的思路逐字翻译成 R�
 library(dplyr)
 df <- tibble(a = runif(1e5), b = runif(1e5))
 mark(
-  rowwise_max = df |> rowwise() |> mutate(z = max(a, b)),
+  rowwise_max = df |> rowwise() |> mutate(z = max(a, b)) |> ungroup(),
   vectorized  = df |> mutate(z = pmax(a, b)),
   iterations = 20
 )   # 典型差距 50–150 倍

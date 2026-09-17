@@ -62,8 +62,16 @@ library(ggplot2)
 library(gganimate)
 library(gapminder)
 
+# 无 gifski 时保留逐帧图片，仍可学习转场；GIF / MP4 导出见 §4–§5。
+options(gganimate.renderer = if (requireNamespace("gifski", quietly = TRUE)) {
+  gifski_renderer()
+} else {
+  message("未安装 gifski：预览改为逐帧图片；安装后可导出 GIF。")
+  file_renderer()
+})
+
 anim <- ggplot(gapminder, aes(x = gdpPercap, y = lifeExp,
-                              size = pop, color = continent)) +
+                              size = pop, color = continent, group = country)) +
   geom_point(alpha = 0.7, show.legend = FALSE) +
   scale_x_log10() +
   labs(title = "年份：{frame_time}") +
@@ -146,9 +154,13 @@ anim + shadow_trail(distance = 0.05)  # 等距拖尾：强调运动本身
 
 ::: {.callout-example}
 ```r
-animate(anim, duration = 10, fps = 10)   # 100 帧，nframes 自动
-animate(anim, nframes = 60, fps = 10)    # 6 秒，duration 自动
-anim_save("gapminder.gif")               # 保存最近一次 animate() 的结果
+if (requireNamespace("gifski", quietly = TRUE)) {
+  animate(anim, duration = 10, fps = 10, renderer = gifski_renderer()) # 100 帧
+  gif <- animate(anim, nframes = 60, fps = 10, renderer = gifski_renderer()) # 6 秒
+  anim_save("gapminder.gif", animation = gif)
+} else {
+  message("跳过 GIF 导出：请先安装 gifski。")
+}
 ```
 :::
 
@@ -161,11 +173,21 @@ duration、fps、nframes 同时指定且不满足乘积关系，`animate()` 直�
 
 ::: {.callout-example}
 ```r
-animate(anim, duration = 10, fps = 10)            # 默认渲染 gif（经 gifski）
-animate(anim, duration = 10, fps = 10,
-        renderer = av_renderer("gapminder.mp4"))  # mp4（需安装 av 包）
-
-file.size("gapminder.gif") / file.size("gapminder.mp4")
+if (requireNamespace("gifski", quietly = TRUE)) {
+  gif <- animate(anim, duration = 10, fps = 10, renderer = gifski_renderer())
+  anim_save("gapminder.gif", animation = gif)
+} else {
+  message("跳过 GIF 导出：请先安装 gifski。")
+}
+if (requireNamespace("av", quietly = TRUE)) {
+  animate(anim, duration = 10, fps = 10,
+          renderer = av_renderer("gapminder.mp4"))
+} else {
+  message("跳过 MP4 导出：请先安装 av。")
+}
+if (all(file.exists(c("gapminder.gif", "gapminder.mp4")))) {
+  file.size("gapminder.gif") / file.size("gapminder.mp4")
+}
 ```
 :::
 

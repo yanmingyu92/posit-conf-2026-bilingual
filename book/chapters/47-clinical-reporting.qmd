@@ -150,6 +150,7 @@ tbl <- adsl_mock |>
   tbl_summary(
     by = TRT01A,
     include = c(AGE, SEX, BMIBL),
+    type = c(AGE, BMIBL) ~ "continuous",
     statistic = list(
       all_continuous() ~ "{mean} ({sd})",
       all_categorical() ~ "{n} ({p}%)"

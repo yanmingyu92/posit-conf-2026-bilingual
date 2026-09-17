@@ -106,7 +106,8 @@ classify_credit_tier <- function(credit_score) {
 ```r
 mean_score <- function(df, col) mean(df[[col]], na.rm = TRUE)
 mean_score(palmerpenguins::penguins, 99)
-#> Error in `df[[col]]` : subscript out of bounds
+#> Error in `df[[col]]`: Can't extract columns past the end.
+#> Location 99 doesn't exist. There are only 8 columns.
 ```
 ① call 是哪部分？message 是哪部分？
 ② 你预测 traceback 的最深一层会在哪个函数里？

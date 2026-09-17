@@ -59,7 +59,7 @@ library(gt)
 library(dplyr)
 
 penguins_sum <- palmerpenguins::penguins |>
-  drop_na() |>
+  tidyr::drop_na() |>
   group_by(species, island) |>
   summarise(
     n = n(),

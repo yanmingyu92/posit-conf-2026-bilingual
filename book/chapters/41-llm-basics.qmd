@@ -24,8 +24,11 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 - 有任一 LLM provider 的 API key（OpenAI / Anthropic / Posit AI Pass 均可）
 
 ::: {.callout-note}
-没有 key？本章练习可先读 `ellmer::chat_dummy()`（离线假回复，用于学习 API 形状），
-再换真 key 复跑。
+本章与工作坊统一使用 `chat_posit()`；切换供应商时可换成
+`chat_anthropic()` 或 `chat_openai()`，并配置相应凭据。没有凭据时先阅读代码，暂不发送请求。
+
+命名提示：旧资料中的 `set_system()` / `extract_data()`，本书统一写作
+工作坊使用的 `set_system_prompt()` / `chat_structured()`。
 :::
 
 ## 1. 会话解剖：一次调用里到底发生了什么
@@ -44,7 +47,7 @@ flowchart LR
 ```r
 library(ellmer)
 
-chat <- chat_anthropic(model = "claude-sonnet-4-5")
+chat <- chat_posit()
 chat$chat("用一句话解释什么是函数式编程")
 ```
 :::
@@ -61,13 +64,13 @@ chat$chat("用一句话解释什么是函数式编程")
 
 ::: {.callout-example}
 ```r
-chat <- chat_anthropic()
-chat$set_system("你是一名严谨的统计学编辑，回答不超过两句话。")
+chat <- chat_posit()
+chat$set_system_prompt("你是一名严谨的统计学编辑，回答不超过两句话。")
 chat$chat("p 值 0.06 该写成 significant 吗？")
 
-str(chat$get_messages())   # 看 roles 与 content
+chat   # 打印会话，检查提示词与对话轨迹
 ```
-`get_messages()` 返回消息列表：第一条 `system`，其后 user/assistant 交替。
+打印会话可检查提示词及 user/assistant 对话轨迹。
 :::
 
 ::: {.callout-important}
@@ -76,7 +79,7 @@ str(chat$get_messages())   # 看 roles 与 content
 新建两个会话，system 分别为
 ①「用尽可能少的词回答」②「用三段话详细回答」，问同一个问题：
 「ellmer 里创建 Anthropic 会话的函数是什么？」
-对比回复的**内容**与**风格**差异，并用 `get_messages()` 验证 system 消息确实只出现一次。
+对比回复的**内容**与**风格**差异，并打印两个会话核对各自的 system prompt。
 （改编自 llms 工作坊 `02_conversation` 练习）
 :::
 
@@ -102,9 +105,8 @@ system prompt 不是咒语堆砌，是**写给一个聪明但不了解你上下�
 ::: {.callout-important}
 ## Practice Exercise 1（copy 档）
 
-照抄本章 §2 的会话代码并跑通：建 chat → `set_system()` 设定「统计编辑」人设 →
-问一个问题 → `str(chat$get_messages())` 检查 roles。把输出里 system 消息的位置
-（第几条）写在注释里。
+照抄本章 §2 的会话代码并跑通：建 chat → `set_system_prompt()` 设定「统计编辑」人设 →
+问一个问题 → 打印 `chat` 检查对话轨迹。把提示词与回复的对应关系写在注释里。
 :::
 
 ::: {.callout-important}
@@ -121,10 +123,10 @@ n 轮对话的总输入 token（注意：历史重发！第 k 轮输入 ≈ 前�
 
 ::: {.callout-example}
 ```r
-chat <- chat_anthropic()
-chat$set_system("你是数据提取助手。")
+chat <- chat_posit()
+chat$set_system_prompt("你是数据提取助手。")
 
-recipes <- chat$extract_data(
+recipes <- chat$chat_structured(
   "给出三种适合高血压患者的家常菜：名称、钠含量估计mg、一句理由",
   type = type_array(type_object(
     name = type_string(),
@@ -134,7 +136,7 @@ recipes <- chat$extract_data(
 )
 dplyr::as_tibble(recipes)
 ```
-`extract_data()` + `type_*()` 描述符 = **合同式输出**：字段、类型在签名里写死。
+`chat_structured()` + `type_*()` 描述符 = **合同式输出**：字段、类型在签名里写死。
 :::
 
 ::: {.callout-note}
@@ -143,7 +145,7 @@ evals（如何系统性评测提示词质量）。
 :::
 
 ::: {.callout-warning}
-## 高频错误：把 extract_data 当数据库
+## 高频错误：把 chat_structured 当数据库
 LLM 的数字是**生成的**不是**查询的**。上例的钠含量必须再经真实数据库核对——
 医疗场景铁律：模型负责"格式"，事实负责"内容"，来源要可追溯。
 :::

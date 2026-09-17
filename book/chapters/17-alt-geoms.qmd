@@ -163,7 +163,7 @@ gapminder::gapminder |>
 ```r
 # 哑铃图：三物种雌雄平均体重（两球一线，距离即差异）
 palmerpenguins::penguins |>
-  drop_na(sex) |>
+  tidyr::drop_na(sex) |>
   group_by(species, sex) |>
   summarise(mass = mean(body_mass_g), .groups = "drop") |>
   tidyr::pivot_wider(names_from = sex, values_from = mass) |>

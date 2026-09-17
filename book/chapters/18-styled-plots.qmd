@@ -48,6 +48,7 @@ source-note: "教学结构与练习设计改编自 posit::conf(2025) ggplot2 wor
 ::: {.callout-example}
 ```r
 library(ggplot2)
+library(dplyr)
 
 p <- ggplot(palmerpenguins::penguins,
             aes(bill_length_mm, body_mass_g, color = species)) +
@@ -174,7 +175,11 @@ typography:
 # 方案 A（零依赖）：色板与 _brand.yml 同步维护，一处定义全文档复用
 brand_cols <- c("#2266B1", "#1B7D3A", "#B1781B")
 # 方案 B（可选）：install.packages("thematic") 后让 ggplot2 直接吃品牌色与字体
-thematic::thematic_on(color = "#1A1A1A", qualitative = brand_cols)
+if (requireNamespace("thematic", quietly = TRUE)) {
+  thematic::thematic_on(bg = "white", fg = "#1A1A1A", qualitative = brand_cols)
+} else {
+  message("可选品牌主题需安装 thematic；基础图仍可使用。")
+}
 ```
 :::
 
@@ -195,7 +200,7 @@ p + scale_colour_manual(values = c("red3", "limegreen", "deepskyblue1")) +
 病灶清单：刺眼高饱和色（且非色盲安全）、标题无信息量、灰底灰格抢戏、默认图例在右侧、轴无单位。**After**——五步手术，只用本章工具：
 
 ```r
-label_ends <- palmerpenguins::penguins |> drop_na() |> group_by(species) |>
+label_ends <- palmerpenguins::penguins |> tidyr::drop_na() |> group_by(species) |>
   summarise(bill_length_mm = max(bill_length_mm) + 3,   # 物种带右端外侧
             bill_depth_mm = median(bill_depth_mm), .groups = "drop")
 ggplot(palmerpenguins::penguins,

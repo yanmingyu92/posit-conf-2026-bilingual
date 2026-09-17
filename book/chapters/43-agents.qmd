@@ -26,7 +26,8 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 ::: {.callout-note}
 本章情境沿用 llms 工作坊的「最后一家 Blockbuster 录像带店」：
 `blockbuster/` 文件夹里有 `members.csv`、`rentals.csv`、`dues.csv` 和
-店长留言 `notes.md`——这是 agent 的全部世界。
+店长留言 `notes.md`。从上游 `llms` 复制 `_solutions/20_agent-2/blockbuster/`
+到当前项目，并保留 `data/blockbuster/rentals-old.csv` 供 §4 使用。
 :::
 
 ## 1. 从聊天到行动：把 R 函数交出去
@@ -37,7 +38,13 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 ```r
 library(ellmer)
 play_sound <- function(sound) {
-  beepr::beep(sound)                            # 副作用真实发生在 R 这边
+  sound <- match.arg(sound, c("correct", "incorrect", "new-round", "you-win"))
+  switch(sound,
+    correct = beepr::beep("coin"),
+    incorrect = beepr::beep("wilhelm"),
+    "new-round" = beepr::beep("fanfare"),
+    "you-win" = beepr::beep("mario")
+  )                                           # 映射到 beepr 支持的音效名
   glue::glue("The '{sound}' sound was played.") # 回给模型的回执
 }
 
@@ -80,7 +87,7 @@ flowchart LR
 
 ## 3. 造一个真 agent（一）：读与写
 
-数据助理第一版只要两个工具，但三个设计决定要先记下：① agent 的世界被 `proj_path()`**锁死在 `blockbuster/` 内**（沙箱）；② `write_file` 返回回执；③ system prompt 规定「需要代码时，**写脚本给人跑**」——agent 不执行代码，人是执行环，这是最朴素也最有效的安全阀。
+数据助理第一版只要两个工具，但三个设计决定要先记下：① `proj_path()` 以 `blockbuster/` 为路径基准；② `write_file` 返回回执；③ system prompt 规定「需要代码时，**写脚本给人跑**」——agent 不执行代码，人是执行环。这份路径拼接示例并非沙箱，`../` 仍可越界；仅在练习副本上运行，上线前须增加规范化路径与根目录校验。
 
 ::: {.callout-example}
 ```r
@@ -144,7 +151,7 @@ edit_file <- function(path, old, new) {
   full <- proj_path(path)
   content <- brio::read_file(full)
   matches <- gregexpr(old, content, fixed = TRUE)[[1]]
-  if (identical(matches, -1L)) cli::cli_abort("Could not find the text to replace in {path}.")
+  if (matches[[1]] == -1L) cli::cli_abort("Could not find the text to replace in {path}.")
   if (length(matches) != 1L) cli::cli_abort("Expected one match in {path}, found {length(matches)}.")
   brio::write_file(sub(old, new, content, fixed = TRUE), full)
   paste0("Edited ", path, ".")
@@ -159,6 +166,9 @@ tool_edit_file <- tool(
     new = type_string("The text that replaces it.")
   )
 )
+
+chat$register_tool(tool_list_files)
+chat$register_tool(tool_edit_file)
 
 # 四件工具注册齐后，模拟「班中变故」：
 file.copy("data/blockbuster/rentals-old.csv", project_dir, overwrite = TRUE)
@@ -190,7 +200,7 @@ agent 的三种死法，每种都有对症结构（不是「更聪明的模型�
 
 四层护栏，按性价比排序：
 
-1. **沙箱**：`proj_path()` 锁根目录；外部文件名再套 `basename()` 白名单（见 [4.6] §4）
+1. **沙箱**：给示例的 `proj_path()` 补上规范化路径与根目录校验；外部文件名再套 `basename()` 白名单（见 [4.6] §4）
 2. **工具内校验**：每个参数当**不可信用户输入**处理——能错就报错，错误信息写给模型看
 3. **轮数预算**：任务拆小；外层代码控制最多发起几轮 `$chat()`，轨迹重复立即人工打断
 4. **人审产物**：agent 写脚本、人跑脚本——副作用经你的手发生

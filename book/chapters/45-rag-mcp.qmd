@@ -29,7 +29,8 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 
 ::: {.callout-note}
 本地嵌入用 LM Studio 跑 `text-embedding-nomic-embed-text-v2-moe`
-（localhost:1234，OpenAI 兼容接口）——不另花 API 钱，可离线跑通全管道。
+（localhost:1234，OpenAI 兼容接口）——嵌入步骤无需云端 API；本章抓取网页仍需联网，
+§5 的 `chat_posit()` 回答步骤仍需云端凭据。
 :::
 
 ## 1. 为什么需要检索：模型的两次迷路
@@ -82,6 +83,7 @@ library(ragnar)
 base_url <- "https://r4ds.hadley.nz"
 pages <- ragnar_find_links(base_url, children_only = TRUE)
 
+dir.create(here::here("ch45"), recursive = TRUE, showWarnings = FALSE)
 store <- ragnar_store_create(
   here::here("ch45/r4ds.ragnar.duckdb"),
   title = "R for Data Science",

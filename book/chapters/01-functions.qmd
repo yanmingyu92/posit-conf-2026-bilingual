@@ -83,8 +83,13 @@ mean_bill(palmerpenguins::penguins, "Adelie")   # 38.8
 ::: {.callout-example}
 ```r
 mean_bill <- function(data, species = "Adelie", digits = 1) {
-  ...|> round(digits)
+  data |>
+    dplyr::filter(.data$species == .env$species) |>
+    dplyr::summarise(mean_bill = mean(bill_length_mm, na.rm = TRUE)) |>
+    dplyr::pull(mean_bill) |>
+    round(digits)
 }
+pg <- palmerpenguins::penguins
 mean_bill(pg)                    # 全默认
 mean_bill(pg, species = "Gentoo")# 命名调用，跳过 digits
 ```
@@ -108,6 +113,7 @@ R 的函数大多**天生向量化**：`round(x)` 不需要你写 for 循环。
 
 ::: {.callout-example}
 ```r
+vals <- c(1.234, 5.678, 9.012)
 # 不写循环 ✗
 for (i in seq_along(vals)) vals[i] <- round(vals[i], 1)
 # 直接向量化 ✓
@@ -120,7 +126,7 @@ round(vals, 1)
 
 ## 5. 作用域：函数有独立的房间
 
-函数体内看不到你的全局环境，只能看到自己的参数与体内定义的变量。
+函数先查自己的参数与局部变量；找不到时，会沿定义它的环境向外查找，因此也可能读到全局变量。
 
 ::: {.callout-warning}
 ## 高频错误：作用域泄漏

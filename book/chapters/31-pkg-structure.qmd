@@ -143,15 +143,20 @@ roxygen2 的哲学是**单一信源**（single source of truth）：注释即文
 ::: {.callout-example}
 ```r
 #' Convert numeric scores to letter grades
-#' Maps scores in [0, 100] to letter grades with cut points at 60/70/80/90.
 #'
-#' @param x A numeric vector of scores, in [0, 100].
+#' Maps scores in `[0, 100]` to letter grades with cut points at 60/70/80/90.
+#'
+#' @param x A numeric vector of scores, in `[0, 100]`.
 #' @return A factor of letter grades, same length as `x`.
 #' @export
 #' @examples
 #' grade_letter(c(95, 72, 58))
 grade_letter <- function(x) {
-  ...   # 函数体同 §2，原样垫在注释下方
+  if (!is.numeric(x)) {
+    stop("`x` must be numeric.", call. = FALSE)
+  }
+  cut(x, c(0, 60, 70, 80, 90, 100), c("F", "D", "C", "B", "A"),
+      right = TRUE, include.lowest = TRUE)
 }
 ```
 :::

@@ -47,6 +47,10 @@ Shiny 每次输入变化只把依赖该输入的菜重炒一遍，哪些菜重�
 
 ::: {.callout-example}
 ```r
+library(shiny)
+library(ggplot2)
+flights <- nycflights13::flights
+
 server <- function(input, output, session) {
   d_city <- reactive({                       # conductor：一处计算
     dplyr::filter(flights, origin == input$origin)
@@ -130,10 +134,10 @@ app 里出现第二个"同款控件"时就该上模块。模块的本质是
 
 ::: {.callout-example}
 ```r
-hist_ui <- function(id) {              # UI 函数取 id
+hist_ui <- function(id, data) {              # UI 函数取 id
   ns <- NS(id)                         # 命名空间：所有 id 都过 ns() 一道
   wellPanel(
-    selectInput(ns("col"), "列", choices = names(mtcars)),
+    selectInput(ns("col"), "列", choices = names(data)),
     plotOutput(ns("hist"))
   )
 }
@@ -145,10 +149,11 @@ hist_server <- function(id, data) {    # 数据只经参数传入
   })
 }
 # 复用两次：id 不同 → 命名空间不同 → 互不干扰
-ui <- fluidPage(hist_ui("a"), hist_ui("b"))
+iris_num <- iris |> dplyr::select(tidyselect::where(is.numeric))
+ui <- fluidPage(hist_ui("a", mtcars), hist_ui("b", iris_num))
 server <- function(input, output, session) {
   hist_server("a", mtcars)
-  hist_server("b", iris |> dplyr::select(where(is.numeric)))
+  hist_server("b", iris_num)
 }
 shinyApp(ui, server)
 ```

@@ -139,7 +139,7 @@ httr2 的 `req_perform()` **默认在 4xx/5xx 时抛错**，并附上服务器�
 ```r
 resp_status(resp)      # 200
 last_response()        # 出错后复盘最近一次响应（不发新请求）
-last_error()           # 最近一次错误的完整信息
+# rlang::last_error()  # 仅在发生 rlang 记录的错误后运行，检查完整信息
 ```
 :::
 
@@ -161,15 +161,14 @@ if (!nzchar(key)) stop("缺少 MY_API_KEY：请检查 .Renviron 并重启 R")
 
 request("https://api.example.com") |>
   req_url_path("v1", "data") |>
-  req_auth_bearer(token = key) |>    # 或 req_headers("X-API-Key" = key)
-  req_obfuscate() |>                 # 打印时自动打码敏感信息
+  req_auth_bearer_token(token = key) |>  # Authorization 打印时默认隐藏
   req_perform()
 ```
 :::
 
 ::: {.callout-warning}
 ## 高频错误：key 泄漏的三条常见路径
-① 打印整个 request 对象发群提问（先 `req_obfuscate()`）；
+① 未检查脱敏就把 request 对象发群提问（Authorization 默认隐藏，自定义密钥头仍须检查）；
 ② `.Renviron` 被 git 跟踪（必须留在 .gitignore）；③ key 混进渲染出的 HTML 报告。
 任何一条的代价都远超"重跑一遍"。
 :::
@@ -180,8 +179,14 @@ request("https://api.example.com") |>
 
 ::: {.callout-example}
 ```r
+# ReqRes 当前要求密钥：https://reqres.in/docs
+library(purrr)
+reqres_key <- Sys.getenv("REQRES_API_KEY")
+if (!nzchar(reqres_key)) stop("请先在 .Renviron 设置 REQRES_API_KEY")
+
 fetch_users <- function(page) {
-  request("https://reqres.in") |>          # 练习用假 API（无需 key）
+  request("https://reqres.in") |>          # 练习用假 API（需申请 key）
+    req_headers("x-api-key" = reqres_key) |>
     req_url_path("api", "users") |>
     req_url_query(page = page) |>
     req_throttle(rate = 1) |>              # 每秒至多 1 次
@@ -192,7 +197,7 @@ fetch_users <- function(page) {
 
 first <- fetch_users(1)
 first$total_pages                         # 2
-users <- 1:first$total_pages |>
+users <- seq_len(first$total_pages) |>
   map(fetch_users) |>                     # 翻页：逐页取回
   map(pluck, "data") |>                   # 每页的 data（数据框）
   list_rbind()
@@ -246,7 +251,7 @@ reqres.in 不可用时，任何页码式 API 均可套用。
 |---|---|---|---|
 | 管道正确 | 全部城市取到温度 | 函数化 + 命名参数 | 限速 / 重试 / 缓存三件套齐 |
 | 健壮性 | 正常输入可跑 | 单城失败不拖垮全局 | 0/1/多 与缺字段路径均有验证 |
-| 密钥卫生 | 无任何硬编码 | .Renviron + Sys.getenv | req_obfuscate() 也用上 |
+| 密钥卫生 | 无任何硬编码 | .Renviron + Sys.getenv | 分享日志前核验脱敏 |
 | 复用性 | 脚本能跑 | 换城市表即可复用 | 自评最脆一环并给加固计划 |
 
 ## SOURCES · 来源映射
