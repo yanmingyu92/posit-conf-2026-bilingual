@@ -17,6 +17,7 @@ years (2024–2026), organized into 9 topic tracks with guided learning paths.
 
 | Layer | Location | Description |
 |---|---|---|
+| **Original curriculum** | `curriculum/` | **Our own course system** built on the corpus: 5-domain × 3-level competency matrix, learner personas, module blueprints (start with `curriculum/MATRIX.md`) |
 | Mirrored 2026 materials | `content/en/` | Verbatim copies of all 8 official 2026 workshop repos, organized by track, with provenance manifest |
 | Prior-year catalog | `ARCHIVE-CATALOG.md` | Topic map of 19 curated 2024/2025 workshops that fill gaps 2026 didn't cover (Shiny, pkg-dev, ggplot2, tidymodels, causal, databases, …) |
 | Chinese translations | `translations/zh/` | Bilingual learning plan + per-module Chinese translations (in progress, contributions welcome) |
@@ -73,9 +74,12 @@ posit::conf 是 Posit 公司（RStudio、Shiny、Quarto、Positron 的缔造者�
 
 ### 怎么开始？
 
-1. 先读 [中文学习计划](translations/zh/LEARNING-PLAN.zh.md)（按周安排、含验收任务）
-2. 按轨道索引找材料：[ARCHIVE-CATALOG.md](ARCHIVE-CATALOG.md)
-3. 中文翻译在 `translations/zh/modules/`，翻译规范见 [CONTRIBUTING.md](CONTRIBUTING.md)
+1. 想系统学：读 [原创课程体系](curriculum/CURRICULUM-DESIGN.md)——基于全部材料设计的
+   「5 能力域 × 3 水平」课程矩阵 + 4 类学员画像 + 逐模块教学设计
+2. 想自己找材料：[ARCHIVE-CATALOG.md](ARCHIVE-CATALOG.md) 轨道总目录
+3. 想按周打卡：[中文学习计划](translations/zh/LEARNING-PLAN.zh.md)
+4. 想参与翻译：规范见 [CONTRIBUTING.md](CONTRIBUTING.md)；想写课：见
+   [curriculum/modules/TEMPLATE.md](curriculum/modules/TEMPLATE.md)
 
 ### 许可与署名
 

@@ -1,0 +1,9 @@
+---
+title: "Original Curriculum · 原创课程体系"
+---
+
+{{< include ../curriculum/CURRICULUM-DESIGN.md >}}
+
+## Competency Matrix · 能力矩阵
+
+{{< include ../curriculum/MATRIX.md >}}
