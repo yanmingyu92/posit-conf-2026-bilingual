@@ -1,0 +1,175 @@
+---
+title: "4.1 LLM 编程基础（ellmer）· Programming with LLMs"
+objectives: |
+  学完本章你能：用 ellmer 建立 LLM 会话；用 system prompt 控制persona与格式；
+  检查会话对象内部结构；建立 token/成本直觉；跑通第一个结构化输出。
+source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0）；讲义文字为本项目原创"
+---
+
+# 4.1 LLM 编程基础（ellmer）
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **initialize** `ellmer::chat_*()` 会话并解释 provider/model 参数
+2. **control** 用 system prompt 设定角色、语气与输出格式
+3. **inspect** 会话对象的消息列表（roles：system / user / assistant）
+4. **estimate** 一轮对话的 token 消耗并建立成本直觉
+5. **extract** 用 `$chat()` + 结构化提取拿回**可直接入库的数据**（R 数据框）
+
+## 前置自测
+
+- 会安装包、能读懂一段 dplyr 链（→ 不熟？先回 [L1-B1]）
+- 有任一 LLM provider 的 API key（OpenAI / Anthropic / Posit AI Pass 均可）
+
+::: {.callout-note}
+没有 key？本章练习可先读 `ellmer::chat_dummy()`（离线假回复，用于学习 API 形状），
+再换真 key 复跑。
+:::
+
+## 1. 会话解剖：一次调用里到底发生了什么
+
+聊天界面看起来像「你一句我一句」，**API 层面真相是**：每次请求都把
+*完整历史*（system → user → assistant → …）整体重发。
+
+```mermaid
+flowchart LR
+  A[你的 R 代码] -->|chat$chat msg| B[HTTP 请求\nsystem+历史+新消息]
+  B --> C[LLM]
+  C -->|assistant 消息| D[ellmer 把新消息\nappend 回会话对象]
+```
+
+::: {.callout-example}
+```r
+library(ellmer)
+
+chat <- chat_anthropic(model = "claude-sonnet-4-5")
+chat$chat("用一句话解释什么是函数式编程")
+```
+:::
+
+::: {.callout-warning}
+## 高频误区：以为模型"记得"你
+模型**没有记忆**，是 ellmer 替你重发历史。推论：
+① 会话越长，每次请求越贵；② 换个新 chat 对象，「上次说过的话」就全忘了。
+:::
+
+## 2. 检查会话对象：学会"开盖"
+
+`ellmer` 的会话对象是**可检查的**——这是编程视角与聊天视角的分水岭。
+
+::: {.callout-example}
+```r
+chat <- chat_anthropic()
+chat$set_system("你是一名严谨的统计学编辑，回答不超过两句话。")
+chat$chat("p 值 0.06 该写成 significant 吗？")
+
+str(chat$get_messages())   # 看 roles 与 content
+```
+`get_messages()` 返回消息列表：第一条 `system`，其后 user/assistant 交替。
+:::
+
+::: {.callout-important}
+## Check In：角色实验
+
+新建两个会话，system 分别为
+①「用尽可能少的词回答」②「用三段话详细回答」，问同一个问题：
+「ellmer 里创建 Anthropic 会话的函数是什么？」
+对比回复的**内容**与**风格**差异，并用 `get_messages()` 验证 system 消息确实只出现一次。
+（改编自 llms 工作坊 `02_conversation` 练习）
+:::
+
+## 3. System prompt 设计三要素
+
+| 要素 | 例子 | 不写的后果 |
+|---|---|---|
+| 角色 | 「你是临床报告审阅员」 | 回答泛化成百科腔 |
+| 约束 | 「不超过两句」「只用中文」 | 长篇大论、语言漂移 |
+| 格式 | 「以 CSV 三列输出」 | 需要二次解析 |
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+system prompt 不是咒语堆砌，是**写给一个聪明但不了解你上下文的新同事的入职说明**。
+超过十条约束时，说明你该用 4.4 章的 skills 而不是继续往 system 里塞。
+:::
+
+## 4. Token 与成本直觉
+
+- token ≈ 0.75 个英文单词 ≈ 0.5 个汉字；**输入按全文重发计费**
+- 成本 = (输入 token × 单价) + (输出 token × 单价)，输出通常贵 3–5 倍
+
+::: {.callout-important}
+## Practice Exercise 1（adapt 档）
+
+写 `cost_estimate(n_turns, words_per_turn, in_price, out_price)` 估算一段
+n 轮对话的总输入 token（注意：历史重发！第 k 轮输入 ≈ 前面所有轮之和），
+并画出 10/20/50 轮的成本曲线。回答：会话到多少轮时你该考虑"摘要压缩历史"？
+:::
+
+## 5. 第一个结构化输出：让模型吐数据框
+
+自然语言回复对下游代码没用——我们要**可直接入库的数据**。
+
+::: {.callout-example}
+```r
+chat <- chat_anthropic()
+chat$set_system("你是数据提取助手。")
+
+recipes <- chat$extract_data(
+  "给出三种适合高血压患者的家常菜：名称、钠含量估计mg、一句理由",
+  type = type_array(type_object(
+    name = type_string(),
+    sodium_mg = type_number(),
+    reason = type_string()
+  ))
+)
+dplyr::as_tibble(recipes)
+```
+`extract_data()` + `type_*()` 描述符 = **合同式输出**：字段、类型在签名里写死。
+:::
+
+::: {.callout-note}
+结构化输出的底层是 provider 的 tool/JSON 模式；4.2 章会展开类型系统全表与
+evals（如何系统性评测提示词质量）。
+:::
+
+::: {.callout-warning}
+## 高频错误：把 extract_data 当数据库
+LLM 的数字是**生成的**不是**查询的**。上例的钠含量必须再经真实数据库核对——
+医疗场景铁律：模型负责"格式"，事实负责"内容"，来源要可追溯。
+:::
+
+## 6. AI 线自查：本章的禁用环节
+
+::: {.callout-important}
+## Practice Exercise 2（create 档 · 禁 AI 环节）
+
+**全程禁用 AI 助手**（这是本章唯一硬性禁用点）：仅凭本章内容 + `?ellmer` 文档，
+写 `translate_labels(labels, target_lang)`——用 LLM 把变量标签向量翻译成目标语言，
+要求结构化输出、批量处理、失败重试一次。
+写完后再开放 AI，让它评审你的重试逻辑——记录它发现了什么。
+:::
+
+## Capstone · 压轴项目
+
+**任务**：「研究助理 0.1」——给你领域的 5 篇论文摘要（自备或用班级数据集），
+做一个 ellmer 脚本：对每篇摘要提取（研究问题/方法/样本量/主要结论/局限），
+输出一个规范 tibble，并渲染成 Quarto 报告附成本统计（总 token / 总费用估算）。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 提取质量 | 五字段齐且可读 | 类型签名严格、失败可重试 | 抽查 20% 字段与原文核对并报告准确率 |
+| 工程性 | 脚本能跑完 | 函数化+错误处理 | 批量并发（预告 4.2 的 `parallel`） |
+| 成本意识 | 报告总 token | 分轮拆解成本 | 提出并实测一种降本方案（如压缩历史） |
+| 证据边界 | 结果标注"模型生成" | 区分生成内容与核对内容 | 对局限做敏感性讨论 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§3 结构与练习 | posit::conf(2026) llms `outline.md` Morning 1 + `_exercises/01_hello-llm, 02_conversation, 06_word-games`（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0） | 改编 |
+| §5 结构化输出 | llms `_exercises/10_structured-output` | 改编 |
+| 高血压菜谱示例、成本函数练习、研究助理 capstone、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。

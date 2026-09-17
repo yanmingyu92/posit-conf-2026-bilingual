@@ -1,0 +1,18 @@
+# Unit 1 · Complex Analyses 复杂分析 — 章节地图
+
+> 心智主线：从「会用函数」到「会造函数」，再到「数据不在 CSV 里怎么办」。
+> 本单元结束后，你能在一份出版级 Quarto 文档里，展示对自选数据集的视觉与统计洞察。
+
+| 章 | 主题 | 素材锚点 | 矩阵 | 状态 |
+|---|---|---|---|---|
+| [1.1](chapters/01-functions.qmd) | Writing Functions 函数 | r-programming(2025) | B-L1 | ✅ 已发布 |
+| 1.2 | Iteration 迭代（purrr） | r-programming(2025) 03–04 | B-L1 | 起草中 |
+| 1.3 | Efficient Code 效率 | 原创 | B-L2 | 认领 |
+| 1.4 | JSON & APIs | **空缺→原创** | B-L2 | 认领 |
+| 1.5 | Web Scraping | **空缺→原创** | B-L2 | 认领 |
+| 1.6 | Great Tables | modern-ds-python | D-L2 | 起草中 |
+| 1.7 | Non-Standard Geoms | ggplot2(2025) | D-L2 | 认领 |
+| 1.8 | Styled Plots 专业图表 | ggplot2(2025)+quarto-brand | D-L2 | 认领 |
+
+每章配套：周活动（90 min）· 模拟卷 · capstone（含评分量规）。
+空缺章 = 市面机会，按 `curriculum/modules/TEMPLATE.md` 流程认领创作。

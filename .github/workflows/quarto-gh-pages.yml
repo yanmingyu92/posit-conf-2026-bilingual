@@ -28,6 +28,16 @@ jobs:
         with:
           path: website
 
+      - name: Render book
+        uses: quarto-dev/quarto-actions/render@v2
+        with:
+          path: book
+
+      - name: Nest book into site
+        run: |
+          mkdir -p website/_site/book
+          cp -r book/_book/* website/_site/book/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

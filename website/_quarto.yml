@@ -10,6 +10,8 @@ website:
     materials, 2024–2026, organized into 9 tracks. 中英双语 posit::conf 学习中心。
   navbar:
     left:
+      - text: "Book · 成书《现代 R 进阶》"
+        href: book/index.html
       - text: "Curriculum · 原创课程"
         file: curriculum.qmd
       - text: "Tracks · 轨道目录"

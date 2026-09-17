@@ -1,0 +1,40 @@
+# Welcome · 欢迎来到《现代 R 进阶》
+
+本书以 [STAT 541 *Advanced R*](https://atheobold.github.io/advanced-R-website/)
+（Bodwin & Theobold, CC-BY-SA 4.0）的四单元弧线为骨架，以 **posit::conf 2024–2026
+官方工作坊材料**（27 个开源仓库）为素材矿藏，用现代栈（Positron · Quarto · ellmer）
+重写的系统化 R 进阶课程。
+
+## What makes this different · 这本书凭什么不同
+
+| 市面常见做法 | 本书做法 |
+|---|---|
+| 章节按 API 罗列 | 四单元**成果弧线**：驯服数据 → 专业交付 → 代码资产 → AI 放大 |
+| 示例用玩具数据 | 每章 capstone 用真实数据 + 评分量规 |
+| AI 一章带过或全无 | **AI 作为线**织入每章（含"何时禁用 AI"环节） |
+| 单一语言/受众 | 双语（zh 教学主语言 + en 对照）+ 4 类画像路径 |
+| 来源不明 | 每章 SOURCES 表声明原创/改编边界，全程 CC-BY-SA 合规 |
+
+## How to read · 怎么读
+
+本书使用 9 类教学标注（沿用 STAT 541 体系）：
+
+- **当心（Warning）**：常见错误与坑
+- **示例（Example）**：可运行代码，别跳过
+- **澄清（Note）**：防误解的要点
+- **必读/必看（Required Reading/Video）**：外部材料
+- **随堂小检（Check In）**：小任务，必做不计分
+- **练习（Practice Exercise）**：copy → adapt → create 三档
+- **延伸（Learn More）**：可选材料，默认折叠
+- **作者观点（Opinion）**：经验之谈，自行取舍
+
+## Prerequisites · 前置要求
+
+具备 tidyverse 入门水平（相当于 R4DS「Whole Game」章）。零基础请先学
+[curriculum/modules/L1-A1-first-repo](../curriculum/modules/L1-A1-first-repo/DESIGN.md)。
+
+## License · 许可
+
+本书整体 [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)。
+素材改编自 posit::conf 工作坊（© 原讲师）与 STAT 541 课程网站，完整署名见
+[ATTRIBUTION](../ATTRIBUTION.md)。本书与 Posit, PBC 及 Cal Poly 无官方关联。

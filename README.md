@@ -17,6 +17,7 @@ years (2024–2026), organized into 9 topic tracks with guided learning paths.
 
 | Layer | Location | Description |
 |---|---|---|
+| **The Book** 📖 | `book/` | **《现代 R 进阶》**：四单元成书（STAT 541 结构 × posit::conf 素材），旗舰章 1.1 函数、4.1 LLM 编程已发布，其余 26 章按地图推进 |
 | **Original curriculum** | `curriculum/` | **Our own course system** built on the corpus: 5-domain × 3-level competency matrix, learner personas, module blueprints (start with `curriculum/MATRIX.md`) |
 | Mirrored 2026 materials | `content/en/` | Verbatim copies of all 8 official 2026 workshop repos, organized by track, with provenance manifest |
 | Prior-year catalog | `ARCHIVE-CATALOG.md` | Topic map of 19 curated 2024/2025 workshops that fill gaps 2026 didn't cover (Shiny, pkg-dev, ggplot2, tidymodels, causal, databases, …) |

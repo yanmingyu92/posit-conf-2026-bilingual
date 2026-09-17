@@ -1,0 +1,35 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Advanced R, Modernized · 现代 R 进阶"
+  subtitle: "复杂分析 · 专业交付 · 包开发 · AI 与领域应用"
+  author: " posit::conf Corpus Team"
+  site-url: "https://YOUR-USER.github.io/posit-conf-2026-bilingual/book/"
+  repo-url: "https://github.com/YOUR-USER/posit-conf-2026-bilingual"
+  chapters:
+    - index.qmd
+    - part: "Unit 1 · Complex Analyses 复杂分析"
+      chapters:
+        - chapters/01-functions.qmd
+        - unit-1-map.qmd
+    - part: "Unit 2 · Professional Deliverables 专业交付物"
+      chapters:
+        - unit-2-map.qmd
+    - part: "Unit 3 · Package Development 包开发"
+      chapters:
+        - unit-3-map.qmd
+    - part: "Unit 4 · AI & Domain Applications AI 与领域应用"
+      chapters:
+        - chapters/41-llm-basics.qmd
+        - unit-4-map.qmd
+  sidebar:
+    style: floating
+
+format:
+  html:
+    theme: cosmo
+    lang: zh-CN
+    toc: true
+    callout-icon: true

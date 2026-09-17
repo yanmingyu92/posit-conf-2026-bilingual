@@ -1,0 +1,186 @@
+---
+title: "1.1 Writing Functions · 写函数"
+objectives: |
+  学完本章你能：把重复代码重构为函数；正确使用参数、默认值与返回值；
+  判断"何时该写函数"；用非正式检查验证函数行为。
+source-note: "教学结构与练习设计改编自 posit::conf(2025) r-programming（Emma Rand, Garrett Grolemund, Ian Lyttle · CC-BY-SA 4.0）；讲义文字为本项目原创"
+---
+
+# 1.1 Writing Functions · 写函数
+
+## 本章目标
+
+完成本章后，你能够：
+
+1. **identify** 代码中的重复模式并说出「三次法则」（rule of three）
+2. **write** 带命名参数、默认值与显式 `return()` 的函数
+3. **predict** 给定输入时函数的输出（含向量化行为）
+4. **diagnose** 参数未匹配 / 作用域泄漏两类高频错误
+5. **evaluate** 别人写的函数是否值得抽象（AI 织入点：让 AI 当评审）
+
+## 前置自测（≤5 分钟）
+
+能独立完成以下两问再继续；否则先回补 [L1-B1]：
+
+::: {.callout-important}
+## Check In：前置自测
+
+1. 用 `dplyr` 对 `palmerpenguins::penguins` 按 `species` 分组求 `bill_length_mm` 均值（忽略缺失值）。
+2. 解释 `|>` 管道把左边的东西传到了右边函数的哪个位置。
+:::
+
+## 1. 为什么写函数：三次法则
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+我曾经把同一段清洗代码复制了 11 遍——第 12 份数据来的时候发现前 11 遍里有个 bug。
+**函数不是高级技巧，是止损策略。**
+:::
+
+**三次法则**：同一段逻辑复制粘贴第三次出现时，就必须抽成函数。
+
+复制粘贴的三宗罪：
+
+| 罪 | 后果 |
+|---|---|
+| 改一处漏十处 | bug 复利 |
+| 无命名 | 代码不解释意图 |
+| 无法测试 | 每份拷贝都要单独验证 |
+
+函数解决三件事：**命名（是什么）·参数（变什么）·返回（给什么）**。
+
+## 2. 函数解剖学
+
+::: {.callout-example}
+最小可用的函数：
+
+```r
+mean_bill <- function(data, species) {
+  data |>
+    dplyr::filter(species == {{ species }}) |>
+    dplyr::summarise(mean_bill = mean(bill_length_mm, na.rm = TRUE)) |>
+    dplyr::pull(mean_bill)
+}
+
+mean_bill(palmerpenguins::penguins, "Adelie")   # 38.8
+```
+:::
+
+三个组成部分：
+
+1. **名字**：动词或动词短语（`mean_bill` 而非 `func1`）
+2. **参数**：数据 `data` 与变化点 `species`——函数是「不变的东西 + 可变的洞」
+3. **返回值**：R 默认返回最后一个表达式；**建议在非平凡函数里显式 `return()`**
+
+::: {.callout-note}
+`{{ species }}`（大括号拥抱）是 tidyverse 的「函数内引用列名」惯例，
+来自 [Programming with dplyr](https://dplyr.tidyverse.org/articles/programming.html)。
+现在只需照用，原理在 Unit 3 展开。
+:::
+
+## 3. 参数设计：默认值与命名调用
+
+::: {.callout-example}
+```r
+mean_bill <- function(data, species = "Adelie", digits = 1) {
+  ...|> round(digits)
+}
+mean_bill(pg)                    # 全默认
+mean_bill(pg, species = "Gentoo")# 命名调用，跳过 digits
+```
+:::
+
+设计准则：
+
+- 高频用法给默认值，函数「开箱即得 80% 场景」
+- 调用时**用命名参数**传非默认值——位置传参是未来 bug 的温床
+
+::: {.callout-warning}
+## 高频错误：位置传参错位
+`mean_bill(pg, 1)` 不会报错！`1` 被当成 `species`，
+`filter(species == 1)` 静默返回空表 → 后续 `mean()` 得 `NaN`。
+**排查口诀：看见诡异的 NaN/0 行，先查参数顺序。**
+:::
+
+## 4. 向量化思维：数据框就是循环
+
+R 的函数大多**天生向量化**：`round(x)` 不需要你写 for 循环。
+
+::: {.callout-example}
+```r
+# 不写循环 ✗
+for (i in seq_along(vals)) vals[i] <- round(vals[i], 1)
+# 直接向量化 ✓
+round(vals, 1)
+```
+:::
+
+判断题：什么时候**必须**自己迭代？——当每一步依赖上一步的状态时
+（如逐月滚动预测）。其余交给向量化或 1.2 章的 `map()`。
+
+## 5. 作用域：函数有独立的房间
+
+函数体内看不到你的全局环境，只能看到自己的参数与体内定义的变量。
+
+::: {.callout-warning}
+## 高频错误：作用域泄漏
+```r
+threshold <- 30
+flag_big <- function(x) x[x > threshold]   # 体内引用全局变量：能跑，但是债
+```
+在别的电脑/脚本里 `threshold` 不存在 → 炸。
+**规则：函数需要什么，就把什么写成参数。**
+:::
+
+## 6. 非正式测试：写完就查三件事
+
+每个新函数交付前跑「三例检查」：典型值、边界值、垃圾值。
+
+::: {.callout-important}
+## Practice Exercise 1（copy 档）
+
+写 `count_species(data, island)` 返回各物种计数表，并过三例检查：
+① 典型：`penguins`, `"Biscoe"`；② 边界：一个不存在的岛（预期是什么？先猜再跑）；
+③ 垃圾：`count_species(penguins, 123)`。
+把三例的预期 vs 实际写成三行注释。
+:::
+
+::: {.callout-important}
+## Practice Exercise 2（adapt 档）
+
+把本章 `mean_bill()` 改造成 `summarize_col(data, col, by, digits)`：
+任意数值列 × 任意分组列。要求：`{{ }}` 引用列、`digits` 有默认值、过三例检查。
+:::
+
+::: {.callout-important}
+## Practice Exercise 3（create 档 · AI 环节）
+
+**第一轮（禁 AI）**：为体检数据集写 `bmi_category(height_cm, weight_kg)`，
+返回 BMI 分级向量（<18.5 偏瘦 / 18.5–24 正常 / 24–28 超重 / ≥28 肥胖，
+中国标准）。
+**第二轮（开放 AI）**：把你的函数贴给 Posit Assistant，只问一个问题：
+「这个函数的边界值测试清单应该有哪些？」补齐清单后再跑一遍。
+记录：AI 补出了哪几个你没想到的边界？
+:::
+
+## Capstone · 压轴项目
+
+**任务**：自选真实数据集（本班提供：体检 / penguins / nycflights 三选一），
+找出你分析脚本里**最重复的三段代码**，各抽成函数，并用三例检查验证。
+交付：Quarto 报告一页——三个函数源码 + 三例检查表 + 一段「抽象前后」对比说明。
+
+| 维度 | 达到 | 良好 | 卓越 |
+|---|---|---|---|
+| 抽象质量 | 三段均成函数 | 参数设计合理（默认值/命名） | 函数名即文档，可复用于新数据 |
+| 验证 | 三例齐 | 预期先于运行写下 | 发现并修复了至少一个边界 bug |
+| 表达 | 报告完整 | 对比说明有说服力 | 提炼出个人「何时抽象」判断规则 |
+
+## SOURCES · 来源映射
+
+| 讲义节 | 素材 | 性质 |
+|---|---|---|
+| §1–§5 结构与练习设计 | posit::conf(2025) r-programming `01-functions-*.qmd`（Emma Rand, Garrett Grolemund, Ian Lyttle · CC-BY-SA 4.0） | 改编 |
+| `{{ }}` 惯例 | dplyr 官方 Programming with dplyr vignette | 引用 |
+| 讲义文字、中国 BMI 标准练习、rubric | 本项目 | 原创 |
+
+本章以 CC-BY-SA 4.0 发布。
