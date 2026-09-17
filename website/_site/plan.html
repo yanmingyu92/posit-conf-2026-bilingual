@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Learning Plan · 学习计划 – posit::conf Workshop Hub</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-172ba59bd5e0b52282274ba0c0cc16fc.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">posit::conf Workshop Hub</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="搜索"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或折叠导航栏" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./book/index.html"> 
+<span class="menu-text">Book · 成书《现代 R 进阶》</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./curriculum.html"> 
+<span class="menu-text">Curriculum · 原创课程</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./catalog.html"> 
+<span class="menu-text">Tracks · 轨道目录</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./plan.html" aria-current="page"> 
+<span class="menu-text">Learning Plan · 学习计划</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./attribution.html"> 
+<span class="menu-text">Attribution · 署名</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/yanmingyu92/posit-conf-2026-bilingual"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">该页面内容</h2>
+   
+  <ul>
+  <li><a href="#positconf-三届材料系统学习计划中文版" id="toc-positconf-三届材料系统学习计划中文版" class="nav-link active" data-scroll-target="#positconf-三届材料系统学习计划中文版">posit::conf 三届材料系统学习计划（中文版）</a>
+  <ul class="collapse">
+  <li><a href="#总览9-条轨道与依赖" id="toc-总览9-条轨道与依赖" class="nav-link" data-scroll-target="#总览9-条轨道与依赖">总览：9 条轨道与依赖</a></li>
+  <li><a href="#第一阶段r-语言基础12-周可按水平跳过" id="toc-第一阶段r-语言基础12-周可按水平跳过" class="nav-link" data-scroll-target="#第一阶段r-语言基础12-周可按水平跳过">第一阶段：R 语言基础（1–2 周，可按水平跳过）</a></li>
+  <li><a href="#第二阶段工具链1-周" id="toc-第二阶段工具链1-周" class="nav-link" data-scroll-target="#第二阶段工具链1-周">第二阶段：工具链（1 周）</a></li>
+  <li><a href="#第三阶段文档出版1-周" id="toc-第三阶段文档出版1-周" class="nav-link" data-scroll-target="#第三阶段文档出版1-周">第三阶段：文档出版（1 周）</a></li>
+  <li><a href="#第四阶段数据工程与可视化12-周" id="toc-第四阶段数据工程与可视化12-周" class="nav-link" data-scroll-target="#第四阶段数据工程与可视化12-周">第四阶段：数据工程与可视化（1–2 周）</a></li>
+  <li><a href="#第五阶段shiny-交互应用12-周" id="toc-第五阶段shiny-交互应用12-周" class="nav-link" data-scroll-target="#第五阶段shiny-交互应用12-周">第五阶段：Shiny 交互应用（1–2 周）</a></li>
+  <li><a href="#第六阶段llm-编程12-周重点" id="toc-第六阶段llm-编程12-周重点" class="nav-link" data-scroll-target="#第六阶段llm-编程12-周重点">第六阶段：LLM 编程（1–2 周，重点）</a></li>
+  <li><a href="#第七阶段统计与机器学习2-周可选" id="toc-第七阶段统计与机器学习2-周可选" class="nav-link" data-scroll-target="#第七阶段统计与机器学习2-周可选">第七阶段：统计与机器学习（2 周，可选）</a></li>
+  <li><a href="#第八阶段制药与合规12-周方向选修" id="toc-第八阶段制药与合规12-周方向选修" class="nav-link" data-scroll-target="#第八阶段制药与合规12-周方向选修">第八阶段：制药与合规（1–2 周，方向选修）</a></li>
+  <li><a href="#学习方法" id="toc-学习方法" class="nav-link" data-scroll-target="#学习方法">学习方法</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Learning Plan · 学习计划</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="positconf-三届材料系统学习计划中文版" class="level1">
+<h1>posit::conf 三届材料系统学习计划（中文版）</h1>
+<blockquote class="blockquote">
+<p>覆盖 2024–2026 三届官方工作坊，重组为 9 条轨道。原计划基于 2026 材料制定， 现已用往届材料补齐 Shiny、包开发、ggplot2、统计建模、因果推断、数据库等空白。 配套英文索引见 <a href="../../ARCHIVE-CATALOG.md">ARCHIVE-CATALOG.md</a>。</p>
+</blockquote>
+<section id="总览9-条轨道与依赖" class="level2">
+<h2 class="anchored" data-anchor-id="总览9-条轨道与依赖">总览：9 条轨道与依赖</h2>
+<pre><code>轨道1 R 语言基础 ──→ 轨道2 IDE与工具 ──→ 轨道3 Quarto 出版
+      │                                      │
+      ├──→ 轨道4 数据工程 ──→ 轨道5 可视化    │
+      │                                      ↓
+      └──→ 轨道6 Shiny ──→ 轨道8 LLM 编程（2026 新增）
+             │
+             └──→ 轨道7 统计与机器学习 ──→ 轨道9 制药与合规</code></pre>
+</section>
+<section id="第一阶段r-语言基础12-周可按水平跳过" class="level2">
+<h2 class="anchored" data-anchor-id="第一阶段r-语言基础12-周可按水平跳过">第一阶段：R 语言基础（1–2 周，可按水平跳过）</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>内容</th>
+<th>材料</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>R 编程入门 ⭐</td>
+<td>r-programming + 配套练习</td>
+<td>2025 镜像链接</td>
+</tr>
+<tr class="even">
+<td>自助排错与文档</td>
+<td>modern-r-workflow 模块 01</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+<tr class="odd">
+<td>R 包开发</td>
+<td>pkg-dev</td>
+<td>2025 链接</td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收</strong>：写一个有文档、有测试、可安装的小 R 包。</p>
+</section>
+<section id="第二阶段工具链1-周" class="level2">
+<h2 class="anchored" data-anchor-id="第二阶段工具链1-周">第二阶段：工具链（1 周）</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>内容</th>
+<th>材料</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Positron 速成 ⭐</td>
+<td>positron（PDF 讲义 + debug.R）</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+<tr class="even">
+<td>现代 R 工作流 × AI</td>
+<td>modern-r-workflow 全部 8 模块</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收</strong>：给自己的项目写 <code>AGENTS.md</code>，在 Positron 完成一次「解释→修改→验证」AI 循环。</p>
+</section>
+<section id="第三阶段文档出版1-周" class="level2">
+<h2 class="anchored" data-anchor-id="第三阶段文档出版1-周">第三阶段：文档出版（1 周）</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>内容</th>
+<th>材料</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Quarto 入门（零基础）</td>
+<td>quarto-intro</td>
+<td>2024 链接</td>
+</tr>
+<tr class="even">
+<td>Quarto 实战模式 ⭐</td>
+<td>practical-quarto + exercises</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+<tr class="odd">
+<td>品牌化 brand.yml</td>
+<td>quarto-brand</td>
+<td>2025 链接</td>
+</tr>
+<tr class="even">
+<td>扩展开发（Lua）</td>
+<td>quarto-extend + exercises</td>
+<td>2025 链接</td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收</strong>：产出「brand.yml + partials + Typst PDF」三件套小项目。</p>
+</section>
+<section id="第四阶段数据工程与可视化12-周" class="level2">
+<h2 class="anchored" data-anchor-id="第四阶段数据工程与可视化12-周">第四阶段：数据工程与可视化（1–2 周）</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>内容</th>
+<th>材料</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>数据库 in R（DuckDB）⭐</td>
+<td>databases</td>
+<td>2024 链接</td>
+</tr>
+<tr class="even">
+<td>Apache Arrow</td>
+<td>arrow</td>
+<td>2024 链接</td>
+</tr>
+<tr class="odd">
+<td>ggplot2 精通 ⭐</td>
+<td>ggplot2</td>
+<td>2025 链接</td>
+</tr>
+<tr class="even">
+<td>polars / plotnine / great-tables</td>
+<td>modern-ds-python</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收</strong>：用 DuckDB + ggplot2 重做一次真实数据的取数→清洗→出版级图表。</p>
+</section>
+<section id="第五阶段shiny-交互应用12-周" class="level2">
+<h2 class="anchored" data-anchor-id="第五阶段shiny-交互应用12-周">第五阶段：Shiny 交互应用（1–2 周）</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>内容</th>
+<th>材料</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Shiny for R 全程 ⭐</td>
+<td>shiny-r</td>
+<td>2025 链接</td>
+</tr>
+<tr class="even">
+<td>Shiny 进阶</td>
+<td>level-up-shiny</td>
+<td>2024 链接</td>
+</tr>
+<tr class="odd">
+<td>Shiny for Python</td>
+<td>shiny-py</td>
+<td>2025 链接</td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收</strong>：做一个部署可用的多页 Shiny 应用（含模块化 + golem 或同类结构）。</p>
+</section>
+<section id="第六阶段llm-编程12-周重点" class="level2">
+<h2 class="anchored" data-anchor-id="第六阶段llm-编程12-周重点">第六阶段：LLM 编程（1–2 周，重点）</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>内容</th>
+<th>材料</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>会话解剖/结构化输出/评测</td>
+<td>llms 练习 01–18</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+<tr class="even">
+<td>Agents 与工具调用 ⭐</td>
+<td>llms 练习 19–20</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+<tr class="odd">
+<td>Agent skills</td>
+<td>llms 练习 21–22 + <code>.agents/skills/</code></td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+<tr class="even">
+<td>shinychat / querychat</td>
+<td>llms 练习 24–26</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+<tr class="odd">
+<td>RAG 与 MCP</td>
+<td>llms 练习 51–52</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收</strong>：用 ellmer 做一个「对 CSV 提问 → 结构化返回 → shinychat 界面」的小应用。</p>
+</section>
+<section id="第七阶段统计与机器学习2-周可选" class="level2">
+<h2 class="anchored" data-anchor-id="第七阶段统计与机器学习2-周可选">第七阶段：统计与机器学习（2 周，可选）</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>内容</th>
+<th>材料</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>tidymodels ⭐</td>
+<td>tidymodels</td>
+<td>2025 链接</td>
+</tr>
+<tr class="even">
+<td>因果推断（医研刚需）⭐</td>
+<td>causal</td>
+<td>2025 链接</td>
+</tr>
+<tr class="odd">
+<td>scikit-learn</td>
+<td>scikit-learn</td>
+<td>2025 链接</td>
+</tr>
+<tr class="even">
+<td>MLOps / vetiver</td>
+<td>vetiver</td>
+<td>2024 链接</td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收</strong>：完成一个含重抽样、调参、评估的 tidymodels 建模报告（Quarto 渲染）。</p>
+</section>
+<section id="第八阶段制药与合规12-周方向选修" class="level2">
+<h2 class="anchored" data-anchor-id="第八阶段制药与合规12-周方向选修">第八阶段：制药与合规（1–2 周，方向选修）</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>内容</th>
+<th>材料</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>临床报告流水线 ⭐</td>
+<td>pharmaverse（SDTM→ADaM→ARD→TFL）</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+<tr class="even">
+<td>受监管环境（GxP）</td>
+<td>r-pharma-regulated</td>
+<td>2026 <code>content/en/</code></td>
+</tr>
+<tr class="odd">
+<td>可复现受监管环境</td>
+<td>reproducible-environments</td>
+<td>2025 链接</td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收</strong>：从模拟数据跑通一条带验证痕迹的 ADaM→TFL 链路。</p>
+</section>
+<section id="学习方法" class="level2">
+<h2 class="anchored" data-anchor-id="学习方法">学习方法</h2>
+<ol type="1">
+<li><strong>练习优先</strong>：材料都是「讲义+练习+答案」结构，先自己做，卡 15 分钟再看答案。</li>
+<li><strong>用 AI 学 AI</strong>：第六阶段的内容本身就是 AI 工具链教程，边学边用。</li>
+<li><strong>每周输出</strong>：把所学应用到自己的真实项目一次。</li>
+<li><strong>进度打勾</strong>：</li>
+</ol>
+<ul class="task-list">
+<li><label><input type="checkbox">阶段一 R 基础</label></li>
+<li><label><input type="checkbox">阶段二 工具链</label></li>
+<li><label><input type="checkbox">阶段三 Quarto</label></li>
+<li><label><input type="checkbox">阶段四 数据工程与可视化</label></li>
+<li><label><input type="checkbox">阶段五 Shiny</label></li>
+<li><label><input type="checkbox">阶段六 LLM 编程</label></li>
+<li><label><input type="checkbox">阶段七 统计与 ML</label></li>
+<li><label><input type="checkbox">阶段八 制药与合规</label></li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yanmingyu92\.github\.io\/posit-conf-2026-bilingual\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Adapted posit::conf materials © original instructors · CC-BY-SA 4.0 · 本站与 Posit, PBC 无官方关联</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

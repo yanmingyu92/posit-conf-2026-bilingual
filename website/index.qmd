@@ -1,4 +1,4 @@
----
+﻿---
 title: "posit::conf Workshop Hub · 中英双语学习中心"
 ---
 
@@ -42,5 +42,5 @@ This hub **combines, reorganizes, and translates** official
 ## Contribute · 参与贡献
 
 翻译进行中（translations welcome）！流程见仓库
-[CONTRIBUTING.md](https://github.com/YOUR-USER/posit-conf-2026-bilingual)，从
+[CONTRIBUTING.md](https://github.com/yanmingyu92/posit-conf-2026-bilingual)，从
 `translations/zh/modules/` 认领一个模块即可起步。

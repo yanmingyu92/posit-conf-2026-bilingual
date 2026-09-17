@@ -1,0 +1,338 @@
+[
+  {
+    "objectID": "plan.html",
+    "href": "plan.html",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "覆盖 2024–2026 三届官方工作坊，重组为 9 条轨道。原计划基于 2026 材料制定， 现已用往届材料补齐 Shiny、包开发、ggplot2、统计建模、因果推断、数据库等空白。 配套英文索引见 ARCHIVE-CATALOG.md。\n\n\n\n轨道1 R 语言基础 ──→ 轨道2 IDE与工具 ──→ 轨道3 Quarto 出版\n      │                                      │\n      ├──→ 轨道4 数据工程 ──→ 轨道5 可视化    │\n      │                                      ↓\n      └──→ 轨道6 Shiny ──→ 轨道8 LLM 编程（2026 新增）\n             │\n             └──→ 轨道7 统计与机器学习 ──→ 轨道9 制药与合规\n\n\n\n\n\n\n内容\n材料\n来源\n\n\n\n\nR 编程入门 ⭐\nr-programming + 配套练习\n2025 镜像链接\n\n\n自助排错与文档\nmodern-r-workflow 模块 01\n2026 content/en/\n\n\nR 包开发\npkg-dev\n2025 链接\n\n\n\n验收：写一个有文档、有测试、可安装的小 R 包。\n\n\n\n\n\n\n\n\n\n\n\n内容\n材料\n来源\n\n\n\n\nPositron 速成 ⭐\npositron（PDF 讲义 + debug.R）\n2026 content/en/\n\n\n现代 R 工作流 × AI\nmodern-r-workflow 全部 8 模块\n2026 content/en/\n\n\n\n验收：给自己的项目写 AGENTS.md，在 Positron 完成一次「解释→修改→验证」AI 循环。\n\n\n\n\n\n\n\n\n\n\n\n内容\n材料\n来源\n\n\n\n\nQuarto 入门（零基础）\nquarto-intro\n2024 链接\n\n\nQuarto 实战模式 ⭐\npractical-quarto + exercises\n2026 content/en/\n\n\n品牌化 brand.yml\nquarto-brand\n2025 链接\n\n\n扩展开发（Lua）\nquarto-extend + exercises\n2025 链接\n\n\n\n验收：产出「brand.yml + partials + Typst PDF」三件套小项目。\n\n\n\n\n\n\n\n\n\n\n\n内容\n材料\n来源\n\n\n\n\n数据库 in R（DuckDB）⭐\ndatabases\n2024 链接\n\n\nApache Arrow\narrow\n2024 链接\n\n\nggplot2 精通 ⭐\nggplot2\n2025 链接\n\n\npolars / plotnine / great-tables\nmodern-ds-python\n2026 content/en/\n\n\n\n验收：用 DuckDB + ggplot2 重做一次真实数据的取数→清洗→出版级图表。\n\n\n\n\n\n\n内容\n材料\n来源\n\n\n\n\nShiny for R 全程 ⭐\nshiny-r\n2025 链接\n\n\nShiny 进阶\nlevel-up-shiny\n2024 链接\n\n\nShiny for Python\nshiny-py\n2025 链接\n\n\n\n验收：做一个部署可用的多页 Shiny 应用（含模块化 + golem 或同类结构）。\n\n\n\n\n\n\n\n\n\n\n\n内容\n材料\n来源\n\n\n\n\n会话解剖/结构化输出/评测\nllms 练习 01–18\n2026 content/en/\n\n\nAgents 与工具调用 ⭐\nllms 练习 19–20\n2026 content/en/\n\n\nAgent skills\nllms 练习 21–22 + .agents/skills/\n2026 content/en/\n\n\nshinychat / querychat\nllms 练习 24–26\n2026 content/en/\n\n\nRAG 与 MCP\nllms 练习 51–52\n2026 content/en/\n\n\n\n验收：用 ellmer 做一个「对 CSV 提问 → 结构化返回 → shinychat 界面」的小应用。\n\n\n\n\n\n\n内容\n材料\n来源\n\n\n\n\ntidymodels ⭐\ntidymodels\n2025 链接\n\n\n因果推断（医研刚需）⭐\ncausal\n2025 链接\n\n\nscikit-learn\nscikit-learn\n2025 链接\n\n\nMLOps / vetiver\nvetiver\n2024 链接\n\n\n\n验收：完成一个含重抽样、调参、评估的 tidymodels 建模报告（Quarto 渲染）。\n\n\n\n\n\n\n\n\n\n\n\n内容\n材料\n来源\n\n\n\n\n临床报告流水线 ⭐\npharmaverse（SDTM→ADaM→ARD→TFL）\n2026 content/en/\n\n\n受监管环境（GxP）\nr-pharma-regulated\n2026 content/en/\n\n\n可复现受监管环境\nreproducible-environments\n2025 链接\n\n\n\n验收：从模拟数据跑通一条带验证痕迹的 ADaM→TFL 链路。\n\n\n\n\n练习优先：材料都是「讲义+练习+答案」结构，先自己做，卡 15 分钟再看答案。\n用 AI 学 AI：第六阶段的内容本身就是 AI 工具链教程，边学边用。\n每周输出：把所学应用到自己的真实项目一次。\n进度打勾：\n\n\n阶段一 R 基础\n阶段二 工具链\n阶段三 Quarto\n阶段四 数据工程与可视化\n阶段五 Shiny\n阶段六 LLM 编程\n阶段七 统计与 ML\n阶段八 制药与合规"
+  },
+  {
+    "objectID": "plan.html#总览9-条轨道与依赖",
+    "href": "plan.html#总览9-条轨道与依赖",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "轨道1 R 语言基础 ──→ 轨道2 IDE与工具 ──→ 轨道3 Quarto 出版\n      │                                      │\n      ├──→ 轨道4 数据工程 ──→ 轨道5 可视化    │\n      │                                      ↓\n      └──→ 轨道6 Shiny ──→ 轨道8 LLM 编程（2026 新增）\n             │\n             └──→ 轨道7 统计与机器学习 ──→ 轨道9 制药与合规"
+  },
+  {
+    "objectID": "plan.html#第一阶段r-语言基础12-周可按水平跳过",
+    "href": "plan.html#第一阶段r-语言基础12-周可按水平跳过",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "内容\n材料\n来源\n\n\n\n\nR 编程入门 ⭐\nr-programming + 配套练习\n2025 镜像链接\n\n\n自助排错与文档\nmodern-r-workflow 模块 01\n2026 content/en/\n\n\nR 包开发\npkg-dev\n2025 链接\n\n\n\n验收：写一个有文档、有测试、可安装的小 R 包。"
+  },
+  {
+    "objectID": "plan.html#第二阶段工具链1-周",
+    "href": "plan.html#第二阶段工具链1-周",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "内容\n材料\n来源\n\n\n\n\nPositron 速成 ⭐\npositron（PDF 讲义 + debug.R）\n2026 content/en/\n\n\n现代 R 工作流 × AI\nmodern-r-workflow 全部 8 模块\n2026 content/en/\n\n\n\n验收：给自己的项目写 AGENTS.md，在 Positron 完成一次「解释→修改→验证」AI 循环。"
+  },
+  {
+    "objectID": "plan.html#第三阶段文档出版1-周",
+    "href": "plan.html#第三阶段文档出版1-周",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "内容\n材料\n来源\n\n\n\n\nQuarto 入门（零基础）\nquarto-intro\n2024 链接\n\n\nQuarto 实战模式 ⭐\npractical-quarto + exercises\n2026 content/en/\n\n\n品牌化 brand.yml\nquarto-brand\n2025 链接\n\n\n扩展开发（Lua）\nquarto-extend + exercises\n2025 链接\n\n\n\n验收：产出「brand.yml + partials + Typst PDF」三件套小项目。"
+  },
+  {
+    "objectID": "plan.html#第四阶段数据工程与可视化12-周",
+    "href": "plan.html#第四阶段数据工程与可视化12-周",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "内容\n材料\n来源\n\n\n\n\n数据库 in R（DuckDB）⭐\ndatabases\n2024 链接\n\n\nApache Arrow\narrow\n2024 链接\n\n\nggplot2 精通 ⭐\nggplot2\n2025 链接\n\n\npolars / plotnine / great-tables\nmodern-ds-python\n2026 content/en/\n\n\n\n验收：用 DuckDB + ggplot2 重做一次真实数据的取数→清洗→出版级图表。"
+  },
+  {
+    "objectID": "plan.html#第五阶段shiny-交互应用12-周",
+    "href": "plan.html#第五阶段shiny-交互应用12-周",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "内容\n材料\n来源\n\n\n\n\nShiny for R 全程 ⭐\nshiny-r\n2025 链接\n\n\nShiny 进阶\nlevel-up-shiny\n2024 链接\n\n\nShiny for Python\nshiny-py\n2025 链接\n\n\n\n验收：做一个部署可用的多页 Shiny 应用（含模块化 + golem 或同类结构）。"
+  },
+  {
+    "objectID": "plan.html#第六阶段llm-编程12-周重点",
+    "href": "plan.html#第六阶段llm-编程12-周重点",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "内容\n材料\n来源\n\n\n\n\n会话解剖/结构化输出/评测\nllms 练习 01–18\n2026 content/en/\n\n\nAgents 与工具调用 ⭐\nllms 练习 19–20\n2026 content/en/\n\n\nAgent skills\nllms 练习 21–22 + .agents/skills/\n2026 content/en/\n\n\nshinychat / querychat\nllms 练习 24–26\n2026 content/en/\n\n\nRAG 与 MCP\nllms 练习 51–52\n2026 content/en/\n\n\n\n验收：用 ellmer 做一个「对 CSV 提问 → 结构化返回 → shinychat 界面」的小应用。"
+  },
+  {
+    "objectID": "plan.html#第七阶段统计与机器学习2-周可选",
+    "href": "plan.html#第七阶段统计与机器学习2-周可选",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "内容\n材料\n来源\n\n\n\n\ntidymodels ⭐\ntidymodels\n2025 链接\n\n\n因果推断（医研刚需）⭐\ncausal\n2025 链接\n\n\nscikit-learn\nscikit-learn\n2025 链接\n\n\nMLOps / vetiver\nvetiver\n2024 链接\n\n\n\n验收：完成一个含重抽样、调参、评估的 tidymodels 建模报告（Quarto 渲染）。"
+  },
+  {
+    "objectID": "plan.html#第八阶段制药与合规12-周方向选修",
+    "href": "plan.html#第八阶段制药与合规12-周方向选修",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "内容\n材料\n来源\n\n\n\n\n临床报告流水线 ⭐\npharmaverse（SDTM→ADaM→ARD→TFL）\n2026 content/en/\n\n\n受监管环境（GxP）\nr-pharma-regulated\n2026 content/en/\n\n\n可复现受监管环境\nreproducible-environments\n2025 链接\n\n\n\n验收：从模拟数据跑通一条带验证痕迹的 ADaM→TFL 链路。"
+  },
+  {
+    "objectID": "plan.html#学习方法",
+    "href": "plan.html#学习方法",
+    "title": "Learning Plan · 学习计划",
+    "section": "",
+    "text": "练习优先：材料都是「讲义+练习+答案」结构，先自己做，卡 15 分钟再看答案。\n用 AI 学 AI：第六阶段的内容本身就是 AI 工具链教程，边学边用。\n每周输出：把所学应用到自己的真实项目一次。\n进度打勾：\n\n\n阶段一 R 基础\n阶段二 工具链\n阶段三 Quarto\n阶段四 数据工程与可视化\n阶段五 Shiny\n阶段六 LLM 编程\n阶段七 统计与 ML\n阶段八 制药与合规"
+  },
+  {
+    "objectID": "curriculum.html",
+    "href": "curriculum.html",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "",
+    "text": "从「材料汇编」到「自有课程」：本文件定义如何基于三届 posit::conf 材料（27 个 仓库的矿藏），设计出一套原创的、有教学论依据的 R 学习课程。 This document defines how we turn the combined posit::conf corpus into an original, pedagogically grounded R curriculum.\n\n\n\n\n\n\n\nBackward design（逆向设计）：每个模块先定「学员要能做成什么」（可评估的成果）， 再定证据（练习/作品），最后才写讲义。绝不从”讲什么知识点”出发。\nCompetency over tools（能力先于工具）：分类的骨架是能力域与水平，不是软件名。 工具会过时（RStudio→Positron，LaTeX→Typst），能力域稳定。工具只是能力域的”实例”。\nAI as a thread, not a chapter（AI 是线不是章）：AI 辅助实践贯穿每一级， 而不是孤立一章。这是 2026 年材料最核心的信号。\n\n\n\n\n双视图原则：课程同时保持两种组织方式，各司其职——\n\n能力矩阵视图（MATRIX.md）：5 能力域 × 3 水平（布鲁姆修订版思想）， 用于检索、诊断与画像个性化路径；工具会过时，能力域稳定。\n单元交付视图（UNIT-STRUCTURE.md）：参照 STAT 541 Advanced R（Bodwin & Theobold, CC-BY-SA 4.0）的三单元弧线 （复杂分析 → 专业交付物 → 包开发）+ 我们扩展的第四单元（AI 与领域应用）， 用于开班/成书的线性交付。\n\n两视图通过 UNIT-STRUCTURE §4 交叉表互通；讲义写作语法统一采用其 9 类教学标注 体系（CALLOUTS.md）。\n                    L1 奠基 Foundations      L2 实践 Practitioner     L3 工程师 Engineer\n                    (记忆·理解·应用)          (应用·分析)              (评价·创造)\nA 计算与工具        ▢                        ▢                        ▢\nB 数据获取与加工    ▢                        ▢                        ▢\nC 分析与推断       ▢                        ▢                        ▢\nD 沟通与出版       ▢                        ▢                        ▢\nE 交付与治理       ▢                        ▢                        ▢\n─────────────────────────────────────────────────────────────────────\nF AI 增强实践（横切线索，织入 A–E 每一格，不单设章节）\n完整映射（每格放哪些上游材料、写哪些原创单元）见 MATRIX.md。\n\n\n\n\n\n\n\n\n\n\n\n类型\n判定\n许可\n\n\n\n\n原创课程设计（本文件、MATRIX、模块蓝图、练习、评分量规、画像）\n我们从头写的\n项目自有，对外 CC-BY-SA 4.0 统一发布\n\n\n改编内容（翻译、摘编、引用上游片段）\n内容实质来自上游\n必须 CC-BY-SA 4.0 + 署名头（同 CONTRIBUTING 规则）\n\n\n上游镜像\n逐字复制\n上游协议，见 ATTRIBUTION.md\n\n\n\n写作纪律：原创讲义可以”参考上游的教学顺序与例子设计”，但文字必须自己写； 直接搬用句子/图 = 改编，需署名。每个模块的 SOURCES.md 声明两者边界。\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n画像\n描述\n入口评估\n目标路径\n关键痛点\n\n\n\n\nP1 小林\n研究生，零编程，用过 SPSS/GraphPad\nL0 → L1\nL1 全域 → L2 B/D\n术语恐惧、环境配置劝退\n\n\nP2 陈医生\n临床医生，会一点 R 拼 dplyr，要出可复现报告+出版级图表\n免 L1-A 前半\nL1 D → L2 B/D 直通\n时间碎片化、统计报告合规\n\n\nP3 阿伟\n生信/数据分析，R 熟练，要升级现代栈 + AI 工作流\n免 L1\nL2 全域 → L3 A/E\n工作流陈旧、AI 工具不会用\n\n\nP4 老周\n药企生物统计，SAS 背景，转向 R 且受 GxP 约束\nL1-A 快速通道\nL2 C/E → L3 E\n验证、可追溯、合规\n\n\n\n画像驱动取舍：一个模块若对 4 类画像都没命中”痛点”，就砍掉。P2/P4 是我们的 差异化定位（医学/制药人群），也是市面课程空白。\n\n\n\n\n每个模块 = curriculum/modules/&lt;层级&gt;-&lt;域&gt;&lt;序号&gt;-&lt;slug&gt;/ 目录，含：\nDESIGN.md      ← 设计文档（先写这个，评审通过才写讲义）\nlesson/        ← 双语讲义（zh 为教学主语言，en 对照）\nexercises/     ← 三档练习：copy · adapt · create（刻意练习梯度）\ncapstone.md    ← 压轴小项目：真实任务 + 评分量规（rubric）\nSOURCES.md     ← 原创声明 + 上游材料映射表（协议合规）\nDESIGN.md 必填字段（模板见 modules/TEMPLATE.md）：\n\nBig idea & essential questions（大观念与核心问题：学完三年后还记得住的那句话）\nObjectives（可测目标，动词用布鲁姆层级：L1 用 describe/execute；L2 用 diagnose/design；L3 用 justify/architect）\nPrereq check（5 分钟自测，不合格给出回补模块链接）\nConcept ladder（概念阶梯：每个概念 = 解释 → 演示 → 练习 → 常见误区）\nAssessment evidence（练习 + capstone 如何证明目标达成）\nAI integration point（本模块哪里织入 F 线：如用 Assistant 解释报错）\nTime budget（按画像给 2–3 档时长）\n\n\n\n\n\n① 立项：在 MATRIX 里认领一格 → 建 issue（模块 ID）\n② 设计：写 DESIGN.md → PR 评审（教学设计过关吗？目标可测吗？）\n③ 内容：讲义双语 + 练习 + capstone + SOURCES.md\n④ 试用：找一个真实画像学员走一遍，记录卡点\n⑤ 修订 → 发布到 website 课程页（capstone 作品库沉淀学员成果）\n优先级规则 v1（按画像价值 × 素材成熟度）： 1. L1-A1 R 与 Positron 起步（示例模块已建，见 modules/L1-A1-foundations/） 2. L2-D2 Quarto 出版级报告（P2 陈医生主线，素材最厚） 3. L2-F LLM 编程实务（差异化最强，直接基于 llms 2026） 4. L3-E2 pharmaverse 临床报告（P4 老周主线）"
+  },
+  {
+    "objectID": "curriculum.html#design-philosophy-设计理念",
+    "href": "curriculum.html#design-philosophy-设计理念",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "",
+    "text": "Backward design（逆向设计）：每个模块先定「学员要能做成什么」（可评估的成果）， 再定证据（练习/作品），最后才写讲义。绝不从”讲什么知识点”出发。\nCompetency over tools（能力先于工具）：分类的骨架是能力域与水平，不是软件名。 工具会过时（RStudio→Positron，LaTeX→Typst），能力域稳定。工具只是能力域的”实例”。\nAI as a thread, not a chapter（AI 是线不是章）：AI 辅助实践贯穿每一级， 而不是孤立一章。这是 2026 年材料最核心的信号。\n\n\n\n\n双视图原则：课程同时保持两种组织方式，各司其职——\n\n能力矩阵视图（MATRIX.md）：5 能力域 × 3 水平（布鲁姆修订版思想）， 用于检索、诊断与画像个性化路径；工具会过时，能力域稳定。\n单元交付视图（UNIT-STRUCTURE.md）：参照 STAT 541 Advanced R（Bodwin & Theobold, CC-BY-SA 4.0）的三单元弧线 （复杂分析 → 专业交付物 → 包开发）+ 我们扩展的第四单元（AI 与领域应用）， 用于开班/成书的线性交付。\n\n两视图通过 UNIT-STRUCTURE §4 交叉表互通；讲义写作语法统一采用其 9 类教学标注 体系（CALLOUTS.md）。\n                    L1 奠基 Foundations      L2 实践 Practitioner     L3 工程师 Engineer\n                    (记忆·理解·应用)          (应用·分析)              (评价·创造)\nA 计算与工具        ▢                        ▢                        ▢\nB 数据获取与加工    ▢                        ▢                        ▢\nC 分析与推断       ▢                        ▢                        ▢\nD 沟通与出版       ▢                        ▢                        ▢\nE 交付与治理       ▢                        ▢                        ▢\n─────────────────────────────────────────────────────────────────────\nF AI 增强实践（横切线索，织入 A–E 每一格，不单设章节）\n完整映射（每格放哪些上游材料、写哪些原创单元）见 MATRIX.md。\n\n\n\n\n\n\n\n\n\n\n\n类型\n判定\n许可\n\n\n\n\n原创课程设计（本文件、MATRIX、模块蓝图、练习、评分量规、画像）\n我们从头写的\n项目自有，对外 CC-BY-SA 4.0 统一发布\n\n\n改编内容（翻译、摘编、引用上游片段）\n内容实质来自上游\n必须 CC-BY-SA 4.0 + 署名头（同 CONTRIBUTING 规则）\n\n\n上游镜像\n逐字复制\n上游协议，见 ATTRIBUTION.md\n\n\n\n写作纪律：原创讲义可以”参考上游的教学顺序与例子设计”，但文字必须自己写； 直接搬用句子/图 = 改编，需署名。每个模块的 SOURCES.md 声明两者边界。"
+  },
+  {
+    "objectID": "curriculum.html#learner-personas-学员画像4-类",
+    "href": "curriculum.html#learner-personas-学员画像4-类",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "",
+    "text": "画像\n描述\n入口评估\n目标路径\n关键痛点\n\n\n\n\nP1 小林\n研究生，零编程，用过 SPSS/GraphPad\nL0 → L1\nL1 全域 → L2 B/D\n术语恐惧、环境配置劝退\n\n\nP2 陈医生\n临床医生，会一点 R 拼 dplyr，要出可复现报告+出版级图表\n免 L1-A 前半\nL1 D → L2 B/D 直通\n时间碎片化、统计报告合规\n\n\nP3 阿伟\n生信/数据分析，R 熟练，要升级现代栈 + AI 工作流\n免 L1\nL2 全域 → L3 A/E\n工作流陈旧、AI 工具不会用\n\n\nP4 老周\n药企生物统计，SAS 背景，转向 R 且受 GxP 约束\nL1-A 快速通道\nL2 C/E → L3 E\n验证、可追溯、合规\n\n\n\n画像驱动取舍：一个模块若对 4 类画像都没命中”痛点”，就砍掉。P2/P4 是我们的 差异化定位（医学/制药人群），也是市面课程空白。"
+  },
+  {
+    "objectID": "curriculum.html#module-anatomy-模块解剖每课的固定骨架",
+    "href": "curriculum.html#module-anatomy-模块解剖每课的固定骨架",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "",
+    "text": "每个模块 = curriculum/modules/&lt;层级&gt;-&lt;域&gt;&lt;序号&gt;-&lt;slug&gt;/ 目录，含：\nDESIGN.md      ← 设计文档（先写这个，评审通过才写讲义）\nlesson/        ← 双语讲义（zh 为教学主语言，en 对照）\nexercises/     ← 三档练习：copy · adapt · create（刻意练习梯度）\ncapstone.md    ← 压轴小项目：真实任务 + 评分量规（rubric）\nSOURCES.md     ← 原创声明 + 上游材料映射表（协议合规）\nDESIGN.md 必填字段（模板见 modules/TEMPLATE.md）：\n\nBig idea & essential questions（大观念与核心问题：学完三年后还记得住的那句话）\nObjectives（可测目标，动词用布鲁姆层级：L1 用 describe/execute；L2 用 diagnose/design；L3 用 justify/architect）\nPrereq check（5 分钟自测，不合格给出回补模块链接）\nConcept ladder（概念阶梯：每个概念 = 解释 → 演示 → 练习 → 常见误区）\nAssessment evidence（练习 + capstone 如何证明目标达成）\nAI integration point（本模块哪里织入 F 线：如用 Assistant 解释报错）\nTime budget（按画像给 2–3 档时长）"
+  },
+  {
+    "objectID": "curriculum.html#authoring-workflow-创作流程",
+    "href": "curriculum.html#authoring-workflow-创作流程",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "",
+    "text": "① 立项：在 MATRIX 里认领一格 → 建 issue（模块 ID）\n② 设计：写 DESIGN.md → PR 评审（教学设计过关吗？目标可测吗？）\n③ 内容：讲义双语 + 练习 + capstone + SOURCES.md\n④ 试用：找一个真实画像学员走一遍，记录卡点\n⑤ 修订 → 发布到 website 课程页（capstone 作品库沉淀学员成果）\n优先级规则 v1（按画像价值 × 素材成熟度）： 1. L1-A1 R 与 Positron 起步（示例模块已建，见 modules/L1-A1-foundations/） 2. L2-D2 Quarto 出版级报告（P2 陈医生主线，素材最厚） 3. L2-F LLM 编程实务（差异化最强，直接基于 llms 2026） 4. L3-E2 pharmaverse 临床报告（P4 老周主线）"
+  },
+  {
+    "objectID": "curriculum.html#图例",
+    "href": "curriculum.html#图例",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "图例",
+    "text": "图例\n\nL1 奠基（记忆·理解·应用）→ L2 实践（应用·分析）→ L3 工程师（评价·创造）\n原创单元命名：&lt;层级&gt;-&lt;域&gt;&lt;序号&gt;-&lt;slug&gt;，如 L2-D2-pub-ready-reports\n(镜) = 已镜像于 content/en/；(链) = 上游链接见 ARCHIVE-CATALOG.md"
+  },
+  {
+    "objectID": "curriculum.html#a-计算与工具-compute-tooling",
+    "href": "curriculum.html#a-计算与工具-compute-tooling",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "A · 计算与工具 Compute & Tooling",
+    "text": "A · 计算与工具 Compute & Tooling\n会配环境、会写代码、会自我排错、能治理生产环境\n\n\n\n\n\n\n\n\n\n\nL1 奠基\nL2 实践\nL3 工程师\n\n\n\n\n上游素材\nr-programming(+exercises)※(链) · positron※(镜)\nmodern-r-workflow※(镜)\nr-in-production(链) · reproducible-environments(链)\n\n\n原创单元\nL1-A1-first-repo（R+Positron+第一个项目，已建示例）\nL2-A1-modern-workflow（AI 反馈循环+AGENTS.md）\nL3-A1-prod-environments（快照/锁/验证）\n\n\n压轴项目\n端到端跑通并发布一个分析\n为真实项目写 AGENTS.md 并量化 AI 提效\n搭建可审计的团队 R 环境"
+  },
+  {
+    "objectID": "curriculum.html#b-数据获取与加工-data-engineering",
+    "href": "curriculum.html#b-数据获取与加工-data-engineering",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "B · 数据获取与加工 Data Engineering",
+    "text": "B · 数据获取与加工 Data Engineering\n能把脏数据变成可信分析表，小到 CSV 大到分布式\n\n\n\n\n\n\n\n\n\n\nL1\nL2\nL3\n\n\n\n\n上游素材\nr-programming 数据结构部分(链)\ndatabases(DuckDB)※(链) · arrow(链) · modern-ds-python 的 Polars(镜)\narrow 高阶(链) · databricks(备查)\n\n\n原创单元\nL1-B1-import-clean（导入·清洗·整洁数据）\nL2-B1-beyond-csv（SQL/Arrow/列存思维）\nL3-B1-data-pipelines（大数据管线设计）\n\n\n压轴项目\n清洗一份真实脏数据集\nDuckDB+Arrow 重写一条慢查询并基准测试\n设计 PB 级取数管线的决策文档"
+  },
+  {
+    "objectID": "curriculum.html#c-分析与推断-analysis-inference",
+    "href": "curriculum.html#c-分析与推断-analysis-inference",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "C · 分析与推断 Analysis & Inference",
+    "text": "C · 分析与推断 Analysis & Inference\n从描述到预测到因果，知道每种结论的证据边界\n\n\n\n\n\n\n\n\n\n\nL1\nL2\nL3\n\n\n\n\n上游素材\nr-programming 统计部分(链)\ntidymodels※(链) · scikit-learn(链)\ncausal※(链)\n\n\n原创单元\nL1-C1-eda-intuition（描述统计+图形直觉）\nL2-C1-modeling-workflow（重抽样/调参/评估）\nL3-C1-causal-inference（因果设计与敏感性分析）\n\n\n压轴项目\n一份 EDA 报告\n一份含模型比较的建模报告（Quarto 渲染）\n一份因果分析的评审式答辩"
+  },
+  {
+    "objectID": "curriculum.html#d-沟通与出版-communication-publishing",
+    "href": "curriculum.html#d-沟通与出版-communication-publishing",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "D · 沟通与出版 Communication & Publishing",
+    "text": "D · 沟通与出版 Communication & Publishing\n图表、表格、文档——让别人看懂并信任你的结果\n\n\n\n\n\n\n\n\n\n\nL1\nL2\nL3\n\n\n\n\n上游素材\nquarto-intro(链)\npractical-quarto(+exercises)※(镜) · quarto-brand(链) · ggplot2※(链) · great-tables(镜)\nquarto-extend(+exercises)(链)\n\n\n原创单元\nL1-D1-first-quarto（第一个可复现报告）\nL2-D2-pub-ready-reports（品牌/模板/Typst）· L2-D1-ggplot2-mastery\nL3-D1-quarto-extensions（Lua/过滤器开发）\n\n\n压轴项目\nR Markdown→Quarto 迁移一份旧报告\n出版级「brand+partials+Typst」三件套\n写一个团队可复用的 Quarto 扩展"
+  },
+  {
+    "objectID": "curriculum.html#e-交付与治理-delivery-governance",
+    "href": "curriculum.html#e-交付与治理-delivery-governance",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "E · 交付与治理 Delivery & Governance",
+    "text": "E · 交付与治理 Delivery & Governance\n把分析变成应用与服务，并对其质量负责（含受监管场景）\n\n\n\n\n\n\n\n\n\n\nL1\nL2\nL3\n\n\n\n\n上游素材\nshiny-r※(链) · shiny-py(MIT)(链)\nlevel-up-shiny(链) · llms 的 shinychat/querychat(镜)\nvetiver(链) · pharmaverse※(镜) · r-pharma-regulated(镜)\n\n\n原创单元\nL1-E1-first-shiny（第一个交互应用）\nL2-E1-shiny-in-anger（模块化/golem/性能）\nL3-E2-clinical-reporting（SDTM→ADaM→TFL）· L3-E1-mlops（vetiver 上线）\n\n\n压轴项目\n一个部署上线的迷你应用\n重构一个失控的 Shiny 应用\n跑通带验证痕迹的临床报告链路"
+  },
+  {
+    "objectID": "curriculum.html#f-ai-增强实践横切线索织入而非单列",
+    "href": "curriculum.html#f-ai-增强实践横切线索织入而非单列",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "F · AI 增强实践（横切线索，织入而非单列）",
+    "text": "F · AI 增强实践（横切线索，织入而非单列）\n\n\n\n\n\n\n\n\n织入点\n所用素材\n说明\n\n\n\n\nL1 各模块「报错自救」\npositron AI Client(镜)\n第一次报错就教「问 AI 前先读报错」\n\n\nL1-A/L2-A 反馈循环\nmodern-r-workflow 模块 03–07(镜)\nAGENTS.md、skills、人机协作规范\n\n\nL2-D 讲义协作\npractical-quarto 模块 01(镜)\nAir 格式化 + LLM 辅助写作\n\n\nL2-F 独立短课程\nllms 全仓(镜)：ellmer/chatlas、structured output、agents、skills、RAG、MCP\n差异化主打；练习梯度直接沿用 _exercises 重编\n\n\nL3-E 受监管 AI\nr-pharma-regulated AI 节(镜)\nAI 在 GxP 下的边界"
+  },
+  {
+    "objectID": "curriculum.html#画像-矩阵路径",
+    "href": "curriculum.html#画像-矩阵路径",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "画像 → 矩阵路径",
+    "text": "画像 → 矩阵路径\nP1 小林   : L1-A1→L1-B1→L1-D1→L1-C1→L2-B1→L2-D2\nP2 陈医生 : （免修 L1 前半）L1-D1→L1-C1→L2-D1→L2-D2        ← 报告与出版直达\nP3 阿伟   : L2-A1→L2-F→L2-E1→L3-A1                          ← 现代栈+AI 主线\nP4 老周   : L1-A1 快速通道→L2-C1→L2-E1→L3-E2                 ← 合规临床主线"
+  },
+  {
+    "objectID": "curriculum.html#空缺审计诚实声明",
+    "href": "curriculum.html#空缺审计诚实声明",
+    "title": "Original Curriculum · 原创课程体系",
+    "section": "空缺审计（诚实声明）",
+    "text": "空缺审计（诚实声明）\n以下格子上游没有现成素材，必须 100% 原创或外部补充： - L1-B1（真实脏数据清洗——需自建数据集） - L2-C1 的医学统计桥接（tidymodels 无临床示例——我们的差异化机会） - L3-B1（生态里缺系统化大数据课程）"
+  },
+  {
+    "objectID": "attribution.html",
+    "href": "attribution.html",
+    "title": "Attribution · 署名与来源",
+    "section": "",
+    "text": "This repository adapts workshop materials from posit::conf(2026), published by the posit-conf-2026 GitHub organization under open Creative Commons licenses. We thank the instructors and Posit, PBC for publishing these materials openly.\n本仓库改编自 posit::conf(2026) 工作坊材料，原作由 posit-conf-2026 组织公开发布。感谢各位讲师与 Posit, PBC 的开放共享。\n\n\n\n\n\n#\nUpstream repo / 上游仓库\nWorkshop / 工作坊\nInstructors / 讲师\nLicense\nSnapshot SHA\n\n\n\n\n1\npositron\nGetting Started with Positron: An AI-Ready Polyglot Workflow for Data Science\nFrançois Michonneau, Garrett Grolemund\nCC-BY-SA 4.0\n6087dbe5\n\n\n2\nmodern-r-workflow\nModern R Workflow (ft. Positron and AI)\nHadley Wickham, Jenny Bryan\nCC-BY-SA 4.0\nb8ce7b76\n\n\n3\npractical-quarto\nLevel Up Your Quarto: Patterns, Templates, and Tooling\nCharlotte Wickham, Mine Çetinkaya-Rundel\nCC-BY-SA 4.0\n3e617602\n\n\n4\npractical-quarto-exercises\nExercises for “Level Up Your Quarto”\nCharlotte Wickham, Mine Çetinkaya-Rundel\nCC-BY-SA 4.0\nba4a81bf\n\n\n5\nllms\nProgramming with LLMs in R and Python\nGarrick Aden-Buie, Sara Altman\nCC-BY-SA 4.0\n165cb237\n\n\n6\npharmaverse\nAI-Powered Clinical Reporting in R with the Pharmaverse\nDaniel D. Sjoberg, Becca Krouse\nCC-BY-SA 4.0\n626f9a23\n\n\n7\nr-pharma-regulated\nAdministering and Orchestrating Next-Gen Statistical Environments for Regulated Use Cases\nMike Smith, Casey Johnson, Satish Murthy, Nicole Jones, Michael Mayer\nCC-BY-SA 4.0¹\ncaf9a41c\n\n\n8\nmodern-ds-python\nModern Data Science in Python\nJeroen Janssens, Richard Iannone, Isabel Zimmerman\nCC-BY-SA 4.0\nb7c60a23\n\n\n\n¹ Discrepancy note / 差异说明: the r-pharma-regulated repository’s README displays a CC-BY 4.0 badge while its LICENSE.md file contains the CC-BY-SA 4.0 text. We apply the more restrictive ShareAlike interpretation. 该仓库 README 徽章为 CC-BY 4.0，但 LICENSE.md 正文为 CC-BY-SA 4.0，本仓库从严采用 ShareAlike 解释。\n\n\n\nTo cover topics not offered in 2026 (Shiny, package development, ggplot2, statistical modeling, causal inference, databases, production deployment, etc.), this project also curates selected workshops from posit::conf(2025) and posit::conf(2024). These are cataloged and linked (see ARCHIVE-CATALOG.md) rather than mirrored in full; the original repositories remain the canonical source.\n为覆盖 2026 年未开设的主题（Shiny、包开发、ggplot2、统计建模、因果推断、数据库、生产部署等）， 本项目同时编选了 posit::conf(2025) 与 posit::conf(2024) 的部分工作坊。这些仓库仅做 编目与链接（见 ARCHIVE-CATALOG.md），不整体镜像；上游仓库始终为权威来源。\n\n\n\n\n\n#\nUpstream repo / 上游仓库\nWorkshop / 工作坊\nLicense\nSnapshot SHA\n\n\n\n\n1\nshiny-r\nShiny for R Workshop\nCC-BY-SA 4.0\n50a5838d\n\n\n2\nshiny-py\nShiny for Python Workshop\nMIT\n4e5a0420\n\n\n3\npkg-dev\nR Package Development\nCC-BY-SA 4.0\n28c29a9b\n\n\n4\nr-programming\nR Programming (basics)\nCC-BY-SA 4.0\n8a5d9384\n\n\n5\nr-programming-exercises\nExercises for R Programming\nCC-BY-SA 4.0\nfc75cda5\n\n\n6\nggplot2\nMastering Data Visualization with ggplot2\nCC-BY-SA 4.0\n133e2a4a\n\n\n7\ntidymodels\nMachine Learning with tidymodels\nCC-BY-SA 4.0\nf97e8a8f\n\n\n8\nscikit-learn\nMachine Learning with scikit-learn (Python)\nCC-BY-SA 4.0\n6eb6472b\n\n\n9\ncausal\nCausal Inference in R\nCC-BY-SA 4.0\n562066ec\n\n\n10\nquarto-brand\nBranded Websites, Presentations, Dashboards, and PDFs with Quarto\nCC-BY-SA 4.0\n12984d63\n\n\n11\nquarto-extend\nExtending Quarto\nCC-BY-SA 4.0\n3a58d4f7\n\n\n12\nquarto-extend-exercises\nExercises for Extending Quarto\n见上游（未标注）²\n5de55072\n\n\n13\nreproducible-environments\nDeploying Reproducible Analytics Environments for Regulated Use Cases\nCC-BY-SA 4.0\nb40e3f7e\n\n\n\n\n\n\n\n\n\n#\nUpstream repo / 上游仓库\nWorkshop / 工作坊\nLicense\nSnapshot SHA\n\n\n\n\n1\nlevel-up-shiny\nTake Your Shiny Skills to the Next Level\nCC-BY-SA 4.0\n12ca8322\n\n\n2\nquarto-intro\nIntroduction to Quarto\nCC-BY-SA 4.0\ndce6ef0a\n\n\n3\ndatabases\nDatabases in R (DuckDB etc.)\nCC-BY-SA 4.0\n625367b0\n\n\n4\narrow\nApache Arrow in R/Python\nCC-BY-SA 4.0\n8315d034\n\n\n5\nr-in-production\nR in Production\nCC-BY-SA 4.0\n7f2b4ad7\n\n\n6\nvetiver\nIntro to MLOps with vetiver\nCC-BY-SA 4.0\n7a6c4583\n\n\n\n² License note / 许可说明: upstream repositories without a machine-readable license are linked only (never copied), so their lack of an explicit license does not create a licensing problem for this project. 未标注许可证的上游仓库仅做链接、不复制内容，因此不构成 许可问题。MIT-licensed materials, if ever quoted or adapted, will be marked per-file with the MIT notice. MIT 许可的材料如被引用或改编，将逐文件附 MIT 声明。\n\n\n\n\nThe unit-based delivery structure (Unit-STRUCTURE.md) and the 9-type callout authoring standard (CALLOUTS.md) are adapted from:\n\nAdvanced R (STAT 541) — https://atheobold.github.io/advanced-R-website/ by Drs. Kelly Bodwin & Allison Theobold (Cal Poly), licensed CC-BY-SA 4.0. Our units follow their three-unit arc (Complex Analyses → Professional Deliverables → Package Development); chapters are re-anchored to posit::conf materials and extended with a fourth unit (AI & Domain Applications). Their callout taxonomy is used as our lesson-authoring syntax with attribution.\n\n单元交付结构与教学标注体系改编自 Kelly Bodwin 与 Allison Theobold（Cal Poly）的 STAT 541 Advanced R 课程网站（CC-BY-SA 4.0）：我们沿用其三单元弧线并重新锚定素材、 扩展第四单元，9 类 callout 作为讲义写作语法并附此署名。\n\n\n\n\nOriginal English materials live under content/en/&lt;NN-track&gt;/&lt;upstream-repo&gt;/, copied verbatim by scripts/sync-from-upstream.ps1.\nEach sync records the upstream commit SHA in content/en/MANIFEST.json so every copied file is traceable to an exact upstream snapshot.\nChinese translations live under translations/zh/ and are clearly marked as derivatives; each translated file carries an attribution header pointing back to its upstream source file.\nWe do not modify upstream files in place; fixes and updates flow through re-running the sync script.\n\n\n\n\n\nAdapted upstream materials (everything under content/en/, and all translations under translations/zh/): CC-BY-SA 4.0, same as upstream.\nOriginal content by this repo’s maintainers (learning plan, website prose, promotion playbook): also released under CC-BY-SA 4.0 to keep the repo uniform.\n\nIf you are an instructor or rights holder and want any correction, please open an issue. 如讲师或权利方需要任何更正，请开 issue 联系我们。"
+  },
+  {
+    "objectID": "attribution.html#per-repository-attribution-各仓库署名",
+    "href": "attribution.html#per-repository-attribution-各仓库署名",
+    "title": "Attribution · 署名与来源",
+    "section": "",
+    "text": "#\nUpstream repo / 上游仓库\nWorkshop / 工作坊\nInstructors / 讲师\nLicense\nSnapshot SHA\n\n\n\n\n1\npositron\nGetting Started with Positron: An AI-Ready Polyglot Workflow for Data Science\nFrançois Michonneau, Garrett Grolemund\nCC-BY-SA 4.0\n6087dbe5\n\n\n2\nmodern-r-workflow\nModern R Workflow (ft. Positron and AI)\nHadley Wickham, Jenny Bryan\nCC-BY-SA 4.0\nb8ce7b76\n\n\n3\npractical-quarto\nLevel Up Your Quarto: Patterns, Templates, and Tooling\nCharlotte Wickham, Mine Çetinkaya-Rundel\nCC-BY-SA 4.0\n3e617602\n\n\n4\npractical-quarto-exercises\nExercises for “Level Up Your Quarto”\nCharlotte Wickham, Mine Çetinkaya-Rundel\nCC-BY-SA 4.0\nba4a81bf\n\n\n5\nllms\nProgramming with LLMs in R and Python\nGarrick Aden-Buie, Sara Altman\nCC-BY-SA 4.0\n165cb237\n\n\n6\npharmaverse\nAI-Powered Clinical Reporting in R with the Pharmaverse\nDaniel D. Sjoberg, Becca Krouse\nCC-BY-SA 4.0\n626f9a23\n\n\n7\nr-pharma-regulated\nAdministering and Orchestrating Next-Gen Statistical Environments for Regulated Use Cases\nMike Smith, Casey Johnson, Satish Murthy, Nicole Jones, Michael Mayer\nCC-BY-SA 4.0¹\ncaf9a41c\n\n\n8\nmodern-ds-python\nModern Data Science in Python\nJeroen Janssens, Richard Iannone, Isabel Zimmerman\nCC-BY-SA 4.0\nb7c60a23\n\n\n\n¹ Discrepancy note / 差异说明: the r-pharma-regulated repository’s README displays a CC-BY 4.0 badge while its LICENSE.md file contains the CC-BY-SA 4.0 text. We apply the more restrictive ShareAlike interpretation. 该仓库 README 徽章为 CC-BY 4.0，但 LICENSE.md 正文为 CC-BY-SA 4.0，本仓库从严采用 ShareAlike 解释。"
+  },
+  {
+    "objectID": "attribution.html#prior-year-archive-materials-往届材料补齐-2026-未覆盖主题",
+    "href": "attribution.html#prior-year-archive-materials-往届材料补齐-2026-未覆盖主题",
+    "title": "Attribution · 署名与来源",
+    "section": "",
+    "text": "To cover topics not offered in 2026 (Shiny, package development, ggplot2, statistical modeling, causal inference, databases, production deployment, etc.), this project also curates selected workshops from posit::conf(2025) and posit::conf(2024). These are cataloged and linked (see ARCHIVE-CATALOG.md) rather than mirrored in full; the original repositories remain the canonical source.\n为覆盖 2026 年未开设的主题（Shiny、包开发、ggplot2、统计建模、因果推断、数据库、生产部署等）， 本项目同时编选了 posit::conf(2025) 与 posit::conf(2024) 的部分工作坊。这些仓库仅做 编目与链接（见 ARCHIVE-CATALOG.md），不整体镜像；上游仓库始终为权威来源。\n\n\n\n\n\n#\nUpstream repo / 上游仓库\nWorkshop / 工作坊\nLicense\nSnapshot SHA\n\n\n\n\n1\nshiny-r\nShiny for R Workshop\nCC-BY-SA 4.0\n50a5838d\n\n\n2\nshiny-py\nShiny for Python Workshop\nMIT\n4e5a0420\n\n\n3\npkg-dev\nR Package Development\nCC-BY-SA 4.0\n28c29a9b\n\n\n4\nr-programming\nR Programming (basics)\nCC-BY-SA 4.0\n8a5d9384\n\n\n5\nr-programming-exercises\nExercises for R Programming\nCC-BY-SA 4.0\nfc75cda5\n\n\n6\nggplot2\nMastering Data Visualization with ggplot2\nCC-BY-SA 4.0\n133e2a4a\n\n\n7\ntidymodels\nMachine Learning with tidymodels\nCC-BY-SA 4.0\nf97e8a8f\n\n\n8\nscikit-learn\nMachine Learning with scikit-learn (Python)\nCC-BY-SA 4.0\n6eb6472b\n\n\n9\ncausal\nCausal Inference in R\nCC-BY-SA 4.0\n562066ec\n\n\n10\nquarto-brand\nBranded Websites, Presentations, Dashboards, and PDFs with Quarto\nCC-BY-SA 4.0\n12984d63\n\n\n11\nquarto-extend\nExtending Quarto\nCC-BY-SA 4.0\n3a58d4f7\n\n\n12\nquarto-extend-exercises\nExercises for Extending Quarto\n见上游（未标注）²\n5de55072\n\n\n13\nreproducible-environments\nDeploying Reproducible Analytics Environments for Regulated Use Cases\nCC-BY-SA 4.0\nb40e3f7e\n\n\n\n\n\n\n\n\n\n#\nUpstream repo / 上游仓库\nWorkshop / 工作坊\nLicense\nSnapshot SHA\n\n\n\n\n1\nlevel-up-shiny\nTake Your Shiny Skills to the Next Level\nCC-BY-SA 4.0\n12ca8322\n\n\n2\nquarto-intro\nIntroduction to Quarto\nCC-BY-SA 4.0\ndce6ef0a\n\n\n3\ndatabases\nDatabases in R (DuckDB etc.)\nCC-BY-SA 4.0\n625367b0\n\n\n4\narrow\nApache Arrow in R/Python\nCC-BY-SA 4.0\n8315d034\n\n\n5\nr-in-production\nR in Production\nCC-BY-SA 4.0\n7f2b4ad7\n\n\n6\nvetiver\nIntro to MLOps with vetiver\nCC-BY-SA 4.0\n7a6c4583\n\n\n\n² License note / 许可说明: upstream repositories without a machine-readable license are linked only (never copied), so their lack of an explicit license does not create a licensing problem for this project. 未标注许可证的上游仓库仅做链接、不复制内容，因此不构成 许可问题。MIT-licensed materials, if ever quoted or adapted, will be marked per-file with the MIT notice. MIT 许可的材料如被引用或改编，将逐文件附 MIT 声明。"
+  },
+  {
+    "objectID": "attribution.html#referenced-course-design-参照的课程设计",
+    "href": "attribution.html#referenced-course-design-参照的课程设计",
+    "title": "Attribution · 署名与来源",
+    "section": "",
+    "text": "The unit-based delivery structure (Unit-STRUCTURE.md) and the 9-type callout authoring standard (CALLOUTS.md) are adapted from:\n\nAdvanced R (STAT 541) — https://atheobold.github.io/advanced-R-website/ by Drs. Kelly Bodwin & Allison Theobold (Cal Poly), licensed CC-BY-SA 4.0. Our units follow their three-unit arc (Complex Analyses → Professional Deliverables → Package Development); chapters are re-anchored to posit::conf materials and extended with a fourth unit (AI & Domain Applications). Their callout taxonomy is used as our lesson-authoring syntax with attribution.\n\n单元交付结构与教学标注体系改编自 Kelly Bodwin 与 Allison Theobold（Cal Poly）的 STAT 541 Advanced R 课程网站（CC-BY-SA 4.0）：我们沿用其三单元弧线并重新锚定素材、 扩展第四单元，9 类 callout 作为讲义写作语法并附此署名。"
+  },
+  {
+    "objectID": "attribution.html#how-materials-are-mirrored-材料镜像方式",
+    "href": "attribution.html#how-materials-are-mirrored-材料镜像方式",
+    "title": "Attribution · 署名与来源",
+    "section": "",
+    "text": "Original English materials live under content/en/&lt;NN-track&gt;/&lt;upstream-repo&gt;/, copied verbatim by scripts/sync-from-upstream.ps1.\nEach sync records the upstream commit SHA in content/en/MANIFEST.json so every copied file is traceable to an exact upstream snapshot.\nChinese translations live under translations/zh/ and are clearly marked as derivatives; each translated file carries an attribution header pointing back to its upstream source file.\nWe do not modify upstream files in place; fixes and updates flow through re-running the sync script."
+  },
+  {
+    "objectID": "attribution.html#license-of-this-repository-本仓库协议",
+    "href": "attribution.html#license-of-this-repository-本仓库协议",
+    "title": "Attribution · 署名与来源",
+    "section": "",
+    "text": "Adapted upstream materials (everything under content/en/, and all translations under translations/zh/): CC-BY-SA 4.0, same as upstream.\nOriginal content by this repo’s maintainers (learning plan, website prose, promotion playbook): also released under CC-BY-SA 4.0 to keep the repo uniform.\n\nIf you are an instructor or rights holder and want any correction, please open an issue. 如讲师或权利方需要任何更正，请开 issue 联系我们。"
+  },
+  {
+    "objectID": "catalog.html",
+    "href": "catalog.html",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "A curated, topic-organized map of official posit::conf / rstudio::conf workshop materials, covering three conference years. 2026 materials are mirrored under content/en/; prior-year materials are linked to their canonical upstream repositories.\n官方 posit::conf 工作坊材料的主题化总目录，覆盖三届年会。2026 年材料镜像于 content/en/； 往届材料链接到上游权威仓库。\nLegend / 图例: 🟢 beginner 入门 · 🟡 intermediate 进阶 · 🔴 advanced 高级 · ⭐ = recommended starting point 推荐起点\n\n\n\n\n\n\nOrder\nTopic / 主题\nMaterial\nYear\nLevel\nSource\n\n\n\n\n1.1\nR programming basics ⭐\nr-programming (+ exercises)\n2025\n🟢\nupstream\n\n\n1.2\nHelping yourself / docs & debugging\nmodern-r-workflow 01-helping-yourself\n2026\n🟢\ncontent/en/\n\n\n1.3\nModern R workflow with AI ⭐\nmodern-r-workflow (full)\n2026\n🟡\ncontent/en/\n\n\n1.4\nR package development ⭐\npkg-dev\n2025\n🟡\nupstream\n\n\n\n\n\n\n\n\n\nOrder\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n2.1\nPositron quick start ⭐\npositron\n2026\n🟢\ncontent/en/\n\n\n2.2\nPositron deep tour\nmodern-r-workflow 02-positron-tour\n2026\n🟡\ncontent/en/\n\n\n2.3\nR in production\nr-in-production\n2024\n🔴\nupstream\n\n\n2.4\nReproducible envs (regulated)\nreproducible-environments\n2025\n🔴\nupstream\n\n\n\n\n\n\n\n\n\nOrder\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n3.1\nQuarto intro ⭐\nquarto-intro\n2024\n🟢\nupstream\n\n\n3.2\nPractical Quarto patterns ⭐\npractical-quarto (+ exercises)\n2026\n🟡\ncontent/en/\n\n\n3.3\nBranding (brand.yml)\nquarto-brand\n2025\n🟡\nupstream\n\n\n3.4\nExtensions (Lua/filters)\nquarto-extend (+ exercises)\n2025\n🔴\nupstream\n\n\n\n\n\n\n\n\n\nOrder\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n4.1\nDatabases in R (DuckDB) ⭐\ndatabases\n2024\n🟡\nupstream\n\n\n4.2\nApache Arrow\narrow\n2024\n🟡\nupstream\n\n\n4.3\nPolars (Python)\nmodern-ds-python 03_polars\n2026\n🟡\ncontent/en/\n\n\n\n\n\n\n\n\n\nOrder\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n5.1\nggplot2 mastery ⭐\nggplot2\n2025\n🟡\nupstream\n\n\n5.2\nplotnine (Python ggplot)\nmodern-ds-python 02_plotnine\n2026\n🟡\ncontent/en/\n\n\n5.3\nGreat Tables\nmodern-ds-python 04_great_tables\n2026\n🟡\ncontent/en/\n\n\n\n\n\n\n\n\n\nOrder\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n6.1\nShiny for R (full course) ⭐\nshiny-r\n2025\n🟢→🟡\nupstream\n\n\n6.2\nLevel-up Shiny\nlevel-up-shiny\n2024\n🔴\nupstream\n\n\n6.3\nShiny for Python\nshiny-py\n2025\n🟢→🟡\nupstream\n\n\n6.4\nshinychat (LLM in Shiny)\nllms 24-26_shinychat/querychat\n2026\n🔴\ncontent/en/\n\n\n\n\n\n\n\n\n\nOrder\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n7.1\ntidymodels (R ML) ⭐\ntidymodels\n2025\n🟡\nupstream\n\n\n7.2\nscikit-learn (Python ML)\nscikit-learn\n2025\n🟡\nupstream\n\n\n7.3\nCausal inference in R ⭐\ncausal\n2025\n🔴\nupstream\n\n\n7.4\nMLOps with vetiver\nvetiver\n2024\n🟡\nupstream\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nOrder\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n8.1\nLLM conversation anatomy\nllms 01-11\n2026\n🟢\ncontent/en/\n\n\n8.2\nStructured output & evals\nllms 10/15/17/18\n2026\n🟡\ncontent/en/\n\n\n8.3\nAgents & tool calling ⭐\nllms 19-20\n2026\n🔴\ncontent/en/\n\n\n8.4\nAgent skills\nllms 21-22 + .agents/skills/\n2026\n🔴\ncontent/en/\n\n\n8.5\nRAG & MCP\nllms 51-52\n2026\n🔴\ncontent/en/\n\n\n8.6\nPosit Assistant & AGENTS.md\nmodern-r-workflow 03-07\n2026\n🟡\ncontent/en/\n\n\n\n\n\n\n\n\n\nOrder\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n9.1\nClinical reporting (SDTM→ADaM→TFL) ⭐\npharmaverse\n2026\n🟡\ncontent/en/\n\n\n9.2\nRegulated environments (GxP)\nr-pharma-regulated\n2026\n🔴\ncontent/en/\n\n\n9.3\nReproducible regulated envs\nreproducible-environments\n2025\n🔴\nupstream\n\n\n9.4\nPharmaverse (2025 edition)\npharmaverse-2025\n2025\n🟡\nupstream\n\n\n\n\n\n\n\n\nR 数据科学新手 / R-newcomer: 1.1 → 2.1 → 3.1 → 5.1 → 1.3 → 6.1 → 4.1\n现代 R 工程师 / modern R engineer: 2.1 → 1.3 → 1.4 → 3.2 → 8.6 → 2.3\nAI 工具链 / AI tooling: 2.1 → 8.1 → 8.2 → 8.3 → 8.4 → 8.5 → 6.4\n临床制药 / clinical pharma: 1.1 → 1.3 → 9.1 → 9.2 → 9.3 → 7.3\nPython 双修 / Python track: 2.1 → 4.3 → 5.2 → 5.3 → 6.3 → 7.2\n\n\n\n\nKept out of v1 for scope control; still valuable: 2024 quarto-dashboards, quarto-websites, intro-ds-r, tidymodels-intro, tables, dev-ops, databricks, ml-python, wtf, programming-r; 2025 llm (superseded by 2026 llms), ds-workflows-r (superseded by 2026 modern-r-workflow), feat-eng-tune, r-production. 为控制 v1 范围暂不编选；仍有价值，后续按需加入。"
+  },
+  {
+    "objectID": "catalog.html#track-1-r-language-foundations-r-语言基础",
+    "href": "catalog.html#track-1-r-language-foundations-r-语言基础",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Order\nTopic / 主题\nMaterial\nYear\nLevel\nSource\n\n\n\n\n1.1\nR programming basics ⭐\nr-programming (+ exercises)\n2025\n🟢\nupstream\n\n\n1.2\nHelping yourself / docs & debugging\nmodern-r-workflow 01-helping-yourself\n2026\n🟢\ncontent/en/\n\n\n1.3\nModern R workflow with AI ⭐\nmodern-r-workflow (full)\n2026\n🟡\ncontent/en/\n\n\n1.4\nR package development ⭐\npkg-dev\n2025\n🟡\nupstream"
+  },
+  {
+    "objectID": "catalog.html#track-2-ide-tooling-开发环境",
+    "href": "catalog.html#track-2-ide-tooling-开发环境",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Order\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n2.1\nPositron quick start ⭐\npositron\n2026\n🟢\ncontent/en/\n\n\n2.2\nPositron deep tour\nmodern-r-workflow 02-positron-tour\n2026\n🟡\ncontent/en/\n\n\n2.3\nR in production\nr-in-production\n2024\n🔴\nupstream\n\n\n2.4\nReproducible envs (regulated)\nreproducible-environments\n2025\n🔴\nupstream"
+  },
+  {
+    "objectID": "catalog.html#track-3-quarto-publishing-文档出版",
+    "href": "catalog.html#track-3-quarto-publishing-文档出版",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Order\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n3.1\nQuarto intro ⭐\nquarto-intro\n2024\n🟢\nupstream\n\n\n3.2\nPractical Quarto patterns ⭐\npractical-quarto (+ exercises)\n2026\n🟡\ncontent/en/\n\n\n3.3\nBranding (brand.yml)\nquarto-brand\n2025\n🟡\nupstream\n\n\n3.4\nExtensions (Lua/filters)\nquarto-extend (+ exercises)\n2025\n🔴\nupstream"
+  },
+  {
+    "objectID": "catalog.html#track-4-data-engineering-数据工程",
+    "href": "catalog.html#track-4-data-engineering-数据工程",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Order\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n4.1\nDatabases in R (DuckDB) ⭐\ndatabases\n2024\n🟡\nupstream\n\n\n4.2\nApache Arrow\narrow\n2024\n🟡\nupstream\n\n\n4.3\nPolars (Python)\nmodern-ds-python 03_polars\n2026\n🟡\ncontent/en/"
+  },
+  {
+    "objectID": "catalog.html#track-5-visualization-tables-可视化与表格",
+    "href": "catalog.html#track-5-visualization-tables-可视化与表格",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Order\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n5.1\nggplot2 mastery ⭐\nggplot2\n2025\n🟡\nupstream\n\n\n5.2\nplotnine (Python ggplot)\nmodern-ds-python 02_plotnine\n2026\n🟡\ncontent/en/\n\n\n5.3\nGreat Tables\nmodern-ds-python 04_great_tables\n2026\n🟡\ncontent/en/"
+  },
+  {
+    "objectID": "catalog.html#track-6-shiny-interactive-apps-交互应用",
+    "href": "catalog.html#track-6-shiny-interactive-apps-交互应用",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Order\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n6.1\nShiny for R (full course) ⭐\nshiny-r\n2025\n🟢→🟡\nupstream\n\n\n6.2\nLevel-up Shiny\nlevel-up-shiny\n2024\n🔴\nupstream\n\n\n6.3\nShiny for Python\nshiny-py\n2025\n🟢→🟡\nupstream\n\n\n6.4\nshinychat (LLM in Shiny)\nllms 24-26_shinychat/querychat\n2026\n🔴\ncontent/en/"
+  },
+  {
+    "objectID": "catalog.html#track-7-statistics-machine-learning-统计与机器学习",
+    "href": "catalog.html#track-7-statistics-machine-learning-统计与机器学习",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Order\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n7.1\ntidymodels (R ML) ⭐\ntidymodels\n2025\n🟡\nupstream\n\n\n7.2\nscikit-learn (Python ML)\nscikit-learn\n2025\n🟡\nupstream\n\n\n7.3\nCausal inference in R ⭐\ncausal\n2025\n🔴\nupstream\n\n\n7.4\nMLOps with vetiver\nvetiver\n2024\n🟡\nupstream"
+  },
+  {
+    "objectID": "catalog.html#track-8-llm-ai-programming-大模型编程2026-新增",
+    "href": "catalog.html#track-8-llm-ai-programming-大模型编程2026-新增",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Order\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n8.1\nLLM conversation anatomy\nllms 01-11\n2026\n🟢\ncontent/en/\n\n\n8.2\nStructured output & evals\nllms 10/15/17/18\n2026\n🟡\ncontent/en/\n\n\n8.3\nAgents & tool calling ⭐\nllms 19-20\n2026\n🔴\ncontent/en/\n\n\n8.4\nAgent skills\nllms 21-22 + .agents/skills/\n2026\n🔴\ncontent/en/\n\n\n8.5\nRAG & MCP\nllms 51-52\n2026\n🔴\ncontent/en/\n\n\n8.6\nPosit Assistant & AGENTS.md\nmodern-r-workflow 03-07\n2026\n🟡\ncontent/en/"
+  },
+  {
+    "objectID": "catalog.html#track-9-pharma-regulated-制药与合规",
+    "href": "catalog.html#track-9-pharma-regulated-制药与合规",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Order\nTopic\nMaterial\nYear\nLevel\nSource\n\n\n\n\n9.1\nClinical reporting (SDTM→ADaM→TFL) ⭐\npharmaverse\n2026\n🟡\ncontent/en/\n\n\n9.2\nRegulated environments (GxP)\nr-pharma-regulated\n2026\n🔴\ncontent/en/\n\n\n9.3\nReproducible regulated envs\nreproducible-environments\n2025\n🔴\nupstream\n\n\n9.4\nPharmaverse (2025 edition)\npharmaverse-2025\n2025\n🟡\nupstream"
+  },
+  {
+    "objectID": "catalog.html#recommended-learning-paths-推荐学习路线",
+    "href": "catalog.html#recommended-learning-paths-推荐学习路线",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "R 数据科学新手 / R-newcomer: 1.1 → 2.1 → 3.1 → 5.1 → 1.3 → 6.1 → 4.1\n现代 R 工程师 / modern R engineer: 2.1 → 1.3 → 1.4 → 3.2 → 8.6 → 2.3\nAI 工具链 / AI tooling: 2.1 → 8.1 → 8.2 → 8.3 → 8.4 → 8.5 → 6.4\n临床制药 / clinical pharma: 1.1 → 1.3 → 9.1 → 9.2 → 9.3 → 7.3\nPython 双修 / Python track: 2.1 → 4.3 → 5.2 → 5.3 → 6.3 → 7.2"
+  },
+  {
+    "objectID": "catalog.html#not-curated-backlog-未编选备查",
+    "href": "catalog.html#not-curated-backlog-未编选备查",
+    "title": "Track Catalog · 轨道总目录",
+    "section": "",
+    "text": "Kept out of v1 for scope control; still valuable: 2024 quarto-dashboards, quarto-websites, intro-ds-r, tidymodels-intro, tables, dev-ops, databricks, ml-python, wtf, programming-r; 2025 llm (superseded by 2026 llms), ds-workflows-r (superseded by 2026 modern-r-workflow), feat-eng-tune, r-production. 为控制 v1 范围暂不编选；仍有价值，后续按需加入。"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "posit::conf Workshop Hub · 中英双语学习中心",
+    "section": "",
+    "text": "This hub combines, reorganizes, and translates official posit::conf workshop materials from three conference years (2024–2026) into 9 topic tracks with guided bilingual learning paths.\n本中心将 2024–2026 三届 posit::conf 官方工作坊材料合并、重组并翻译，按 9 大主题 轨道组织，配中英双语学习路线。\n\n\n\n\n\n\n\n\n\n\n#\nTrack · 轨道\nAnchor workshop · 核心材料\n\n\n\n\n1\nR Language Foundations · R 语言基础\nr-programming (2025), pkg-dev (2025)\n\n\n2\nIDE & Tooling · 开发环境\npositron, modern-r-workflow (2026)\n\n\n3\nQuarto & Publishing · 文档出版\npractical-quarto (2026), quarto-intro (2024)\n\n\n4\nData Engineering · 数据工程\ndatabases, arrow (2024), Polars (2026)\n\n\n5\nVisualization & Tables · 可视化与表格\nggplot2 (2025), Great Tables (2026)\n\n\n6\nShiny & Interactive Apps · 交互应用\nshiny-r (2025), level-up-shiny (2024)\n\n\n7\nStatistics & ML · 统计与机器学习\ntidymodels (2025), causal (2025), vetiver (2024)\n\n\n8\nLLM & AI Programming · 大模型编程\nllms (2026): ellmer/chatlas, agents, skills, MCP\n\n\n9\nPharma & Regulated · 制药与合规\npharmaverse, r-pharma-regulated (2026)\n\n\n\n\n\n\n\n📖 Full track catalog · 轨道总目录\n🗓️ Bilingual learning plan · 中文学习计划\n⚖️ Attribution & licenses · 署名与协议\n\n\n\n\n\nProgramming with LLMs — ellmer (R) / chatlas (Python)，从会话解剖到 agents、 agent skills、RAG 与 MCP（21 组练习含全套答案）\nModern R Workflow — Hadley Wickham & Jenny Bryan 亲授，Positron × AI 工作流\nAI-Powered Clinical Reporting with the pharmaverse — SDTM→ADaM→ARD→TFL 临床 报告全链路\n\n\n\n\n翻译进行中（translations welcome）！流程见仓库 CONTRIBUTING.md，从 translations/zh/modules/ 认领一个模块即可起步。"
+  },
+  {
+    "objectID": "index.html#tracks-九大轨道",
+    "href": "index.html#tracks-九大轨道",
+    "title": "posit::conf Workshop Hub · 中英双语学习中心",
+    "section": "",
+    "text": "#\nTrack · 轨道\nAnchor workshop · 核心材料\n\n\n\n\n1\nR Language Foundations · R 语言基础\nr-programming (2025), pkg-dev (2025)\n\n\n2\nIDE & Tooling · 开发环境\npositron, modern-r-workflow (2026)\n\n\n3\nQuarto & Publishing · 文档出版\npractical-quarto (2026), quarto-intro (2024)\n\n\n4\nData Engineering · 数据工程\ndatabases, arrow (2024), Polars (2026)\n\n\n5\nVisualization & Tables · 可视化与表格\nggplot2 (2025), Great Tables (2026)\n\n\n6\nShiny & Interactive Apps · 交互应用\nshiny-r (2025), level-up-shiny (2024)\n\n\n7\nStatistics & ML · 统计与机器学习\ntidymodels (2025), causal (2025), vetiver (2024)\n\n\n8\nLLM & AI Programming · 大模型编程\nllms (2026): ellmer/chatlas, agents, skills, MCP\n\n\n9\nPharma & Regulated · 制药与合规\npharmaverse, r-pharma-regulated (2026)"
+  },
+  {
+    "objectID": "index.html#start-here-从这里开始",
+    "href": "index.html#start-here-从这里开始",
+    "title": "posit::conf Workshop Hub · 中英双语学习中心",
+    "section": "",
+    "text": "📖 Full track catalog · 轨道总目录\n🗓️ Bilingual learning plan · 中文学习计划\n⚖️ Attribution & licenses · 署名与协议"
+  },
+  {
+    "objectID": "index.html#featured-for-2026-2026-年亮点",
+    "href": "index.html#featured-for-2026-2026-年亮点",
+    "title": "posit::conf Workshop Hub · 中英双语学习中心",
+    "section": "",
+    "text": "Programming with LLMs — ellmer (R) / chatlas (Python)，从会话解剖到 agents、 agent skills、RAG 与 MCP（21 组练习含全套答案）\nModern R Workflow — Hadley Wickham & Jenny Bryan 亲授，Positron × AI 工作流\nAI-Powered Clinical Reporting with the pharmaverse — SDTM→ADaM→ARD→TFL 临床 报告全链路"
+  },
+  {
+    "objectID": "index.html#contribute-参与贡献",
+    "href": "index.html#contribute-参与贡献",
+    "title": "posit::conf Workshop Hub · 中英双语学习中心",
+    "section": "",
+    "text": "翻译进行中（translations welcome）！流程见仓库 CONTRIBUTING.md，从 translations/zh/modules/ 认领一个模块即可起步。"
+  }
+]

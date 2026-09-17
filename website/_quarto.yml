@@ -1,10 +1,10 @@
-project:
+﻿project:
   type: website
   output-dir: _site
 
 website:
   title: "posit::conf Workshop Hub"
-  site-url: "https://YOUR-USER.github.io/posit-conf-2026-bilingual/"
+  site-url: "https://yanmingyu92.github.io/posit-conf-2026-bilingual/"
   description: |
     Bilingual (EN/中文) learning hub combining official posit::conf workshop
     materials, 2024–2026, organized into 9 tracks. 中英双语 posit::conf 学习中心。
@@ -22,7 +22,7 @@ website:
         file: attribution.qmd
     right:
       - icon: github
-        href: "https://github.com/YOUR-USER/posit-conf-2026-bilingual"
+        href: "https://github.com/yanmingyu92/posit-conf-2026-bilingual"
   page-footer:
     center: |
       Adapted posit::conf materials © original instructors · CC-BY-SA 4.0 ·
