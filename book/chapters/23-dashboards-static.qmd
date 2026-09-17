@@ -1,4 +1,4 @@
----
+﻿---
 title: "2.3 Quarto 仪表盘（静态）"
 objectives: |
   学完本章你能：判断该交付报告还是仪表盘；用 format: dashboard 搭建
@@ -61,12 +61,12 @@ title: "企鹅速览"
 format: dashboard
 ---
 
-```{r}
+```r
 library(ggplot2)
 penguins <- palmerpenguins::penguins
 ```
 
-```{r}
+```r
 #| title: 嘴峰 × 体重
 ggplot(penguins, aes(bill_length_mm, body_mass_g, color = species)) +
   geom_point()
@@ -98,7 +98,7 @@ dashboard 不是独立 R 包，报 `Unknown format` 十有八九是 Quarto < 1.4
 
 ## 指标 {height="25%"}
 
-```{r}
+```r
 #| content: valuebox
 #| title: 平均体重 (g)
 list(value = round(mean(penguins$body_mass_g, na.rm = TRUE)))
@@ -108,14 +108,14 @@ list(value = round(mean(penguins$body_mass_g, na.rm = TRUE)))
 
 ### 散点 {width="70%"}
 
-```{r}
+```r
 #| title: 嘴峰 × 体重
 ggplot(penguins, aes(bill_length_mm, body_mass_g)) + geom_point()
 ```
 
 ### 构成 {width="30%"}
 
-```{r}
+```r
 #| title: 物种构成
 ggplot(penguins, aes(species, fill = species)) + geom_bar()
 ```
@@ -162,7 +162,7 @@ list(value = max(penguins$body_mass_g, na.rm = TRUE))
 
 ### 汇总表
 
-```{r}
+```r
 #| title: 各物种均值
 penguins |>
   dplyr::group_by(species) |>

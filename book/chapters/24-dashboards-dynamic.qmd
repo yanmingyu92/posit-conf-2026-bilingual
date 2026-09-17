@@ -1,4 +1,4 @@
----
+﻿---
 title: "2.4 Quarto 仪表盘（动态）"
 objectives: |
   学完本章你能：在交互光谱上为需求定位（参数化/OJS/Shiny）；把 Shiny
@@ -80,7 +80,7 @@ format: dashboard
 server: shiny
 ---
 
-```{r}
+```r
 #| context: setup
 library(shiny)
 library(ggplot2)
@@ -90,7 +90,7 @@ penguins <- palmerpenguins::penguins
 
 ## 筛选 {.sidebar}
 
-```{r}
+```r
 selectInput("species", "物种",
   choices = c("Adelie", "Gentoo", "Chinstrap"), multiple = TRUE)
 
@@ -100,7 +100,7 @@ sliderInput("mass", "体重区间 (g)",
 
 ## 图表
 
-```{r}
+```r
 #| context: server
 selected <- reactive({
   penguins |>
@@ -109,7 +109,7 @@ selected <- reactive({
 })
 ```
 
-```{r}
+```r
 #| context: server
 #| title: 嘴峰 × 体重
 renderPlot({
@@ -119,7 +119,7 @@ renderPlot({
 })
 ```
 
-```{r}
+```r
 #| context: server
 #| title: 明细表
 renderDataTable(
