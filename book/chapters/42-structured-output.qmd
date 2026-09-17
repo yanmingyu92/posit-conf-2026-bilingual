@@ -7,7 +7,7 @@ objectives: |
 source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
-# 4.2 结构化输出与评测
+# 4.2 结构化输出与评测 · Structured Output & Evals
 
 ## 本章目标
 
@@ -21,7 +21,7 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 
 ## 前置自测
 
-- 跑通过 4.1 的 `chat_structured()`、见过 `type_object()` / `type_array()`，并记得铁律：**模型负责格式，事实必须有来源**（→ 不熟？先回 [4.1] §5）
+- 跑通过 4.1 的 `chat_structured()`、见过 `type_object()` / `type_array()`，并记得铁律：**模型负责格式，事实必须有来源**（→ 不熟？先回 [4.1](41-llm-basics.qmd) §5）
 
 ::: {.callout-note}
 命名提示：与 4.1 一致，本章使用工作坊的 `chat_structured()` 与

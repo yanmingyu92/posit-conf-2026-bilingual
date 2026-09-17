@@ -6,13 +6,12 @@
 | 章 | 主题 | 素材锚点 | 矩阵 | 状态 |
 |---|---|---|---|---|
 | [1.1](chapters/01-functions.qmd) | Writing Functions 函数 | r-programming(2025) | B-L1 | ✅ 已发布 |
-| 1.2 | Iteration 迭代（purrr） | r-programming(2025) 03–04 | B-L1 | ✅ 已发布 |
-| 1.3 | Efficient Code 效率 | 原创 | B-L2 | ✅ 已发布 |
-| 1.4 | JSON & APIs | **空缺→原创** | B-L2 | ✅ 已发布 |
-| 1.5 | Web Scraping | **空缺→原创** | B-L2 | ✅ 已发布 |
-| 1.6 | Great Tables | modern-ds-python | D-L2 | ✅ 已发布 |
-| 1.7 | Non-Standard Geoms | ggplot2(2025) | D-L2 | ✅ 已发布 |
-| 1.8 | Styled Plots 专业图表 | ggplot2(2025)+quarto-brand | D-L2 | ✅ 已发布 |
+| [1.2](chapters/12-iteration.qmd) | Iteration 迭代（purrr） | r-programming(2025) 03–04 | B-L1 | ✅ 已发布 |
+| [1.3](chapters/13-efficient-code.qmd) | Efficient Code 效率 | 原创 | B-L2 | ✅ 已发布 |
+| [1.4](chapters/14-json-apis.qmd) | JSON & APIs | 原创 | B-L2 | ✅ 已发布 |
+| [1.5](chapters/15-web-scraping.qmd) | Web Scraping | 原创 | B-L2 | ✅ 已发布 |
+| [1.6](chapters/16-great-tables.qmd) | Great Tables | modern-ds-python | D-L2 | ✅ 已发布 |
+| [1.7](chapters/17-alt-geoms.qmd) | Non-Standard Geoms | ggplot2(2025) | D-L2 | ✅ 已发布 |
+| [1.8](chapters/18-styled-plots.qmd) | Styled Plots 专业图表 | ggplot2(2025)+quarto-brand | D-L2 | ✅ 已发布 |
 
-每章配套：周活动（90 min）· 模拟卷 · capstone（含评分量规）。
-空缺章 = 市面机会，按 `curriculum/modules/TEMPLATE.md` 流程认领创作。
+每章配套：练习 · 压轴项目（含评分量规）。

@@ -5,7 +5,7 @@
 
 | 章 | 主题 | 素材锚点 | 矩阵 | 状态 |
 |---|---|---|---|---|
-| 3.1 | Package Structure | pkg-dev(2025) | A-L2 | ✅ 已发布 |
-| 3.2 | Unit Testing | pkg-dev(2025) | A-L2 | ✅ 已发布 |
-| 3.3 | Debugging | modern-r-workflow 01 + positron debug.R | A-L2 | ✅ 已发布 |
-| 3.4 | Code Speed & Benchmarking | **半空缺→原创** | A-L3 | ✅ 已发布 |
+| [3.1](chapters/31-pkg-structure.qmd) | Package Structure | pkg-dev(2025) | A-L2 | ✅ 已发布 |
+| [3.2](chapters/32-unit-testing.qmd) | Unit Testing | pkg-dev(2025) | A-L2 | ✅ 已发布 |
+| [3.3](chapters/33-debugging.qmd) | Debugging | modern-r-workflow 01 + positron debug.R | A-L2 | ✅ 已发布 |
+| [3.4](chapters/34-code-speed.qmd) | Code Speed & Benchmarking | 原创 | A-L3 | ✅ 已发布 |

@@ -1,12 +1,12 @@
 ---
-title: "1.4 JSON 与 APIs · 从网络拿数据"
+title: "1.4 JSON 与 API · JSON Data and APIs"
 objectives: |
   学完本章你能：读懂 JSON 结构并用 jsonlite 解析（预判类型陷阱）；
   用 httr2 搭建请求管道并处理状态码；妥善保管 API key；实现翻页与限速。
 source-note: "本章为 100% 原创；技术细节以 httr2 与 jsonlite 官方文档为准（引用见 SOURCES）"
 ---
 
-# 1.4 JSON 与 APIs · 从网络拿数据
+# 1.4 JSON 与 API · JSON Data and APIs
 
 ## 本章目标
 

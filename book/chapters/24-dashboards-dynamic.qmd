@@ -1,13 +1,13 @@
 ﻿---
-title: "2.4 Quarto 仪表盘（动态）"
+title: "2.4 Quarto 动态仪表盘 · Dynamic Quarto Dashboards"
 objectives: |
   学完本章你能：在交互光谱上为需求定位（参数化/OJS/Shiny）；把 Shiny
   嵌入 Quarto 仪表盘（server: shiny / shinylive）；用 sidebar 输入驱动
   响应式输出；画出响应式图并预测失效范围；按场景选择部署方案。
-source-note: "教学结构与练习设计改编自 posit::conf(2024) quarto-dashboards 工作坊（Mine Çetinkaya-Rundel 及助教团队 · CC-BY-SA 4.0）与 posit::conf(2025) shiny-r 工作坊（Colin Rundel · CC-BY-SA 4.0）；讲义文字为本项目原创"
+source-note: "教学结构与练习设计改编自 posit::conf(2024) quarto-dashboards 工作坊（Mine Çetinkaya-Rundel 及助教团队 · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）与 posit::conf(2025) shiny-r 工作坊（Colin Rundel · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
-# 2.4 Quarto 仪表盘（动态）
+# 2.4 Quarto 动态仪表盘 · Dynamic Quarto Dashboards
 
 ## 本章目标
 
@@ -21,7 +21,7 @@ source-note: "教学结构与练习设计改编自 posit::conf(2024) quarto-dash
 
 ## 前置自测（≤5 分钟）
 
-能独立完成以下两问再继续；否则先回补 [2.3]：
+能独立完成以下两问再继续；否则先回补 [2.3](23-dashboards-static.qmd)：
 
 ::: {.callout-important}
 ## Check In：前置自测
@@ -251,9 +251,9 @@ Inputs.table(penguins.filter(d => d.bill_length_mm >= bill), {rows: 8})
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §1 交互光谱与部署模式 | posit::conf(2024) quarto-dashboards `4-parameters-interactivity-deployment`（Mine Çetinkaya-Rundel 及助教团队 · CC-BY-SA 4.0） | 改编 |
+| §1 交互光谱与部署模式 | posit::conf(2024) quarto-dashboards `4-parameters-interactivity-deployment`（Mine Çetinkaya-Rundel 及助教团队 · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编 |
 | §2–§3 嵌入式 Shiny 结构 | Quarto 官方 Dashboards: Shiny 文档 + 同工作坊示例 | 引用/改编 |
-| §4 响应式心智模型 | posit::conf(2025) shiny-r「Reactivity」讲（Colin Rundel · CC-BY-SA 4.0） | 改编 |
+| §4 响应式心智模型 | posit::conf(2025) shiny-r「Reactivity」讲（Colin Rundel · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编 |
 | §5 OJS | Quarto 官方 Interactivity / Observable 文档 | 引用 |
 | 体检看板练习、部署决策表、rubric | 本项目 | 原创 |
 

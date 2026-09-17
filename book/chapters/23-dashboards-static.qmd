@@ -1,13 +1,13 @@
 ﻿---
-title: "2.3 Quarto 仪表盘（静态）"
+title: "2.3 Quarto 静态仪表盘 · Static Quarto Dashboards"
 objectives: |
   学完本章你能：判断该交付报告还是仪表盘；用 format: dashboard 搭建
   页面与行列网格；制作 value box、卡片与 tabset；控制尺寸与滚动；
   用 brand.yml 主题发布静态仪表盘。
-source-note: "教学结构与练习设计改编自 posit::conf(2024) quarto-dashboards 工作坊（Mine Çetinkaya-Rundel 及助教团队 · CC-BY-SA 4.0）；讲义文字为本项目原创"
+source-note: "教学结构与练习设计改编自 posit::conf(2024) quarto-dashboards 工作坊（Mine Çetinkaya-Rundel 及助教团队 · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
-# 2.3 Quarto 仪表盘（静态）
+# 2.3 Quarto 静态仪表盘 · Static Quarto Dashboards
 
 ## 本章目标
 
@@ -21,7 +21,7 @@ source-note: "教学结构与练习设计改编自 posit::conf(2024) quarto-dash
 
 ## 前置自测（≤5 分钟）
 
-能独立完成以下两问再继续；否则先回补 [L1-B1] 与 1.7/1.8：
+能独立完成以下两问再继续；否则先回补 [tidyverse 入门要求](../index.qmd#prerequisites) 与 1.7/1.8：
 
 ::: {.callout-important}
 ## Check In：前置自测
@@ -253,7 +253,7 @@ quarto publish gh-pages     # 托管到 GitHub Pages（仓库配套）
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §2–§5 卡片/网格/valuebox/tabset | posit::conf(2024) quarto-dashboards `1-hello-dashboards`、`2-dashboard-components`（Mine Çetinkaya-Rundel 及助教团队 · CC-BY-SA 4.0） | 改编 |
+| §2–§5 卡片/网格/valuebox/tabset | posit::conf(2024) quarto-dashboards `1-hello-dashboards`、`2-dashboard-components`（Mine Çetinkaya-Rundel 及助教团队 · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编 |
 | §6–§7 主题、发布与部署模式 | 同上 `3-theming-styling`、`4-parameters-interactivity-deployment` + Quarto 官方 Dashboards 文档 | 改编/引用 |
 | brand.yml 接法、体检/nycflights 练习、rubric | 本项目 | 原创 |
 

@@ -1,12 +1,12 @@
 ﻿---
-title: "4.1 LLM 编程基础（ellmer）· Programming with LLMs"
+title: "4.1 LLM 编程基础（ellmer） · Programming with LLMs"
 objectives: |
   学完本章你能：用 ellmer 建立 LLM 会话；用 system prompt 控制persona与格式；
   检查会话对象内部结构；建立 token/成本直觉；跑通第一个结构化输出。
 source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
-# 4.1 LLM 编程基础（ellmer）
+# 4.1 LLM 编程基础（ellmer） · Programming with LLMs
 
 ## 本章目标
 
@@ -20,7 +20,7 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 
 ## 前置自测
 
-- 会安装包、能读懂一段 dplyr 链（→ 不熟？先回 [L1-B1]）
+- 会安装包、能读懂一段 dplyr 链（→ 不熟？先回 [tidyverse 入门要求](../index.qmd#prerequisites)）
 - 有任一 LLM provider 的 API key（OpenAI / Anthropic / Posit AI Pass 均可）
 
 ::: {.callout-note}

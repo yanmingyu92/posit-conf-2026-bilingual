@@ -7,7 +7,7 @@ objectives: |
 source-note: "主题与结构改编自 posit::conf(2026) r-pharma-regulated 工作坊（Mike Smith, Casey Johnson, Satish Murthy, Nicole Jones, Michael Mayer）与 posit::conf(2025) reproducible-environments 工作坊 · CC-BY-SA 4.0；讲义文字为本项目原创"
 ---
 
-# 4.8 受监管环境（GxP）
+# 4.8 受监管环境 · R in GxP Environments
 
 ## 本章目标
 

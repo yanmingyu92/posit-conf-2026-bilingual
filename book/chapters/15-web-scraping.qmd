@@ -1,5 +1,5 @@
 ---
-title: "1.5 Web Scraping · 网页抓取"
+title: "1.5 网页抓取 · Web Scraping"
 objectives: |
   学完本章你能：用 CSS 选择器在 HTML 里定位内容；用 rvest 的四件套
   提取文本与表格；用 polite 协议礼貌抓取；判断法律与伦理边界；
@@ -7,7 +7,7 @@ objectives: |
 source-note: "本章为 100% 原创；技术细节以 rvest 与 polite 官方文档为准（引用见 SOURCES）"
 ---
 
-# 1.5 Web Scraping · 网页抓取
+# 1.5 网页抓取 · Web Scraping
 
 ## 本章目标
 

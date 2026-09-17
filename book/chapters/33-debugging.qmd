@@ -5,7 +5,7 @@ objectives: |
   调用栈；用 browser() 的 n/c/f/Q 单步取证；在 Positron 里设断点与用
   debugonce() 拦截；用 cat/str 三明治与二分法定位长管线问题；按上下文
   rubric 向 AI 求助调试（本章 AI 线主场：刻意用 AI，但喂足证据）。
-source-note: "调试纪律与 §7 提问具体性改编自 posit::conf(2026) modern-r-workflow 模块 01 Helping yourself（Hadley Wickham, Jenny Bryan · CC-BY 4.0）；练习 1 改编自 posit::conf(2026) positron 工作坊 debug.R（François Michonneau, Garrett Grolemund · CC-BY 4.0）；讲义文字为本项目原创"
+source-note: "调试纪律与 §7 提问具体性改编自 posit::conf(2026) modern-r-workflow 模块 01 Helping yourself（Hadley Wickham, Jenny Bryan · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）；练习 1 改编自 posit::conf(2026) positron 工作坊 debug.R（François Michonneau, Garrett Grolemund · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
 # 3.3 调试 · Debugging Strategies
@@ -246,8 +246,8 @@ traceback 定层 → 断点/debugonce 定位 → （必要时）二分法。每�
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §1 读错误纪律、§7「具体 20%」与提问风格 | modern-r-workflow 模块 01 Helping yourself（Hadley Wickham, Jenny Bryan · CC-BY 4.0，posit::conf 2026） | 改编 |
-| §4 断点练习与贷款管线（练习 1） | positron 工作坊 `debug.R`（François Michonneau, Garrett Grolemund · CC-BY 4.0，posit::conf 2026） | 改编 |
+| §1 读错误纪律、§7「具体 20%」与提问风格 | modern-r-workflow 模块 01 Helping yourself（Hadley Wickham, Jenny Bryan · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0，posit::conf 2026） | 改编 |
+| §4 断点练习与贷款管线（练习 1） | positron 工作坊 `debug.R`（François Michonneau, Garrett Grolemund · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0，posit::conf 2026） | 改编 |
 | browser()/traceback() 用法 | base R 文档；Advanced R（Wickham） | 引用 |
 | cat/str 三明治、二分法、AI rubric 细目、练习 2/3、capstone、rubric | 本项目 | 原创 |
 

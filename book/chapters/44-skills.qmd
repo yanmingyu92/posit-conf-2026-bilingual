@@ -1,5 +1,5 @@
 ---
-title: "4.4 Agent Skills 工程化 · Packaging Agent Know-How"
+title: "4.4 智能体技能包工程化 · Packaging Agent Know-How"
 objectives: |
   学完本章你能：区分 skill、system prompt 与 tool 三层知识注入；解剖并撰写
   SKILL.md；把重复提示词移植成 skill；布局多技能项目；测试 agent 是否照做；
@@ -7,7 +7,7 @@ objectives: |
 source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
-# 4.4 Agent Skills 工程化
+# 4.4 智能体技能包工程化 · Packaging Agent Know-How
 
 ## 本章目标
 
@@ -22,7 +22,7 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 
 ## 前置自测
 
-- 能用 ellmer 建会话、设 system prompt、注册一个 `tool()`（→ 不熟？先回 [4.1]）
+- 能用 ellmer 建会话、设 system prompt、注册一个 `tool()`（→ 不熟？先回 [4.1](41-llm-basics.qmd)）
 - 知道 agent 循环「模型决定调用 → R 执行 → 结果回传」（4.3；没学也能跟上，§3 给最小接线）
 
 ::: {.callout-note}

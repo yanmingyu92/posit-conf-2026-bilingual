@@ -7,7 +7,7 @@ objectives: |
 source-note: "教学结构与练习设计改编自 posit::conf(2026) pharmaverse 工作坊（Daniel D. Sjoberg & Becca Krouse · CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
-# 4.7 临床报告（pharmaverse）
+# 4.7 临床报告 · Clinical Reporting with pharmaverse
 
 ## 本章目标
 
@@ -22,7 +22,7 @@ source-note: "教学结构与练习设计改编自 posit::conf(2026) pharmaverse
 
 ## 前置自测（≤5 分钟）
 
-能独立完成以下两问再继续；否则先回补 [L1-B1]：
+能独立完成以下两问再继续；否则先回补 [tidyverse 入门要求](../index.qmd#prerequisites)：
 
 ::: {.callout-important}
 ## Check In：前置自测

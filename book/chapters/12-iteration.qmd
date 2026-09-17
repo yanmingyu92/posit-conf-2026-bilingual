@@ -20,7 +20,7 @@ source-note: "教学结构与练习设计改编自 posit::conf(2025) r-programmi
 
 ## 前置自测（≤5 分钟）
 
-能独立完成以下两问再继续；否则先回补 1.1 Writing Functions（[L1-B1]）：
+能独立完成以下两问再继续；否则先回补 1.1 Writing Functions（[tidyverse 入门要求](../index.qmd#prerequisites)）：
 
 ::: {.callout-important}
 ## Check In：前置自测

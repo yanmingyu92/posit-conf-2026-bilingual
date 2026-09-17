@@ -8,7 +8,7 @@ objectives: |
 source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
-# 4.5 RAG 与 MCP
+# 4.5 RAG 与 MCP · Retrieval and Tool Protocols
 
 ## 本章目标
 
@@ -23,8 +23,8 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 
 ## 前置自测
 
-- 会用 ellmer 建会话、设 system prompt（→ 不熟？先回 [4.1]）
-- 知道工具注册与 agent 循环（→ [4.3]；§5 的 `ragnar_register_tool_retrieve()`
+- 会用 ellmer 建会话、设 system prompt（→ 不熟？先回 [4.1](41-llm-basics.qmd)）
+- 知道工具注册与 agent 循环（→ [4.3](43-agents.qmd)；§5 的 `ragnar_register_tool_retrieve()`
   本质就是一个预制检索工具）
 
 ::: {.callout-note}
@@ -198,7 +198,7 @@ Claude Desktop 等）是插座，任何实现了 MCP 的服务器插上来，它
 三条诚实的边界：
 
 1. **检索会漏**：top-k 近邻不保证语义等价；关键问答必须回到
-   「问题集 → 命中检查」的评测循环（→ [4.2]）
+   「问题集 → 命中检查」的评测循环（→ [4.2](42-structured-output.qmd)）
 2. **库会陈旧**：源文档更新后旧嵌入还在库里；重建索引要有节奏，
    别等用户发现答案过期
 3. **塞进去 ≠ 读进去**：上下文再长，模型也可能忽略中段或曲解细节；
@@ -224,7 +224,7 @@ Claude Desktop 等）是插座，任何实现了 MCP 的服务器插上来，它
 
 只用 15–20 个页面建两个库，唯一差异是 `markdown_chunk()` 的设置。写 5 个
 固定问题在两个检查器里各跑一遍，逐题记录命中块是否「单独足以作答」。
-交付对照表，并回答：哪种设置更优，代价是什么？（评测纪律参照 [4.2]）
+交付对照表，并回答：哪种设置更优，代价是什么？（评测纪律参照 [4.2](42-structured-output.qmd)）
 :::
 
 ::: {.callout-important}

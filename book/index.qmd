@@ -1,7 +1,7 @@
 # Welcome · 欢迎来到《现代 R 进阶》
 
 本书以 [STAT 541 *Advanced R*](https://atheobold.github.io/advanced-R-website/)
-（Bodwin & Theobold, CC-BY-SA 4.0）的四单元弧线为骨架，以 **posit::conf 2024–2026
+（Bodwin & Theobold, CC-BY-SA 4.0）的三单元弧线为基础，新增「AI 与领域应用」第四单元，以 **posit::conf 2024–2026
 官方工作坊材料**（27 个开源仓库）为素材矿藏，用现代栈（Positron · Quarto · ellmer）
 重写的系统化 R 进阶课程。
 
@@ -17,6 +17,8 @@
 
 ## How to read · 怎么读
 
+本书的 `r` 代码围栏仅展示代码，出版渲染时不执行。运行第 2.3、2.4 章的完整仪表盘模板时，请先复制到独立的 `.qmd` 文件，再将其中 R 代码围栏的语言标记从 `r` 改为 `{r}`；本书中的围栏保持不变。
+
 本书使用 9 类教学标注（沿用 STAT 541 体系）：
 
 - **当心（Warning）**：常见错误与坑
@@ -28,13 +30,22 @@
 - **延伸（Learn More）**：可选材料，默认折叠
 - **作者观点（Opinion）**：经验之谈，自行取舍
 
-## Prerequisites · 前置要求
+## Prerequisites · 前置要求 {#prerequisites}
 
 具备 tidyverse 入门水平（相当于 R4DS「Whole Game」章）。零基础请先学
-[curriculum/modules/L1-A1-first-repo](../curriculum/modules/L1-A1-first-repo/DESIGN.md)。
+[首个项目与仓库入门](https://github.com/yanmingyu92/posit-conf-2026-bilingual/blob/main/curriculum/modules/L1-A1-first-repo/DESIGN.md)。
+
+## Terminology · 常用术语
+
+| English | 本书用语 | 含义 |
+|---|---|---|
+| chat / conversation | 会话 | LLM 交互对象及其对话历史 |
+| reactive | 响应式 | Shiny 根据依赖变化重新计算的机制 |
+| skills | 技能包 | 为特定任务组织的指令与配套资源 |
+| capstone | 压轴项目 | 综合运用本章所学、按评分量规验收的项目 |
 
 ## License · 许可
 
 本书整体 [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)。
 素材改编自 posit::conf 工作坊（© 原讲师）与 STAT 541 课程网站，完整署名见
-[ATTRIBUTION](../ATTRIBUTION.md)。本书与 Posit, PBC 及 Cal Poly 无官方关联。
+[ATTRIBUTION](https://github.com/yanmingyu92/posit-conf-2026-bilingual/blob/main/ATTRIBUTION.md)。本书与 Posit, PBC 及 Cal Poly 无官方关联。

@@ -4,7 +4,7 @@ objectives: |
   学完本章你能：拆解 theme() 四大件并用 element_*() 精确控制；用线端直接标注
   替换图例；选 colorblind-safe 色板并以命名向量纪律使用 scales_*_manual()；
   按"标题=结论"层级写 labs()；用 brand.yml 统一 Quarto 与 ggplot2 视觉语言。
-source-note: "教学结构与练习设计改编自 posit::conf(2025) ggplot2 workshop（Thomas Lin Pedersen, Teun van den Brand · CC-BY-SA 4.0）与 quarto-brand workshop（Isabella Velásquez, Sara Altman · CC-BY-SA 4.0）；讲义文字与 makeover 示例为本项目原创"
+source-note: "教学结构与练习设计改编自 posit::conf(2025) ggplot2 workshop（Thomas Lin Pedersen, Teun van den Brand · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）与 quarto-brand workshop（Isabella Velásquez, Sara Altman · CC-BY-SA 4.0）；讲义文字与 makeover 示例为本项目原创"
 ---
 
 # 1.8 专业图表 · Professionally Styled Plots
@@ -21,7 +21,7 @@ source-note: "教学结构与练习设计改编自 posit::conf(2025) ggplot2 wor
 
 ## 前置自测（≤5 分钟）
 
-能独立完成以下两问再继续；否则先回补 [L1-B1]：
+能独立完成以下两问再继续；否则先回补 [tidyverse 入门要求](../index.qmd#prerequisites)：
 
 ::: {.callout-important}
 ## Check In：前置自测
@@ -258,7 +258,7 @@ ggplot(palmerpenguins::penguins,
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §1 theme 解剖与 4.0 前沿注 | posit::conf(2025) ggplot2 workshop `slides/4_theme_guide.qmd`（Thomas Lin Pedersen, Teun van den Brand · CC-BY-SA 4.0） | 改编 |
+| §1 theme 解剖与 4.0 前沿注 | posit::conf(2025) ggplot2 workshop `slides/4_theme_guide.qmd`（Thomas Lin Pedersen, Teun van den Brand · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编 |
 | §5 brand.yml 流程 | posit::conf(2025) quarto-brand workshop（Isabella Velásquez, Sara Altman · CC-BY-SA 4.0） | 改编 |
 | viridis / RColorBrewer / Okabe-Ito 依据 | 各包官方文档；Okabe & Ito (2008) | 引用 |
 | 线端标注、manual 纪律、labs 层级、makeover、rubric | 本项目 | 原创 |

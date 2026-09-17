@@ -5,7 +5,7 @@ objectives: |
   与 expect_* 家族写出聚焦的断言；用 use_test() 让 R/ 与 tests/ 成对生长；
   在 Positron/RStudio 里高效运行测试；用 expect_snapshot 拍下输出；把
   covr 覆盖率当地图读，而不是当分数刷。
-source-note: "教学结构与练习设计改编自 posit::conf(2025) pkg-dev 工作坊 Testing 环节（Jenny Bryan · CC-BY 4.0，含 testing-prompts.md）；讲义文字为本项目原创"
+source-note: "教学结构与练习设计改编自 posit::conf(2025) pkg-dev 工作坊 Testing 环节（Jenny Bryan · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0，含 testing-prompts.md）；讲义文字为本项目原创"
 ---
 
 # 3.2 单元测试 · Unit Testing with testthat
@@ -213,7 +213,7 @@ test_that 描述句，改回去后**复绿**。交付：Quarto 一页（覆盖�
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §1–§4 结构、use_r/use_test 配对、键链建议 | posit::conf(2025) pkg-dev Testing 环节 slides 与 `testing-prompts.md`（Jenny Bryan · CC-BY 4.0） | 改编 |
+| §1–§4 结构、use_r/use_test 配对、键链建议 | posit::conf(2025) pkg-dev Testing 环节 slides 与 `testing-prompts.md`（Jenny Bryan · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编 |
 | §5 快照迁移与 `error = TRUE` | `testing-prompts.md`「Modernize testing」 | 改编 |
 | testthat 3e 事实核对 | testthat 官方文档 <https://testthat.r-lib.org> | 引用 |
 | Positron 键位（chord 策略） | Emil Hvitfeldt, Positron key bindings 博文（经 testing-prompts.md 转引） | 引用 |

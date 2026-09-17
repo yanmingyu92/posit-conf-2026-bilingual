@@ -21,10 +21,27 @@ materials openly.
 | 7 | [r-pharma-regulated](https://github.com/posit-conf-2026/r-pharma-regulated) | Administering and Orchestrating Next-Gen Statistical Environments for Regulated Use Cases | Mike Smith, Casey Johnson, Satish Murthy, Nicole Jones, Michael Mayer | CC-BY-SA 4.0¹ | `caf9a41c` |
 | 8 | [modern-ds-python](https://github.com/posit-conf-2026/modern-ds-python) | Modern Data Science in Python | Jeroen Janssens, Richard Iannone, Isabel Zimmerman | CC-BY-SA 4.0 | `b7c60a23` |
 
-¹ *Discrepancy note / 差异说明*: the `r-pharma-regulated` repository's README displays a
-CC-BY 4.0 badge while its `LICENSE.md` file contains the CC-BY-SA 4.0 text. We apply the
-more restrictive ShareAlike interpretation. 该仓库 README 徽章为 CC-BY 4.0，但 LICENSE.md
-正文为 CC-BY-SA 4.0，本仓库从严采用 ShareAlike 解释。
+¹ *Discrepancy note / 差异说明*: several upstream README files declare CC-BY 4.0 while
+their root `LICENSE.md` files contain CC-BY-SA 4.0. The tables report this project's
+more restrictive ShareAlike treatment; they do not imply that the upstream statements agree.
+
+本地快照核查发现，下列仓库 README 标示 CC-BY 4.0，而根目录 `LICENSE.md` 正文为
+CC-BY-SA 4.0：2026 年的 `positron`、`modern-r-workflow`、`practical-quarto`、`llms`、
+`pharmaverse`、`r-pharma-regulated`、`modern-ds-python`；2025 年的 `ggplot2`、`shiny-r`、
+`pkg-dev`、`r-programming`、`quarto-brand`、`reproducible-environments`；2024 年的
+`level-up-shiny`、`quarto-dashboards`、`databases`、`r-in-production`。
+2025 年 `quarto-extend` 的课程 `_license.md` 标示 CC-BY 4.0，根 `LICENSE.md` 同样为
+CC-BY-SA 4.0；2026 年 `practical-quarto` 的课程 `_license.md` 则与完整许可证一致，明确为 CC-BY-SA 4.0。
+
+本项目从严采用 ShareAlike；章节中标注“README 标示”的许可反映上游相应声明，
+不覆盖同时存在的 LICENSE 正文。各章末尾 CC-BY-SA 4.0 为本项目改编内容的发布许可。
+重点仓库的声明可对照其
+[ggplot2 README](https://github.com/posit-conf-2025/ggplot2/blob/main/README.md)、
+[shiny-r README](https://github.com/posit-conf-2025/shiny-r/blob/main/README.md)、
+[pkg-dev README](https://github.com/posit-conf-2025/pkg-dev/blob/main/README.md)、
+[level-up-shiny README](https://github.com/posit-conf-2024/level-up-shiny/blob/main/README.md)、
+[quarto-dashboards README](https://github.com/posit-conf-2024/quarto-dashboards/blob/main/README.md)
+与同目录的 `LICENSE.md`。
 
 ## Prior-year archive materials / 往届材料（补齐 2026 未覆盖主题）
 

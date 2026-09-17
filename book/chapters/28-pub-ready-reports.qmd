@@ -26,7 +26,7 @@ source-note: "教学结构改编自 posit::conf(2026) practical-quarto（Charlot
 ## Check In：前置自测
 
 1. `quarto render` 要分别出 HTML 和 PDF，YAML 里写什么？PDF 默认走哪个引擎？
-2. `_quarto.yml` 与单篇 `.qmd` 的 YAML 怎么分工？（不会？先回补 [2.3]）
+2. `_quarto.yml` 与单篇 `.qmd` 的 YAML 怎么分工？（不会？先回补 [2.3](23-dashboards-static.qmd)）
 :::
 
 ## 1. Design once, use anywhere：品牌是内容之外的唯一真相

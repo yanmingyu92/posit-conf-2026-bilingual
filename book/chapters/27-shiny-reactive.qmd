@@ -1,24 +1,24 @@
 ---
-title: "2.7 Shiny 反应式设计 · Shiny Reactive Design"
+title: "2.7 Shiny 响应式设计 · Shiny Reactive Design"
 objectives: |
-  学完本章你能：画出反应式依赖图；用决策表选对
+  学完本章你能：画出响应式依赖图；用决策表选对
   reactive()/eventReactive()/observe()；用 isolate() 避开性能
   陷阱；做可复用模块；golem-lite 组织 app；用 reactlog 调试。
-source-note: "教学结构改编自 posit::conf(2025) shiny-r（Colin Rundel · CC-BY 4.0）Reactivity 幻灯与 posit::conf(2024) level-up-shiny（Garrick Aden-Buie · CC-BY 4.0）modules/slow-app 素材；讲义文字与练习为本项目原创"
+source-note: "教学结构改编自 posit::conf(2025) shiny-r（Colin Rundel · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）Reactivity 幻灯与 posit::conf(2024) level-up-shiny（Garrick Aden-Buie · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）modules/slow-app 素材；讲义文字与练习为本项目原创"
 ---
 
-# 2.7 Shiny 反应式设计 · Shiny Reactive Design
+# 2.7 Shiny 响应式设计 · Shiny Reactive Design
 
 ## 本章目标
 
 完成本章后，你能够：
 
 1. **model** 用「UI 讲什么、server 怎么算」两分模型拆解任意 Shiny app
-2. **draw** 手画 inputs → conductors → outputs 的反应式依赖图（reactive graph）
+2. **draw** 手画 inputs → conductors → outputs 的响应式依赖图（reactive graph）
 3. **select** 用决策表在 `reactive()` / `eventReactive()` / `observe()` 中选对
 4. **optimize** 用"单一职责 reactive"+ `isolate()` 拆解性能陷阱
 5. **modularize** 用 `NS()` + `moduleServer()` 把功能打包成可复用模块
-6. **debug** 用 `reactlog` 看见反应式图的失效与重算过程
+6. **debug** 用 `reactlog` 看见响应式图的失效与重算过程
 
 ## 前置自测（≤5 分钟）
 
@@ -26,7 +26,7 @@ source-note: "教学结构改编自 posit::conf(2025) shiny-r（Colin Rundel · 
 ## Check In：前置自测
 
 1. 默写最小 Shiny app 骨架（`selectInput()` + `renderPlot()` + `shinyApp()`）。
-2. server 里读输入用 `input$x` 还是 `input$x()`？（不会？先回补 [2.4]）
+2. server 里读输入用 `input$x` 还是 `input$x()`？（不会？先回补 [2.4](24-dashboards-dynamic.qmd)）
 :::
 
 ## 1. UI/server 心智模型：前台与后厨
@@ -37,7 +37,7 @@ source-note: "教学结构改编自 posit::conf(2025) shiny-r（Colin Rundel · 
 关键认知：**server 不是"跑一遍"的脚本，而是一张"声明好的菜谱"**——
 Shiny 每次输入变化只把依赖该输入的菜重炒一遍，哪些菜重炒由 shiny 自动推断。
 
-## 2. 反应式图：sources → conductors → endpoints
+## 2. 响应式图：sources → conductors → endpoints
 
 | 角色 | 代码形态 | 职责 |
 |---|---|---|
@@ -63,7 +63,7 @@ server <- function(input, output, session) {
 ```
 上游 `input$origin` 一变，`d_city()` 失效（invalidate），两个下游随之重算
 ——这就是 invalidate-on-dependency 原则。shiny-r 工作坊铁律：
-**每加一段 server 代码就重画一次反应式图；先画图，再写代码。**
+**每加一段 server 代码就重画一次响应式图；先画图，再写代码。**
 :::
 
 ::: {.callout-warning}
@@ -172,7 +172,7 @@ myapp/
 │   ├── ui.R        # 页面布局
 │   ├── server.R    # 只做"接线"，逻辑全部下沉
 │   ├── mod_hist.R  # 每个模块一个文件，mod_ 前缀
-│   └── fct_stats.R # 非反应式纯函数，fct_ 前缀
+│   └── fct_stats.R # 非响应式纯函数，fct_ 前缀
 └── tests/          # Unit 3 预告：shinytest2 就住这里
 ```
 
@@ -184,7 +184,7 @@ myapp/
 是让三个月后的你还能找到东西。
 :::
 
-## 7. 用 reactlog 看见反应式
+## 7. 用 reactlog 看见响应式
 
 `reactlog` 把"哪些节点失效、哪些重算、耗时多少"画成可回放的动图。
 
@@ -217,7 +217,7 @@ server <- function(input, output, session) {
 }
 ```
 
-手画它的反应式图（inputs/conductors/outputs 三列），再把重复过滤抽成
+手画它的响应式图（inputs/conductors/outputs 三列），再把重复过滤抽成
 一个 `reactive()`，重画图验证 DRY。
 :::
 
@@ -242,14 +242,14 @@ server <- function(input, output, session) {
 ## Capstone · 压轴项目
 
 **任务**：接手"事故现场" app（本班提供 `messy_app.R`：单文件 180 行、
-一个巨型 reactive、三处复制粘贴、无模块）。三级重构：① 画出现状反应式图；
+一个巨型 reactive、三处复制粘贴、无模块）。三级重构：① 画出现状响应式图；
 ② 按 golem-lite 拆文件、按单一职责拆 reactive、补 `isolate()`；
 ③ 重复功能抽成模块并实例化两次。
 交付：重构后项目 + reactlog 改前/改后回放对比 + 一页重构笔记。
 
 | 维度 | 达到 | 良好 | 卓越 |
 |---|---|---|---|
-| 反应式设计 | 图画对、拆出 reactive | 拆分后失效范围明显缩小 | 用 reactlog 量化"重算次数下降" |
+| 响应式设计 | 图画对、拆出 reactive | 拆分后失效范围明显缩小 | 用 reactlog 量化"重算次数下降" |
 | 模块化 | 抽出一个模块 | 模块可双实例无串线 | 模块契约干净（数据全经参数） |
 | 工程结构 | 按 golem-lite 拆文件 | 命名符合 mod_/fct_ 约定 | server.R 只剩接线，逻辑零残留 |
 | 论证 | 重构笔记完整 | 每刀都引用本章原则 | 给出"下一刀拆什么"的路线图 |
@@ -258,8 +258,8 @@ server <- function(input, output, session) {
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §1–§3 sources/conductors/endpoints、`.data` 代词、reactlog | posit::conf(2025) shiny-r `slides/02-Reactivity.qmd`（Colin Rundel · CC-BY 4.0） | 改编 |
-| §4–§6 模块化、慢 app 诊断、app 组织 | posit::conf(2024) level-up-shiny `09_modules`、`12_slow_app`、"Organizing your Shiny apps"（Garrick Aden-Buie · CC-BY 4.0） | 改编 |
+| §1–§3 sources/conductors/endpoints、`.data` 代词、reactlog | posit::conf(2025) shiny-r `slides/02-Reactivity.qmd`（Colin Rundel · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编 |
+| §4–§6 模块化、慢 app 诊断、app 组织 | posit::conf(2024) level-up-shiny `09_modules`、`12_slow_app`、"Organizing your Shiny apps"（Garrick Aden-Buie · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编 |
 | 决策表、golem-lite 目录、练习与 rubric | 本项目 | 原创 |
 
 本章以 CC-BY-SA 4.0 发布。

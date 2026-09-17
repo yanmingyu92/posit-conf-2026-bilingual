@@ -22,7 +22,7 @@ source-note: "本章为 100% 原创，仅引用官方文档：Leaflet for R（ht
 
 ## 前置自测（≤5 分钟）
 
-知道数据框「行 = 观测、列 = 变量」、会用 `filter()` 再继续；否则先回补 [L1-B1]：
+知道数据框「行 = 观测、列 = 变量」、会用 `filter()` 再继续；否则先回补 [tidyverse 入门要求](../index.qmd#prerequisites)：
 
 ::: {.callout-important}
 ## Check In：前置自测

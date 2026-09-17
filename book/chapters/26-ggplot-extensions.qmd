@@ -5,7 +5,7 @@ objectives: |
   用六个高频扩展（ggrepel、ggridges、patchwork、ggforce、gghighlight、scales）
   写出可运行图形；从官方画廊发现并评估扩展；组合多个扩展而不失控；
   用"三问法"快速读懂任意扩展的文档。
-source-note: "教学结构改编自 posit::conf(2025) ggplot2（Thomas Lin Pedersen, Teun van den Brand · CC-BY 4.0）sessions 5–6 与 quarto-extend（Mine Çetinkaya-Rundel, Charlotte Wickham · CC-BY-SA 4.0）扩展思想；讲义文字与练习为本项目原创"
+source-note: "教学结构改编自 posit::conf(2025) ggplot2（Thomas Lin Pedersen, Teun van den Brand · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）sessions 5–6 与 quarto-extend（Mine Çetinkaya-Rundel, Charlotte Wickham · CC-BY-SA 4.0）扩展思想；讲义文字与练习为本项目原创"
 ---
 
 # 2.6 ggplot 扩展生态 · ggplot Extensions
@@ -25,7 +25,7 @@ source-note: "教学结构改编自 posit::conf(2025) ggplot2（Thomas Lin Peder
 
 ## 前置自测（≤5 分钟）
 
-能独立完成以下两问再继续；否则先回补 [1.7]：
+能独立完成以下两问再继续；否则先回补 [1.7](17-alt-geoms.qmd)：
 
 ::: {.callout-important}
 ## Check In：前置自测
@@ -251,7 +251,7 @@ ggrepel 管关键标注，第三 个扩展自选并说明理由。
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §1–§2 扩展生态与 patchwork 组合视角 | posit::conf(2025) ggplot2 `sessions/5_composition.qmd`、`6_extensions.qmd`（Thomas Lin Pedersen, Teun van den Brand · CC-BY 4.0） | 改编 |
+| §1–§2 扩展生态与 patchwork 组合视角 | posit::conf(2025) ggplot2 `sessions/5_composition.qmd`、`6_extensions.qmd`（Thomas Lin Pedersen, Teun van den Brand · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编 |
 | §3 "扩展是 Quarto/ggplot2 生态的接入点"思想 | posit::conf(2025) quarto-extend（Mine Çetinkaya-Rundel, Charlotte Wickham · CC-BY-SA 4.0） | 借鉴结构 |
 | 扩展画廊 URL | <https://exts.ggplot2.tidyverse.org>（ggplot2 官方） | 引用 |
 | 六件套示例、三问法、三步评估、练习与 rubric | 本项目 | 原创 |

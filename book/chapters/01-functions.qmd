@@ -1,12 +1,12 @@
 ---
-title: "1.1 Writing Functions · 写函数"
+title: "1.1 写函数 · Writing Functions"
 objectives: |
   学完本章你能：把重复代码重构为函数；正确使用参数、默认值与返回值；
   判断"何时该写函数"；用非正式检查验证函数行为。
 source-note: "教学结构与练习设计改编自 posit::conf(2025) r-programming（Emma Rand, Garrett Grolemund, Ian Lyttle · CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
-# 1.1 Writing Functions · 写函数
+# 1.1 写函数 · Writing Functions
 
 ## 本章目标
 
@@ -20,7 +20,7 @@ source-note: "教学结构与练习设计改编自 posit::conf(2025) r-programmi
 
 ## 前置自测（≤5 分钟）
 
-能独立完成以下两问再继续；否则先回补 [L1-B1]：
+能独立完成以下两问再继续；否则先回补 [tidyverse 入门要求](../index.qmd#prerequisites)：
 
 ::: {.callout-important}
 ## Check In：前置自测

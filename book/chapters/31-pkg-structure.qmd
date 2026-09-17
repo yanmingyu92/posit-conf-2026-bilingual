@@ -4,7 +4,7 @@ objectives: |
   学完本章你能：判断一段代码何时值得升级成包；用 usethis/devtools 搭建
   骨架并试跑；读懂 DESCRIPTION（Imports vs Suggests）；用 roxygen2 写文档；
   说清 R/ man/ tests/ data-raw/ 职责；跑通 document() → check() → install()。
-source-note: "教学结构与练习设计改编自 posit::conf(2025) pkg-dev 工作坊（Jenny Bryan · CC-BY 4.0），工具事实核对 R Packages (2e)（Hadley Wickham & Jenny Bryan · r-pkgs.org）；讲义文字为本项目原创"
+source-note: "教学结构与练习设计改编自 posit::conf(2025) pkg-dev 工作坊（Jenny Bryan · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0），工具事实核对 R Packages (2e)（Hadley Wickham & Jenny Bryan · r-pkgs.org）；讲义文字为本项目原创"
 ---
 
 # 3.1 R 包结构 · Package Structure
@@ -258,7 +258,7 @@ Posit Assistant，只问：「哪些条目会被 R CMD check 或 CRAN 挑刺？�
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §1–§2、§6 工作流；use_r/use_test 成对纪律 | posit::conf(2025) pkg-dev 工作坊 README、materials 与 `testing-prompts.md`（Jenny Bryan，TA Lionel Henry · CC-BY 4.0） | 改编（结构） |
+| §1–§2、§6 工作流；use_r/use_test 成对纪律 | posit::conf(2025) pkg-dev 工作坊 README、materials 与 `testing-prompts.md`（Jenny Bryan，TA Lionel Henry · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编（结构） |
 | DESCRIPTION、roxygen2、目录解剖的工具事实 | R Packages (2e)（Hadley Wickham & Jenny Bryan）<https://r-pkgs.org> | 引用 |
 | scorekit 示例包、版本号侦探、练习、capstone、rubric | 本项目 | 原创 |
 

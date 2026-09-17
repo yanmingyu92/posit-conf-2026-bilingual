@@ -4,7 +4,7 @@ objectives: |
   学完本章你能：为分布对比、构成演变、两端变化三类问题选择合适几何；
   用 geom_tile() 构建热力图；用 ggridges 画山脊图；区分 ribbon 与 area；
   手工搭建斜率图与哑铃图；用 facet_grid() 放大以上一切。
-source-note: "教学结构与练习设计改编自 posit::conf(2025) ggplot2 workshop（Thomas Lin Pedersen, Teun van den Brand · CC-BY-SA 4.0）；讲义文字与 penguins/gapminder 示例为本项目原创"
+source-note: "教学结构与练习设计改编自 posit::conf(2025) ggplot2 workshop（Thomas Lin Pedersen, Teun van den Brand · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0）；讲义文字与 penguins/gapminder 示例为本项目原创"
 ---
 
 # 1.7 非标准几何 · Non-Standard Geometries
@@ -22,7 +22,7 @@ source-note: "教学结构与练习设计改编自 posit::conf(2025) ggplot2 wor
 
 ## 前置自测（≤5 分钟）
 
-能独立完成以下两问再继续；否则先回补 [L1-B1]：
+能独立完成以下两问再继续；否则先回补 [tidyverse 入门要求](../index.qmd#prerequisites)：
 
 ::: {.callout-important}
 ## Check In：前置自测
@@ -238,7 +238,7 @@ palmerpenguins::penguins |>
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §1 决策优先的教学结构、§6 分面思想 | posit::conf(2025) ggplot2 workshop sessions/slides（Thomas Lin Pedersen, Teun van den Brand · CC-BY-SA 4.0） | 改编 |
+| §1 决策优先的教学结构、§6 分面思想 | posit::conf(2025) ggplot2 workshop sessions/slides（Thomas Lin Pedersen, Teun van den Brand · README 标示 CC-BY 4.0；LICENSE.md 为 CC-BY-SA 4.0） | 改编 |
 | `geom_density_ridges()` 参数、`geom_raster()` 对照 | ggridges、ggplot2 官方文档 | 引用 |
 | 热力图/ribbon/area/斜率/哑铃示例组合、选择器总表、rubric | 本项目 | 原创 |
 

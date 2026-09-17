@@ -7,7 +7,7 @@ objectives: |
 source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garrick Aden-Buie, Sara Altman · CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
-# 4.6 数据对话应用（shinychat）
+# 4.6 数据对话应用 · shinychat & querychat
 
 ## 本章目标
 
@@ -21,8 +21,8 @@ source-note: "教学结构与练习编号改编自 posit::conf(2026) llms（Garr
 
 ## 前置自测
 
-- 会 ellmer 会话、system prompt、工具注册（→ 不熟？先回 [4.1] 与 [4.3]）
-- 知道 Shiny 的 `ui` / `server` 分工与 `session` 概念（→ [2.7] 是完整版）
+- 会 ellmer 会话、system prompt、工具注册（→ 不熟？先回 [4.1](41-llm-basics.qmd) 与 [4.3](43-agents.qmd)）
+- 知道 Shiny 的 `ui` / `server` 分工与 `session` 概念（→ [2.7](27-shiny-reactive.qmd) 是完整版）
 - 本章延续 Blockbuster 情境：4.4 那个带 skills 的续约 agent 要住进 Shiny 应用
 
 ## 1. 聊天框是一种什么样的界面
