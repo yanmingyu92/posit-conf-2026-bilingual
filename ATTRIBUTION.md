@@ -73,6 +73,23 @@ licensing problem for this project. 未标注许可证的上游仓库仅做链�
 许可问题。MIT-licensed materials, if ever quoted or adapted, will be marked per-file with
 the MIT notice. MIT 许可的材料如被引用或改编，将逐文件附 MIT 声明。
 
+## Referenced course design / 参照的课程设计
+
+The unit-based delivery structure (Unit-STRUCTURE.md) and the 9-type callout authoring
+standard (CALLOUTS.md) are adapted from:
+
+- **Advanced R (STAT 541)** — <https://atheobold.github.io/advanced-R-website/>
+  by Drs. Kelly Bodwin & Allison Theobold (Cal Poly), licensed
+  [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+  Our units follow their three-unit arc (Complex Analyses → Professional Deliverables →
+  Package Development); chapters are re-anchored to posit::conf materials and extended
+  with a fourth unit (AI & Domain Applications). Their callout taxonomy is used as our
+  lesson-authoring syntax with attribution.
+
+单元交付结构与教学标注体系改编自 Kelly Bodwin 与 Allison Theobold（Cal Poly）的
+STAT 541 *Advanced R* 课程网站（CC-BY-SA 4.0）：我们沿用其三单元弧线并重新锚定素材、
+扩展第四单元，9 类 callout 作为讲义写作语法并附此署名。
+
 ## How materials are mirrored / 材料镜像方式
 
 - Original English materials live under `content/en/<NN-track>/<upstream-repo>/`,

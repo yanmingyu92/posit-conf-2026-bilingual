@@ -20,10 +20,17 @@
 
 ### 1.2 Taxonomy · 分类法（本课程的骨架）
 
-**两个正交维度**（取自 Anderson & Krathwohl 修订版布鲁姆分类学的思想）：
+**双视图原则**：课程同时保持两种组织方式，各司其职——
 
-- **能力域（Knowledge dimensions）** ×5：知识是"什么类型的能力"
-- **认知水平（Cognitive levels）** ×3：对该能力"做到什么程度"
+- **能力矩阵视图**（[MATRIX.md](MATRIX.md)）：5 能力域 × 3 水平（布鲁姆修订版思想），
+  用于检索、诊断与画像个性化路径；**工具会过时，能力域稳定**。
+- **单元交付视图**（[UNIT-STRUCTURE.md](UNIT-STRUCTURE.md)）：参照 STAT 541
+  *Advanced R*（Bodwin & Theobold, CC-BY-SA 4.0）的三单元弧线
+  （复杂分析 → 专业交付物 → 包开发）+ 我们扩展的第四单元（AI 与领域应用），
+  用于开班/成书的线性交付。
+
+两视图通过 UNIT-STRUCTURE §4 交叉表互通；讲义写作语法统一采用其 9 类教学标注
+体系（[CALLOUTS.md](CALLOUTS.md)）。
 
 ```
                     L1 奠基 Foundations      L2 实践 Practitioner     L3 工程师 Engineer
