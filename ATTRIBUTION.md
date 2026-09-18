@@ -124,8 +124,8 @@ STAT 541 *Advanced R* 课程网站（CC-BY-SA 4.0）：我们沿用其三单元�
 - **Adapted upstream materials** (everything under `content/en/`, and all translations
   under `translations/zh/`): [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/),
   same as upstream.
-- **Original content by this repo's maintainers** (learning plan, website prose,
-  promotion playbook): also released under CC-BY-SA 4.0 to keep the repo uniform.
+- **Original content by this repo's maintainers** (learning plan, website prose):
+  also released under CC-BY-SA 4.0 to keep the repo uniform.
 
 If you are an instructor or rights holder and want any correction, please open an issue.
 如讲师或权利方需要任何更正，请开 issue 联系我们。

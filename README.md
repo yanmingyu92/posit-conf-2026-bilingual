@@ -80,7 +80,7 @@ errors verified, API/IDE-dependent examples explicitly bounded). See
 - `translations/zh/` — Chinese translation layer for the archive
 - `website/` — Quarto hub site
 - `scripts/` — build, sync, and book-QA tooling
-- Root docs — `ARCHIVE-CATALOG.md` (archive topic map), `ATTRIBUTION.md` (credits & licenses), `CONTRIBUTING.md` (translation workflow), `PROMOTION.md` (launch playbook)
+- Root docs — `ARCHIVE-CATALOG.md` (archive topic map), `ATTRIBUTION.md` (credits & licenses), `CONTRIBUTING.md` (translation workflow)
 
 ### Build locally
 
