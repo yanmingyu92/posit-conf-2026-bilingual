@@ -57,11 +57,12 @@ errors verified, API/IDE-dependent examples explicitly bounded). See
 
 ```bibtex
 @book{yan2026modernr,
-  author    = {Yan, Jaime},
-  title     = {Modern R in Practice / 现代 R 进阶},
-  year      = {2026},
-  url       = {https://jaimeyan.com/books/modern-r-in-practice/en/index.html},
-  note      = {Bilingual English--Chinese edition}
+  author       = {Yan, Jaime},
+  title        = {Modern R in Practice · 现代 R 进阶},
+  year         = 2026,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.22832959},
+  url          = {https://doi.org/10.5281/zenodo.22832959}
 }
 ```
 
