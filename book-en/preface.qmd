@@ -1,0 +1,47 @@
+# Preface {.unnumbered}
+
+Once you can write R code, the challenge often changes. You can complete an analysis, but turning it into work that survives the next dataset, can be handed to a colleague, and produces explainable results may still be difficult. A new batch of data requires another rewrite. A chart looks clear on your screen but loses its context when shared. Code that finishes without an error may still do the wrong thing.
+
+*Modern R in Practice* addresses this distance: from completing a calculation to delivering something that others can use, inspect, and maintain.
+
+## Why this book {.unnumbered}
+
+Workshops offer a good way to encounter a tool quickly. A textbook also needs to explain the connections between tools: why a function is useful at this point, when to preserve intermediate results, how a test can reveal a problem, and when an interactive chart should become a static one. Readers need opportunities to make decisions without prompts, then use the results to examine their judgment.
+
+This book therefore organizes material around analysis and delivery tasks. Public posit::conf workshops provide many examples of modern R practice; established textbooks and official documentation offer routes to deeper understanding. Together, these sources must help answer one question: **After reading this section, what can you do independently, and how will you know you have done it well enough?**
+
+Reference materials support learning. The book itself remains responsible for its explanations, connections between tasks, and exercise acceptance criteria.
+
+## Who this book is for {.unnumbered}
+
+The primary audience is readers who know basic R and want to improve their practical analysis and delivery skills. You may be a researcher or data analyst, or you may be turning personal scripts into workflows that a team can reuse.
+
+Readers in clinical research and pharmaceuticals are another central audience. Alongside data processing, visualization, and software engineering, you need to consider data provenance, variable definitions, output checks, and traceability. A dedicated reading path leads into clinical reporting and regulated environments in Unit 4, connecting those topics to functions, testing, and reporting earlier in the book.
+
+This is not a first introduction to programming, a replacement for a statistics textbook, or a substitute for your institution's operating procedures. The reading guide points to prerequisite material when needed; you do not have to read every resource from beginning to end.
+
+## Turning reading into capability {.unnumbered}
+
+Each chapter begins with objectives and a prerequisite self-check, then moves through explanations, examples, and check-ins. Exercises progress through three levels: reproduce an approach, adapt it to changed conditions, and complete a task independently. A capstone asks you to deliver an inspectable result and assess it against a rubric.
+
+Predict the result before running code. For intentionally broken examples, explain why they fail. After an exercise, preserve your assumptions, check results, and unresolved questions. A failure you can explain often teaches more than a successful run you cannot explain.
+
+Companion training is maintained separately for self-study and teaching. You can begin with a lab that includes data, a starter script, and acceptance checks, then return to the chapters to deepen your understanding. Available materials and work still to be added are identified explicitly.
+
+## About AI {.unnumbered}
+
+AI can help explain code, suggest alternatives, and extend a checklist. It can also let you skip the judgment you most need to practice. The book retains explicit AI-off periods: predict, design, or implement independently before using AI for comparison and review.
+
+Evidence of learning lies in your ability to explain inputs and outputs, recognize errors, and revise an approach when conditions change—not in how quickly code is generated.
+
+## About this edition {.unnumbered}
+
+The current text contains four units and 28 chapters. Code review distinguishes executable examples, intentional errors, examples requiring external services, and fragments that depend on teaching files. Those execution boundaries remain part of the book.
+
+This edition provides a dedicated book entry point, reading guide, companion training, and a reading map spanning multiple sources. Further development will prioritize explanations between concepts, reusable exercise data, and reference solutions. Please report content or code issues with reproducible details in the [book repository](https://github.com/yanmingyu92/posit-conf-2026-bilingual/issues).
+
+The English edition follows the same chapter structure and exercises as the Chinese edition. Use the language link to move between corresponding pages.
+
+Jaime Yan
+
+September 2026

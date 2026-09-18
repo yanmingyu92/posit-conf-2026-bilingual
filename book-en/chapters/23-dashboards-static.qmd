@@ -1,0 +1,244 @@
+---
+title: "2.3 Static Quarto Dashboards"
+objectives: |
+  By the end of this chapter, you can choose between a report and a dashboard;
+  build pages and row/column grids with format: dashboard; create value boxes,
+  cards, and tabsets; control sizing and scrolling; and publish a static
+  dashboard with a brand.yml theme.
+source-note: "Teaching structure and exercises adapted from the posit::conf(2024) quarto-dashboards workshop (Mine Çetinkaya-Rundel and the teaching assistant team; README states CC-BY 4.0, while LICENSE.md specifies CC-BY-SA 4.0). Chapter prose is original to this project."
+---
+
+# 2.3 Static Quarto Dashboards
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **decide** between a report and a dashboard using audience and update frequency.
+2. **build** a multipage dashboard from an existing Quarto document with `format: dashboard`.
+3. **compose** the initial screen's information hierarchy using rows, columns, value boxes, and tabsets.
+4. **control** layout overflow through percentage heights and widths, scrolling, and expansion options.
+5. **publish** a static dashboard to Quarto Pub / GitHub Pages with `quarto publish`.
+
+## Prerequisite check (≤5 minutes)
+
+Continue when you can complete these checks independently; otherwise revisit the [tidyverse prerequisites](../index.qmd#prerequisites) and Chapters 1.7/1.8.
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Render a `.qmd` file to HTML and change its title in YAML.
+2. Use ggplot2 to plot bill length against body mass in `palmerpenguins::penguins`, colored by `species`.
+:::
+
+## 1. When to use a dashboard: Audience × update frequency
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+A report tells a story; a dashboard puts answers on display. A useful rule of thumb: **if different people ask the same question every week, put the answer on a dashboard**.
+:::
+
+| Dimension | Report | Dashboard |
+|---|---|---|
+| Reading pattern | Linear reading that follows an argument | A quick scan to retrieve a number |
+| Update frequency | One-off delivery, infrequent revision | Changing data, periodic rerendering |
+| Initial screen's responsibility | Context and question | KPI values and one main chart |
+| Typical question | “Why has churn increased?” | “What is this week's churn rate?” |
+
+The short decision rule: **give readers a report for explanation and a dashboard for monitoring**. This chapter covers static dashboards: render once and host widely. Dynamic interaction comes in Chapter 2.4.
+
+## 2. A minimal dashboard: format: dashboard
+
+Dashboards are built into Quarto ≥ 1.4. Run `quarto --version` in a terminal to check first.
+
+::: {.callout-example}
+Build your first dashboard in three steps with this complete `penguins-dash.qmd` file:
+
+````markdown
+---
+title: "Penguins at a glance"
+format: dashboard
+---
+
+```r
+library(ggplot2)
+penguins <- palmerpenguins::penguins
+```
+
+```r
+#| title: Bill length × body mass
+ggplot(penguins, aes(bill_length_mm, body_mass_g, color = species)) +
+  geom_point()
+```
+````
+
+Three essentials: a `#` heading creates a **page**; each code block that produces output becomes a **card**, so adding another plot adds another card; `#| title:` names the card.
+:::
+
+::: {.callout-warning}
+## Common misconception: Looking for another R package
+Dashboard is not a separate R package. An `Unknown format` error usually means your Quarto version predates 1.4. **Upgrade Quarto itself rather than calling `install.packages()`.**
+:::
+
+## 3. Pages, rows, and columns: Thinking in grids
+
+The structure uses only three heading levels. `orientation:` determines the default direction for `##`; `rows` is the default:
+
+- `# Page` adds a navigation tab; `## Row` creates a horizontal band.
+- `### Column` divides a row. Assign `height=` to rows and `width=` to columns; percentages are normalized automatically.
+
+::: {.callout-example}
+Adapt the §2 file into two rows: metrics and charts.
+
+````markdown
+# Penguins at a glance
+
+## Metrics {height="25%"}
+
+```r
+#| content: valuebox
+#| title: Mean body mass (g)
+list(value = round(mean(penguins$body_mass_g, na.rm = TRUE)))
+```
+
+## Charts {height="75%"}
+
+### Scatterplot {width="70%"}
+
+```r
+#| title: Bill length × body mass
+ggplot(penguins, aes(bill_length_mm, body_mass_g)) + geom_point()
+```
+
+### Composition {width="30%"}
+
+```r
+#| title: Species composition
+ggplot(penguins, aes(species, fill = species)) + geom_bar()
+```
+````
+:::
+
+::: {.callout-important}
+## Check In: Sketch the layout
+
+Without running the code, sketch a wireframe of the rendered file. Change `orientation` to `columns`, draw a second sketch, and explain the difference. Catch layout errors at this stage.
+:::
+
+::: {.callout-warning}
+## Common error: Confusing row and column directions
+With `orientation: rows`, a `width=` on a `##` heading is silently ignored. **Width belongs to columns; height belongs to rows.** An incorrect assignment simply has no effect.
+:::
+
+## 4. Value boxes and content cards
+
+A **value box** is a dashboard's signal light: one number and one semantic color. Use semantic color names such as `success`, `danger`, and `info`, and names from [Bootstrap Icons](https://icons.getbootstrap.com/) for icons.
+
+::: {.callout-example}
+```r
+#| content: valuebox
+#| title: Heaviest penguin (g)
+#| color: success
+list(value = max(penguins$body_mass_g, na.rm = TRUE))
+```
+
+`icon:` and `color:` may be omitted or supplied inside `list()`. A plain Markdown alternative is `::: {.valuebox icon="search" color="info"}`; its body can mix text and inline `` `r ` `` expressions, useful for a label plus a number.
+:::
+
+Cards can hold more than charts: use `knitr::kable()` for a static table or `DT::datatable()` for a sortable table that works entirely in the browser, including on static hosting. **Each card should communicate one thing.**
+
+## 5. Tabsets and sizing
+
+::: {.callout-example}
+````markdown
+## Details {.tabset}
+
+### Summary table
+
+```r
+#| title: Means by species
+penguins |>
+  dplyr::group_by(species) |>
+  dplyr::summarise(mean_bill = mean(bill_length_mm, na.rm = TRUE)) |>
+  knitr::kable(digits = 1)
+```
+````
+
+For a second tab, add `### Scatterplot` followed by a plot block as usual.
+:::
+
+Three size-related controls, under `format: dashboard:` in YAML unless stated otherwise:
+
+- `scrolling: true` allows scrolling instead of squeezing everything into one screen; often useful for analysis.
+- Per-block `#| expansion: true` lets readers expand a card; global `expandable: false` disables expansion.
+
+## 6. Themes and branding: brand.yml and light/dark modes
+
+::: {.callout-example}
+```{.yaml}
+format:
+  dashboard:
+    theme:
+      light: flatly
+      dark: darkly
+brand: _brand.yml   # Quarto ≥ 1.6; share the same brand with Chapter 2.8 reports
+```
+
+Light and dark themes let readers follow their system preference. A `brand.yml` file centralizes colors, fonts, and logos across deliverables. Brand colors take precedence over the theme: establish the brand first, then refine the theme.
+:::
+
+## 7. Publishing a static dashboard
+
+A rendered static dashboard is **HTML plus resources**, so it can use any static host:
+
+```{.bash}
+quarto publish quarto-pub   # One command for coursework and prototypes
+quarto publish gh-pages     # Host alongside a repository on GitHub Pages
+```
+
+For daily-changing data, schedule `quarto render` and publication through GitHub Actions. This gives you a periodically refreshed static dashboard: the scheduled mode in Chapter 2.4 §1.
+
+::: {.callout-warning}
+## A quick check before publishing
+On public static hosting, **data travel with the page and become public**. De-identify personal information first. Host internal data on your organization's intranet, not a public service.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Recreate the §2–§4 penguins dashboard from a blank file: three value boxes for mean body mass, sample size, and species count, plus scatterplot and bar-chart cards. Give every card a title. A successful render meets the requirement.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Move a chart you styled in Chapter 1.8 into a two-page dashboard. Page 1, “Overview,” uses rows of 25%/75% height. Page 2, “Details,” uses a tabset for a summary table and the original chart. Use `width=` to divide columns at least once.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI prohibited):** Design an airline-delay dashboard with `nycflights13::flights`: four KPI value boxes of your choice and one main chart. Before coding, write down the most important number a reader should find within five seconds.
+**Round 2 (AI allowed):** Give Posit Assistant the layout YAML and card titles. Ask only: “Can a reader find that number in five seconds? What distracts their attention?” Record which change you accepted and why.
+:::
+
+## Capstone
+
+**Task:** Choose a health-check, penguins, or nycflights dataset and create a **two-page static dashboard**. Page 1, “Overview,” contains three value boxes and one main chart. Page 2, “Details,” uses a tabset for a `kable` table and a distribution chart. Apply a consistent `brand.yml` theme, publish, and submit a link. Use Quarto Pub for public data; for internal data, submit the rendered directory and screenshots.
+
+| Dimension | Meets expectations | Strong | Excellent |
+|---|---|---|---|
+| Layout | Two pages; no grid overflow | Row/column proportions support reading order | Passes the five-second test with a classmate |
+| Content | KPIs and main chart address the same question | Tabset grouping is logical | Each KPI includes a one-line definition |
+| Theme | Default theme; light/dark modes work | brand.yml takes effect | Shares a brand file with the Chapter 2.8 report |
+| Publication | Renders locally | Published at an accessible link | States data snapshot date and update process |
+
+## SOURCES
+
+| Chapter section | Material | Use |
+|---|---|---|
+| §2–§5 cards, grids, value boxes, and tabsets | posit::conf(2024) quarto-dashboards, `1-hello-dashboards`, `2-dashboard-components` (Mine Çetinkaya-Rundel and teaching assistant team; README: CC-BY 4.0; LICENSE.md: CC-BY-SA 4.0) | Adaptation |
+| §6–§7 themes, publishing, and deployment modes | Same workshop, `3-theming-styling`, `4-parameters-interactivity-deployment`, plus official Quarto Dashboards documentation | Adaptation / reference |
+| brand.yml integration, health-check / nycflights exercises, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

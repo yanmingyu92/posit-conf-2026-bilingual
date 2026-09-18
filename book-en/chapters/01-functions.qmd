@@ -1,0 +1,184 @@
+---
+title: "1.1 Writing Functions"
+objectives: |
+  Refactor repeated code into functions; use arguments, defaults, and return values
+  correctly; decide when to write a function; verify behavior with informal checks.
+source-note: "Teaching structure and exercise design adapted from posit::conf(2025) r-programming (Emma Rand, Garrett Grolemund, Ian Lyttle · CC-BY-SA 4.0); chapter prose is original to this project"
+---
+
+# 1.1 Writing Functions
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **identify** repeated code patterns and explain the rule of three
+2. **write** functions with named arguments, defaults, and explicit `return()` statements
+3. **predict** a function's output for given inputs, including vectorized behavior
+4. **diagnose** two common problems: mismatched arguments and unintended scope dependencies
+5. **evaluate** whether someone else's code deserves a function abstraction (AI integration: use AI as a reviewer)
+
+## Prerequisite check (≤5 minutes)
+
+Complete these two questions independently before continuing; otherwise review the [tidyverse prerequisites](../index.qmd#prerequisites):
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Use `dplyr` to group `palmerpenguins::penguins` by `species` and calculate mean `bill_length_mm`, ignoring missing values.
+2. Explain which argument of the function on the right receives the left-hand value in a `|>` pipe.
+:::
+
+## 1. Why write functions? The rule of three
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+I once copied the same cleaning code 11 times. When the 12th dataset arrived, I discovered a bug in the first 11 copies.
+**Functions are a way to limit the damage, not a badge of advanced programming.**
+:::
+
+**The rule of three**: when you copy the same logic for the third time, extract it into a function.
+
+Three costs of copying and pasting:
+
+| Problem | Consequence |
+|---|---|
+| Fix one copy and miss ten others | Bugs compound |
+| No meaningful name | The code does not explain its intent |
+| No shared test | Every copy requires separate verification |
+
+Functions provide three things: **a name (what it is), arguments (what varies), and a return value (what you receive)**.
+
+## 2. Anatomy of a function
+
+::: {.callout-example}
+A minimal working function:
+
+```r
+mean_bill <- function(data, species) {
+  data |>
+    dplyr::filter(species == {{ species }}) |>
+    dplyr::summarise(mean_bill = mean(bill_length_mm, na.rm = TRUE)) |>
+    dplyr::pull(mean_bill)
+}
+
+mean_bill(palmerpenguins::penguins, "Adelie")   # 38.8
+```
+:::
+
+Three components:
+
+1. **Name**: use a verb or verb phrase (`mean_bill`, rather than `func1`).
+2. **Arguments**: the data, `data`, and the varying choice, `species`. A function combines a fixed procedure with places for inputs to vary.
+3. **Return value**: R returns the last expression by default. **For nontrivial functions, an explicit `return()` is recommended.**
+
+::: {.callout-note}
+`{{ species }}`, known as embracing, is a tidyverse convention for referring to column names inside functions. See [Programming with dplyr](https://dplyr.tidyverse.org/articles/programming.html).
+For now, follow the pattern; Unit 3 develops the underlying ideas.
+:::
+
+## 3. Argument design: defaults and named calls
+
+::: {.callout-example}
+```r
+mean_bill <- function(data, species = "Adelie", digits = 1) {
+  data |>
+    dplyr::filter(.data$species == .env$species) |>
+    dplyr::summarise(mean_bill = mean(bill_length_mm, na.rm = TRUE)) |>
+    dplyr::pull(mean_bill) |>
+    round(digits)
+}
+pg <- palmerpenguins::penguins
+mean_bill(pg)                    # All defaults
+mean_bill(pg, species = "Gentoo")# Named argument; leave digits at its default
+```
+:::
+
+Design guidelines:
+
+- Supply defaults for common uses so the function covers most everyday cases immediately.
+- **Name arguments** when supplying nondefault values. Positional arguments invite future mistakes.
+
+::: {.callout-warning}
+## Common mistake: an argument in the wrong position
+`mean_bill(pg, 1)` does not throw an error! `1` becomes `species`.
+`filter(species == 1)` silently returns an empty table, and `mean()` then produces `NaN`.
+**When unexpected NaN values or zero rows appear, check argument order first.**
+:::
+
+## 4. Think in vectors: let R do the iteration
+
+Many R functions are **vectorized by design**: `round(x)` does not require a for loop.
+
+::: {.callout-example}
+```r
+vals <- c(1.234, 5.678, 9.012)
+# Avoid an unnecessary loop
+for (i in seq_along(vals)) vals[i] <- round(vals[i], 1)
+# Use vectorization directly
+round(vals, 1)
+```
+:::
+
+When **must** you manage iteration yourself? When each step depends on the state from the previous step, as in a monthly rolling forecast. Otherwise, use vectorization or the `map()` tools in Chapter 1.2.
+
+## 5. Scope: a function has its own room
+
+A function first looks for its arguments and local variables. If it cannot find a name, it searches outward through the environment in which it was defined, so it may also read a global variable.
+
+::: {.callout-warning}
+## Common mistake: an unintended global dependency
+```r
+threshold <- 30
+flag_big <- function(x) x[x > threshold]   # Reads a global variable: works here, but creates a dependency
+```
+On another computer or in another script, `threshold` may not exist, and the function fails.
+**Rule: if a function needs something, make it an argument.**
+:::
+
+## 6. Informal testing: check three cases before delivery
+
+Before delivering a new function, check three inputs: a typical value, a boundary value, and an invalid value.
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Write `count_species(data, island)` to return counts by species, and check three cases:
+① typical: `penguins`, `"Biscoe"`; ② boundary: an island that does not exist (predict the result before running it); ③ invalid: `count_species(penguins, 123)`.
+Write three comment lines comparing expected and actual results.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Turn this chapter's `mean_bill()` into `summarize_col(data, col, by, digits)` for any numeric column and grouping column. Requirements: use `{{ }}` for column references, give `digits` a default, and pass the three-case check.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off)**: write `bmi_category(height_cm, weight_kg)` for a health examination dataset. Return a vector of BMI categories using the Chinese thresholds: <18.5 underweight / 18.5–24 normal / 24–28 overweight / ≥28 obese.
+**Round 2 (AI allowed)**: paste your function into Posit Assistant and ask only: “What boundary-value tests should this function have?” Complete the checklist and rerun it.
+Record which boundaries AI suggested that you had missed.
+:::
+
+## Capstone
+
+**Task**: choose a real dataset (class options: health examinations, penguins, or nycflights). Identify **the three most repeated pieces of code** in your analysis script, extract each into a function, and verify each with the three-case check.
+Deliver a one-page Quarto report containing the three functions, a check-results table, and a before-and-after explanation of the abstraction.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Abstraction | All three pieces become functions | Sensible defaults and named arguments | Names explain intent; functions work with new data |
+| Verification | All three cases are present | Expectations are written before execution | At least one boundary bug is found and fixed |
+| Communication | Complete report | Convincing comparison | A personal rule for deciding when to abstract |
+
+## SOURCES · Source mapping
+
+| Section | Material | Use |
+|---|---|---|
+| Structure and exercises in §1–§5 | posit::conf(2025) r-programming `01-functions-*.qmd` (Emma Rand, Garrett Grolemund, Ian Lyttle · CC-BY-SA 4.0) | Adapted |
+| The `{{ }}` convention | Official dplyr Programming with dplyr vignette | Referenced |
+| Chapter prose, Chinese BMI threshold exercise, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

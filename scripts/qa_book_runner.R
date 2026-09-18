@@ -9,7 +9,7 @@ env <- new.env(parent = globalenv())
 if (chapter == '32') {
   library(testthat)
   options(testthat.edition=3)
-  src <- readLines('../../../book/chapters/31-pkg-structure.qmd', encoding='UTF-8')
+  src <- readLines(file.path(Sys.getenv('QA_BOOK_DIR', '../../../book'), 'chapters/31-pkg-structure.qmd'), encoding='UTF-8')
   starts <- which(src == '```r')
   start <- starts[2] + 1
   end <- which(seq_along(src) > start & src == '```')[1] - 1

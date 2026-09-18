@@ -1,0 +1,260 @@
+---
+title: "2.2 Animation with gganimate"
+objectives: |
+  By the end of this chapter, you can judge when animation clarifies or distracts;
+  use transition_states(), transition_reveal(), and transition_time(); adjust
+  motion with ease_aes() and shadows; control timing with animate() and save
+  GIF / MP4 output; and embed animation in Quarto with a non-HTML fallback.
+source-note: "This chapter is entirely original and cites only official documentation: gganimate (https://gganimate.org)."
+---
+
+# 2.2 Animation with gganimate
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **judge** whether animation clarifies or distracts from a data story using the two-column checklist.
+2. **apply** `transition_states()`, `transition_reveal()`, and `transition_time()` with their title placeholders.
+3. **tune** the language of motion using `ease_aes()` and `shadow_mark()` / `shadow_trail()`.
+4. **control** the duration / fps / nframes budget, deriving one from the other two, and render with `animate()`.
+5. **compare** GIF and MP4 size and compatibility, choosing for the delivery channel.
+6. **embed** animation in Quarto while providing static alternatives for PDF and accessibility.
+
+## Prerequisite check (≤5 minutes)
+
+Continue when you can write a grouped ggplot2 scatterplot or line chart; otherwise revisit Chapter 1.7.
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. The same observations have values for 1952 and 2007. Name at least two ways to show both years in a static chart.
+2. Give one example of an animated statistical chart whose movement helped you understand the data, and one where it was merely decorative.
+:::
+
+## 1. When animation clarifies—and when it distracts
+
+Used well, animation lets viewers **see a process**: how a trajectory develops, a gap widens, or a ranking reverses. Static endpoint charts cannot show that process in the same way. Used poorly, animation becomes flicker.
+
+| Animation clarifies ✅ | Animation distracts ⚠️ |
+|---|---|
+| Change over time is central: catching up, surges, paths | A side-by-side static endpoint comparison already tells the story |
+| A few clearly identified subjects or categories | Too many subjects flicker between frames |
+| Viewers need the process, not just the result | Viewers need precise values; motion impairs reading |
+| Readers can pause and replay a web delivery | A time-limited live presentation or poor connection |
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+You are the first audience for an animation. Building it forces you to examine how data change from frame to frame, which is itself analysis. Be honest at delivery: if readers need only the start and end, two static charts respect their time better than ten seconds of animation.
+:::
+
+::: {.callout-note}
+Accessibility reminder: motion can cause discomfort for some readers, and GIFs cannot be paused. A formal deliverable should preferably provide a static version alongside the animation.
+:::
+
+## 2. Three transitions: states / reveal / time
+
+Start with the signature example: country-level points moving through time, colored by continent.
+
+::: {.callout-example}
+```r
+library(ggplot2)
+library(gganimate)
+library(gapminder)
+
+# Without gifski, retain frame images to study transitions; GIF / MP4 export is in §4–§5.
+options(gganimate.renderer = if (requireNamespace("gifski", quietly = TRUE)) {
+  gifski_renderer()
+} else {
+  message("gifski is not installed: preview uses frame images; install it to export GIF.")
+  file_renderer()
+})
+
+anim <- ggplot(gapminder, aes(x = gdpPercap, y = lifeExp,
+                              size = pop, color = continent, group = country)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  scale_x_log10() +
+  labs(title = "Year: {frame_time}") +
+  transition_time(year)
+
+anim
+```
+:::
+
+Placeholders such as `{frame_time}` put information about the current frame in the title. Each transition serves a different data structure:
+
+| Transition | Data structure | Typical question |
+|---|---|---|
+| `transition_time()` | Continuous time; each frame represents a moment | “How does each subject move over time?” |
+| `transition_states()` | Discrete states or categories | “What do the group distributions look like, and how do they transition?” |
+| `transition_reveal()` | Gradual unfolding along a continuous variable | “How did this line develop step by step?” |
+
+Smoothly morph between states:
+
+::: {.callout-example}
+```r
+p_states <- ggplot(gapminder, aes(x = lifeExp, fill = continent)) +
+  geom_density(alpha = 0.6) +
+  labs(title = "Continent: {closest_state}") +
+  transition_states(states = continent,
+                    transition_length = 2, state_length = 1)
+```
+:::
+
+Gradually reveal a line:
+
+::: {.callout-example}
+```r
+ggplot(ggplot2::economics, aes(x = date, y = unemploy)) +
+  geom_line() +
+  geom_point(aes(group = seq_along(date)), size = 1) +  # Reveal points along the line
+  labs(title = "{frame_along}") +
+  transition_reveal(date)
+```
+:::
+
+::: {.callout-note}
+Think of animation as N complete ggplots plus gganimate's interpolation engine. Rendering time and file size therefore grow with frame count. Printing an animation object directly renders 100 frames by default.
+:::
+
+::: {.callout-important}
+## Check In: Placeholders and timing
+
+① Replace the states example's placeholder with `{next_state}`. Does the title lead or lag the display?
+② Before running anything, explain which of `transition_length` and `state_length` controls movement and which controls the pause. Then render with (5, 5) and (1, 5) to check.
+:::
+
+## 3. Easing and shadows: The tone of motion
+
+Easing determines the feel of movement between frames:
+
+::: {.callout-example}
+```r
+p_states + ease_aes(default = "sine-in-out")   # Gentle starts and stops for formal reports
+p_states + ease_aes(default = "bounce-out")    # Playful bouncing: use cautiously
+```
+:::
+
+An easing name combines a base curve (`linear`, `cubic`, `sine`, `exponential`, `back`, `bounce`, …) with a modifier (`-in`, `-out`, `-in-out`). **For data animation, start aesthetically with `cubic-in-out` or `sine-in-out`; `bounce` and `elastic` belong closer to playful graphics.**
+
+Shadows make the past visible:
+
+::: {.callout-example}
+```r
+anim + shadow_mark()                  # Retain past marks to show country trajectories
+anim + shadow_trail(distance = 0.05)  # Evenly spaced trails emphasize motion
+```
+:::
+
+Use `shadow_mark()` to tell a story about **trajectories**, retaining faint past marks. Use `shadow_trail()` to emphasize **movement**; smaller `distance` values create denser trails.
+
+## 4. Timing: duration / fps / nframes
+
+The timing relationship is `nframes = duration × fps`. **Specify at most two**; the third is derived:
+
+::: {.callout-example}
+```r
+if (requireNamespace("gifski", quietly = TRUE)) {
+  animate(anim, duration = 10, fps = 10, renderer = gifski_renderer()) # 100 frames
+  gif <- animate(anim, nframes = 60, fps = 10, renderer = gifski_renderer()) # 6 seconds
+  anim_save("gapminder.gif", animation = gif)
+} else {
+  message("Skipping GIF export: install gifski first.")
+}
+```
+:::
+
+::: {.callout-warning}
+## Common error: Supplying all three timing parameters
+If duration, fps, and nframes are all specified inconsistently, `animate()` reports an error. This asks you to resolve the timing budget. A useful starting point is **8–12 seconds at 10 fps for a data story**; 100 frames is an upper budget for many uses, not an automatic target.
+:::
+
+## 5. Rendering and size: GIF versus MP4
+
+::: {.callout-example}
+```r
+if (requireNamespace("gifski", quietly = TRUE)) {
+  gif <- animate(anim, duration = 10, fps = 10, renderer = gifski_renderer())
+  anim_save("gapminder.gif", animation = gif)
+} else {
+  message("Skipping GIF export: install gifski first.")
+}
+if (requireNamespace("av", quietly = TRUE)) {
+  animate(anim, duration = 10, fps = 10,
+          renderer = av_renderer("gapminder.mp4"))
+} else {
+  message("Skipping MP4 export: install av first.")
+}
+if (all(file.exists(c("gapminder.gif", "gapminder.mp4")))) {
+  file.size("gapminder.gif") / file.size("gapminder.mp4")
+}
+```
+:::
+
+| Format | Compression | Size | Compatibility |
+|---|---|---|---|
+| GIF | Frame-based, 256-color palette | Large | Broadest; works in an `<img>` |
+| MP4 (H.264) | Compression between frames | Often an order of magnitude smaller | Web `<video>`; email support varies |
+
+For straightforward HTML embedding, GIF is convenient. When size matters, such as email or pages with several animations, use MP4. Watch for banding from the GIF palette in gradient-based charts.
+
+## 6. Embedding animation in Quarto
+
+In an executable code cell, `animate()` or printing an animation object embeds it in HTML output and allows cross-referencing:
+
+::: {.callout-example}
+````markdown
+```r
+#| label: fig-lifeexp
+#| fig-cap: "Life expectancy and GDP per capita (1952–2007)"
+animate(anim, duration = 10, fps = 10, width = 720, height = 405)
+```
+````
+:::
+
+::: {.callout-warning}
+## Common misconception: Forgetting Word and PDF readers
+GIFs **do not animate** in Word / PDF output. Provide a static version by removing the transition layer from the ggplot or using `facet_wrap()`. Ensure the written conclusion does not require having watched the animation.
+:::
+
+Both frame count and resolution increase file size. Use `anim_save()` and inspect `file.size()` before finalizing embedding parameters; do not let one high-resolution, 100-frame animation overwhelm the document.
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Repeat the signature animation in §2 and the §4 call to `animate(duration = 10, fps = 10)` followed by `anim_save("gapminder.gif")`. Record the actual frame count and GIF size in MB.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Render the states chart with `ease_aes(default = "sine-in-out")` and `"bounce-out"`, using 30 frames each. Explain which suits a formal report and why. Then add `shadow_mark()` to the §2 time animation. In two lines, explain how retaining past marks changes your understanding of the 2007 endpoint.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI off → AI review)
+
+**Round 1 (AI prohibited):** Choose unemploy, psavert, or uempmed from `ggplot2::economics` and build a reveal animation. Use `{frame_along}` in the title, reveal points along the line, and keep `nframes` ≤ 60. Save with `anim_save()` and embed it in a Quarto HTML page.
+**Round 2 (AI allowed):** Give Posit Assistant the nframes / fps / width / height settings. Ask only: “How much could I reduce the file size, and what would I lose?” Record one suggestion you adopted and verified by measurement.
+:::
+
+## Capstone
+
+**Task: “A ten-second data story.”** Choose data that truly change over time: a gapminder subset, economics, or your own dataset. Deliver one Quarto HTML page containing: ① a 200-word explanation of why the story deserves animation, using the §1 checklist; ② an animation lasting ≤10 seconds, with one of the three transitions and deliberate easing and shadows; ③ rendering decisions, including GIF or MP4, nframes/fps, and measured file size; ④ a static endpoint comparison for PDF readers.
+
+| Dimension | Meets expectations | Strong | Excellent |
+|---|---|---|---|
+| Narrative judgment | Explains why the chart moves | Supports the choice using §1 | Includes evidence from first trying a static alternative |
+| Implementation | Correct transition syntax | Easing and shadows serve the narrative | Placeholders, legends, and scales are consistent |
+| Timing and size | Animation renders | Explicit nframes/fps budget | Measured GIF versus MP4 comparison with file.size |
+| Publication fit | Plays correctly in HTML | Provides a static fallback | States accessibility limits, including inability to pause and motion discomfort |
+
+## SOURCES
+
+| Chapter section | Material | Use |
+|---|---|---|
+| Structure, examples, exercises, capstone, and rubric | This project | Original |
+| `transition_*()`, `shadow_*()`, `ease_aes()`, and `animate()` | Official gganimate documentation, https://gganimate.org | Reference |
+| gapminder and economics data | gapminder / ggplot2 R packages; used only for practice | Data |
+
+This chapter is published under CC-BY-SA 4.0.

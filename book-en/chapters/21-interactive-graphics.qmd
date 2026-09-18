@@ -1,0 +1,215 @@
+---
+title: "2.1 Interactive Graphics with plotly"
+objectives: |
+  By the end of this chapter, you can distinguish explanation from exploration;
+  convert an existing ggplot2 plot with ggplotly() and explain its limits;
+  customize tooltips; arrange panels with subplot(); save widgets and weigh
+  the cost of self-contained files; and decide when interaction is unnecessary.
+source-note: "This chapter is entirely original and cites only official documentation: Interactive web-based data visualization with R, plotly, and shiny (Carson Sievert, https://plotly-r.com)."
+---
+
+# 2.1 Interactive Graphics with plotly
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **distinguish** explanation from exploration and match hover, zoom, and filtering to each purpose.
+2. **convert** an existing ggplot2 plot into an interactive widget with `ggplotly()` and explain the conversion limits.
+3. **customize** hover information into a compact table using a `text` mapping and the `tooltip` argument.
+4. **arrange** multiple interactive panels with `subplot()` and `layout()`.
+5. **persist** a shareable web page with `htmlwidgets::saveWidget()` and weigh the cost of `selfcontained` output.
+6. **decide** when print, PDF, accessibility, or other delivery constraints rule out interaction.
+
+## Prerequisite check (≤5 minutes)
+
+Continue when you can write a ggplot2 scatterplot with three mappings without help; otherwise revisit Chapter 1.7.
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Without looking anything up, write the skeleton of `ggplot(penguins, aes(...)) + geom_point()`, mapping one variable each to x, y, and color.
+2. Recall the last time you actually used hover or zoom to inspect a chart. What question were you trying to answer?
+:::
+
+## 1. What is interaction for? Explore versus explain
+
+A static chart is **author-directed**: you establish the conclusion and use color and annotation to guide attention toward it. An interactive chart is **reader-directed**: you hand over some control, allowing readers to hover, zoom, filter, and ask their own questions. Establish the purpose before coding:
+
+- **Explore**: the reader, often you, needs to find patterns, inspect anomalies, or follow individual observations. Interaction is a tool for efficient investigation.
+- **Explain**: the conclusion is already clear. Interaction supplies context, such as details on hover, while your narrative remains central.
+
+Match the three core affordances to their purposes:
+
+| Affordance | Question answered | Typical setting |
+|---|---|---|
+| Hover | “Which observation is this, and what is its value?” | Dense points requiring IDs and values |
+| Zoom | “What is happening in the dense region or long tail?” | Overlapping points or urban hotspots |
+| Filter / legend selection | “What if I look only at this group?” | Group comparisons and subset-specific stories |
+
+Ask three questions: Do readers need to **look up values**? Are **dense regions** important? Do they need to **choose subsets themselves**? If all three answers are no, you can stop here and use a static chart.
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Interactive graphics are a different form, rather than an upgraded version of static graphics: a static chart resembles an argument; an interactive chart resembles a tool. Forcing either into the other's role serves neither well. **Choose the form before the tool.** Most reports need only one or two genuinely useful interactive charts; keep the rest static.
+:::
+
+## 2. `ggplotly()`: A one-line entry point and its limits
+
+::: {.callout-example}
+```r
+library(ggplot2)
+library(plotly)
+
+p <- ggplot(palmerpenguins::penguins,
+            aes(x = bill_length_mm, y = bill_depth_mm, color = species)) +
+  geom_point(size = 2, alpha = 0.8)
+
+ggplotly(p)
+```
+:::
+
+You immediately gain hover values, wheel zoom, drag-to-pan, and legend selection as a built-in filter. The camera icon in the upper-right modebar also exports a PNG, providing an escape route for static delivery.
+
+::: {.callout-warning}
+## Common misconception: Treating ggplotly as a lossless converter
+`ggplotly()` is a best-effort translation, not an exact copy. Theme details, some extension geoms, and complex guides may be lost or altered. Conversion itself slows with large datasets because each layer must be serialized to JSON. **For tens of thousands of points, try `toWebGL(ggplotly(p))` for WebGL rendering, or return to an aggregated static chart.**
+:::
+
+::: {.callout-note}
+This book emphasizes reusing your ggplot2 work: first get the chart right with ggplot2 (Chapters 1.7–1.8), then apply `ggplotly()` when interaction helps. Plotly also offers native `plot_ly()` syntax for building interactive charts directly; see https://plotly-r.com.
+:::
+
+## 3. Custom tooltips: A small table on hover
+
+The default tooltip is a machine-oriented list of `x / y / color`. To customize it, combine the information you want with `paste0()` inside a `text` mapping, then ask `ggplotly()` to display only that mapping:
+
+::: {.callout-example}
+```r
+p <- ggplot(palmerpenguins::penguins,
+            aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point(aes(
+    color = species,
+    text = paste0(species, " · ", island, "\n",
+                  "Bill length ", bill_length_mm, " mm / bill depth ",
+                  bill_depth_mm, " mm")
+  ), size = 2)
+
+ggplotly(p, tooltip = "text")
+```
+:::
+
+Quick reference for `tooltip`: `"text"` displays only your text; `c("x", "text")` combines fields; `"none"` disables the tooltip entirely, reducing noise from decorative layers.
+
+::: {.callout-note}
+`text` is a ggplot2 aesthetic that static rendering ignores. The same `p` can therefore produce both static and interactive charts—the benefit of getting the chart right before adding interaction.
+:::
+
+::: {.callout-important}
+## Check In: Subtracting from a tooltip
+
+Change the example so hover displays **only** “species · island,” with no numbers. Then change it to `tooltip = c("x", "text")`. Describe to a classmate which readers each version serves: identifying observations versus checking values.
+:::
+
+## 4. subplot and layout: Arranging multiple panels
+
+Convert each of two charts with `ggplotly()`, place them beside one another with `subplot()`, and use `layout()` for the overall title and other layout details:
+
+::: {.callout-example}
+```r
+p1 <- ggplot(palmerpenguins::penguins,
+             aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point(aes(color = species), size = 2)
+
+p2 <- ggplot(palmerpenguins::penguins,
+             aes(x = species, y = flipper_length_mm, fill = species)) +
+  geom_boxplot(show.legend = FALSE)
+
+subplot(ggplotly(p1), ggplotly(p2), nrows = 1,
+        titleX = TRUE, titleY = TRUE, margin = 0.04) |>
+  layout(title = "Penguin measurements: relationships and distributions")
+```
+:::
+
+::: {.callout-warning}
+## Common misconception: Replacing facets with subplot
+For comparisons across facets, start with static `facet_wrap()` (Chapter 1.7): its meaning is clear and its legends are consistent. The distinctive use for subplot is **independent interaction within each panel**, including separate zoom and hover. Also, subplot drops axis titles by default; restore them with `titleX = TRUE, titleY = TRUE`.
+:::
+
+## 5. Saving and sharing: saveWidget and self-contained files
+
+In an executable Quarto HTML document, `ggplotly()` output is embedded directly and needs no separate save step. For **standalone sharing**, such as an email attachment or an intranet page, use:
+
+::: {.callout-example}
+```r
+fig <- ggplotly(p)
+
+htmlwidgets::saveWidget(fig, "penguins-scatter.html")          # Self-contained file
+htmlwidgets::saveWidget(fig, "penguins-scatter-lib.html",
+                        selfcontained = FALSE)                 # HTML + dependency directory
+file.size("penguins-scatter.html") / file.size("penguins-scatter-lib.html")
+```
+:::
+
+| Mode | Output | Benefit | Cost |
+|---|---|---|---|
+| `selfcontained = TRUE` (default) | One .html file | One file to share | Base64-embedded dependencies often make it several times larger |
+| `selfcontained = FALSE` | .html + `_files/` directory | Smaller HTML; dependencies can be shared | The whole directory must travel with the file |
+
+::: {.callout-warning}
+## Common error: Copying only the HTML
+With `selfcontained = FALSE`, sending the .html without its adjacent dependency directory can leave the recipient with a blank page. **Use self-contained output for email; use directory-based output for web hosting or several widgets sharing dependencies.**
+:::
+
+## 6. When to avoid interaction: A decision table
+
+| Delivery setting | Recommendation | Reason |
+|---|---|---|
+| Journal article / PDF report | Static | PDF does not execute JavaScript |
+| Printed material | Static | Paper cannot respond to hover |
+| Large-screen presentation | High-resolution static | The presentation schedule leaves little room for live exploration |
+| Web page / dashboard (Chapters 2.3–2.4) | Interactive | Readers have a browser and time |
+| Strong accessibility requirements | Static + alternative text | Canvas content is inaccessible to screen readers |
+| More than 50,000 points | Aggregate first / WebGL | A browser is not a database |
+
+Fallback rule: place a static thumbnail or data table beside important interactive graphics. The main conclusion must hold **without requiring readers to hover**.
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Repeat §2 and §5: create the interactive penguins scatterplot, save a self-contained file with `saveWidget()`, report its size in MB using `file.size()/1e6`, and have a classmate actually open it. “It looks fine on my computer” is insufficient.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Change the §3 tooltip to multiline text containing “species · island · bill length/bill depth in mm,” with no default x/y clutter. Extend §4 to a 1×3 subplot, using a `flipper_length_mm` boxplot of your choice for the third panel. Write one sentence explaining which two panels should not share a y-axis scale.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI off → AI review)
+
+**Round 1 (AI prohibited):** Choose a real static chart from your field, or any two variables from the class dataset nycflights13. First answer the §6 decision questions in writing: should it be interactive, for whom, and in which deliverable? Then implement an interactive version with a custom tooltip and legend filtering. Use `toWebGL()` if the point count warrants it, then `saveWidget()`.
+**Round 2 (AI allowed):** Give Posit Assistant the code and a screenshot. Ask only: “Which of these three affordances is mainly satisfying my own enthusiasm?” Record its answer and explain whether you agree.
+:::
+
+## Capstone
+
+**Task: “One delivery, two forms.”** Return to your Unit 1 report, or choose three static charts you have made. Complete the §6 decision table for each, then upgrade the single strongest candidate into a web widget. Customize its tooltip, use `toWebGL()` if needed, save both `selfcontained` modes, and report their sizes. Deliver a one-page Quarto report containing the static chart, a link to the interactive HTML, and your decision rationale.
+
+| Dimension | Meets expectations | Strong | Excellent |
+|---|---|---|---|
+| Decision quality | Clear recommendation for all three charts | Reasons cite affordances and delivery constraints | Rejects an attractive but unnecessary interactive option |
+| Implementation | ggplotly runs | Custom tooltip is readable | WebGL / multiple panels serve a clear purpose |
+| Engineering and size | Saved HTML opens | Compares file sizes for both modes | Chooses and explains a mode for the sharing context |
+| Honest boundaries | Provides a static fallback | Explains print and accessibility limits | Supplies alternative text or a data table |
+
+## SOURCES
+
+| Chapter section | Material | Use |
+|---|---|---|
+| Structure, examples, exercises, capstone, and rubric | This project | Original |
+| `ggplotly()`, tooltip customization, `subplot()`, `toWebGL()`, and widget saving | plotly for R (Carson Sievert), https://plotly-r.com | Reference |
+| penguins data | palmerpenguins R package; used only for practice | Data |
+
+This chapter is published under CC-BY-SA 4.0.

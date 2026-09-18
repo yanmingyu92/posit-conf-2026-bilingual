@@ -6,7 +6,9 @@ options(repos = c(CRAN = "https://cloud.r-project.org"),
         usethis.quiet = TRUE, usethis.overwrite = TRUE)
 Sys.setenv(NOT_CRAN = "true")
 repo <- normalizePath(getwd(), winslash = "/")
-dir.create(file.path(repo, ".qa"), showWarnings = FALSE)
+evidence <- file.path(repo, Sys.getenv("QA_EVIDENCE_DIR", ".qa"))
+book_dir <- file.path(repo, Sys.getenv("QA_BOOK_DIR", "book"))
+dir.create(evidence, showWarnings = FALSE, recursive = TRUE)
 results <- data.frame(block = character(), status = character(), detail = character())
 record <- function(block, expr) {
   tryCatch({
@@ -17,7 +19,7 @@ record <- function(block, expr) {
   })
 }
 blocks <- function(prefix) {
-  path <- list.files(file.path(repo, "book/chapters"),
+  path <- list.files(file.path(book_dir, "chapters"),
                      pattern = paste0("^", prefix, "-.*[.]qmd$"), full.names = TRUE)
   lines <- readLines(path, encoding = "UTF-8", warn = FALSE)
   starts <- which(lines == "```r")
@@ -71,7 +73,7 @@ record("32:4", {
 })
 record("32:5 (non-IDE lines)", {
   pkgcov <- covr::package_coverage()
-  covr::report(pkgcov, file = file.path(repo, ".qa/scorekit-coverage.html"), browse = FALSE)
+  covr::report(pkgcov, file = file.path(evidence, "scorekit-coverage.html"), browse = FALSE)
 })
 setwd(repo)
 # A separate R process prevents renv from replacing the test harness library.
@@ -92,11 +94,11 @@ writeLines(c(
 record("48:1", {
   status <- system2(file.path(R.home("bin"), "Rscript.exe"),
                     c("--vanilla", shQuote(renv_script)),
-                    stdout = file.path(repo, ".qa/renv-smoke.log"), stderr = "")
+                    stdout = file.path(evidence, "renv-smoke.log"), stderr = "")
   stopifnot(status == 0L)
 })
 record("48:2", eval(parse(text = blocks("48")[[2]])))
-write.csv(results, file.path(repo, ".qa/project-results.csv"), row.names = FALSE)
+write.csv(results, file.path(evidence, "project-results.csv"), row.names = FALSE)
 print(results, row.names = FALSE)
 cat("Isolated project path:", work, "\n")
 if (any(results$status == "FAILED")) quit(status = 1)

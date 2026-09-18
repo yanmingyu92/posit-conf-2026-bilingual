@@ -1,0 +1,11 @@
+# Unit 3 · Package Development — Chapter Map
+
+> From a script that runs to code that others can trust.
+> By the end of this unit, package code from the first two units into a documented and tested R package.
+
+| Chapter | Topic | Source anchor | Matrix | Status |
+|---|---|---|---|---|
+| [3.1](chapters/31-pkg-structure.qmd) | Package Structure | pkg-dev(2025) | A-L2 | Published |
+| [3.2](chapters/32-unit-testing.qmd) | Unit Testing | pkg-dev(2025) | A-L2 | Published |
+| [3.3](chapters/33-debugging.qmd) | Debugging | modern-r-workflow 01 + positron debug.R | A-L2 | Published |
+| [3.4](chapters/34-code-speed.qmd) | Code Speed & Benchmarking | Original | A-L3 | Published |

@@ -1,0 +1,17 @@
+# Unit 1 · Complex Analyses — Chapter Map
+
+> From using functions to writing them, then handling data that does not come in a CSV.
+> By the end of this unit, present visual and statistical insights from a dataset of your choice in a publication-ready Quarto document.
+
+| Chapter | Topic | Source anchor | Matrix | Status |
+|---|---|---|---|---|
+| [1.1](chapters/01-functions.qmd) | Writing Functions | r-programming(2025) | B-L1 | Published |
+| [1.2](chapters/12-iteration.qmd) | Iteration (purrr) | r-programming(2025) 03–04 | B-L1 | Published |
+| [1.3](chapters/13-efficient-code.qmd) | Efficient Code | Original | B-L2 | Published |
+| [1.4](chapters/14-json-apis.qmd) | JSON & APIs | Original | B-L2 | Published |
+| [1.5](chapters/15-web-scraping.qmd) | Web Scraping | Original | B-L2 | Published |
+| [1.6](chapters/16-great-tables.qmd) | Great Tables | modern-ds-python | D-L2 | Published |
+| [1.7](chapters/17-alt-geoms.qmd) | Non-Standard Geoms | ggplot2(2025) | D-L2 | Published |
+| [1.8](chapters/18-styled-plots.qmd) | Styled Plots | ggplot2(2025)+quarto-brand | D-L2 | Published |
+
+Every chapter includes exercises and a capstone with a rubric.

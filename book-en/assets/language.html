@@ -1,0 +1,11 @@
+<nav class="book-language" aria-label="Book language"><a id="book-language-link" href="../index.html" lang="zh-CN" hreflang="zh-CN">中文版</a></nav>
+<script>
+(() => {
+  const link = document.getElementById("book-language-link");
+  const current = new URL(window.location.href);
+  const match = current.pathname.match(/(?:chapters\/)?[^/]+\.html$/);
+  const page = match ? match[0] : "index.html";
+  const prefix = page.startsWith("chapters/") ? "../" : "";
+  link.href = prefix + "../" + page;
+})();
+</script>

@@ -1,0 +1,240 @@
+---
+title: "2.7 Shiny Reactive Design"
+objectives: |
+  By the end of this chapter, you can draw reactive dependency graphs; choose
+  among reactive(), eventReactive(), and observe(); avoid performance traps
+  with isolate(); build reusable modules; organize an app with a lightweight
+  golem-style structure; and debug with reactlog.
+source-note: "Teaching structure adapted from posit::conf(2025) shiny-r Reactivity slides (Colin Rundel; README: CC-BY 4.0; LICENSE.md: CC-BY-SA 4.0) and posit::conf(2024) level-up-shiny modules/slow-app materials (Garrick Aden-Buie; README: CC-BY 4.0; LICENSE.md: CC-BY-SA 4.0). Chapter prose and exercises are original to this project."
+---
+
+# 2.7 Shiny Reactive Design
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **model** a Shiny app as what the UI presents and how the server computes.
+2. **draw** a reactive dependency graph from inputs through conductors to outputs.
+3. **select** among `reactive()`, `eventReactive()`, and `observe()` using a decision table.
+4. **optimize** by separating reactive responsibilities and using `isolate()`.
+5. **modularize** functionality with `NS()` and `moduleServer()` for reuse.
+6. **debug** invalidation and recomputation by inspecting `reactlog`.
+
+## Prerequisite check (≤5 minutes)
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Write a minimal Shiny app from memory using `selectInput()`, `renderPlot()`, and `shinyApp()`.
+2. Do you read an input in the server with `input$x` or `input$x()`? If unsure, revisit [Chapter 2.4](24-dashboards-dynamic.qmd).
+:::
+
+## 1. The UI/server mental model: Front of house and kitchen
+
+- **ui, the front of house:** what appears on the page—input controls, output placeholders, and layout.
+- **server, the kitchen:** how results are produced—receiving inputs, processing them, and returning outputs.
+
+The key idea is that **the server declares relationships; it is not a script that simply runs once**. When an input changes, Shiny recalculates only the “dishes” that depend on it, inferring those dependencies automatically.
+
+## 2. Reactive graphs: Sources → conductors → endpoints
+
+| Role | Code form | Responsibility |
+|---|---|---|
+| Source | `input$*` | Produces data without consuming upstream data |
+| Conductor | `reactive({...})` | Consumes upstream data and supplies values downstream |
+| Endpoint | `output$*` / `observe()` | Consumes upstream data and produces side effects |
+
+::: {.callout-example}
+```r
+library(shiny)
+library(ggplot2)
+flights <- nycflights13::flights
+
+server <- function(input, output, session) {
+  d_city <- reactive({                       # Conductor: compute in one place
+    dplyr::filter(flights, origin == input$origin)
+  })
+  output$plot <- renderPlot({                # Endpoints: reuse in two places
+    ggplot(d_city(), aes(dep_delay)) + geom_histogram(bins = 50)
+  })
+  output$minmax <- renderTable(dplyr::summarise(d_city(), n = dplyr::n()))
+}
+```
+When upstream `input$origin` changes, `d_city()` is invalidated and both downstream outputs recompute. This is invalidation on dependency change. The shiny-r workshop's rule is: **redraw the reactive graph whenever you add server code; draw before you code**.
+:::
+
+::: {.callout-warning}
+## Common error: `closure is not subsettable`
+Call a conductor **with parentheses**: `d_city()` is correct; `d_city` returns the function object. Applying `$` or `[` to that function then fails. **When you see a closure error, check first for missing `()`.**
+:::
+
+## 3. Choosing reactive(), eventReactive(), or observe()
+
+Ask only two questions: **Do I need a return value? Should every dependency change trigger the work?**
+
+| Tool | Returns a value | Trigger | Purpose |
+|---|---|---|---|
+| `reactive()` | Yes | Any dependency changes | Compute a reusable intermediate value |
+| `eventReactive(a, ...)` | Yes | Only `a` changes | Lazy computation controlled by an event, such as a button |
+| `observe()` | No | Any dependency changes | Side effects, such as updating UI or writing logs |
+| `observeEvent(a, ...)` | No | Only `a` changes | Event-controlled side effects |
+
+::: {.callout-example}
+```r
+server <- function(input, output, session) {
+  fit <- eventReactive(input$go, {   # Fit only when the button is clicked, not when the slider moves
+    lm(mpg ~ poly(wt, input$degree), data = mtcars)
+  })
+  output$coef <- renderPrint(summary(fit()))
+  observe({                          # Side effect: reset the slider; no return value
+    input$dataset
+    updateSliderInput(session, "degree", value = 1)
+  })
+}
+```
+:::
+
+Choose in this order: **a returned value points to the reactive family; an explicit trigger points to the event family**. These two questions resolve most uncertainty.
+
+## 4. Performance traps: An oversized reactive and missing isolate()
+
+::: {.callout-warning}
+## Common error: A giant reactive with hidden dependencies
+Put data reading, modeling, and plotting in one `reactive()` and every input change can rerun the entire chain—even a title change. **The symptom: editing a label makes the plot stall for three seconds.**
+:::
+
+Use two remedies: **separate responsibilities**, with distinct reactives for reading, processing, and modeling to limit invalidation; and **use `isolate()` to exclude secondary dependencies**, reading a value without establishing a reactive dependency.
+
+::: {.callout-example}
+```r
+server <- function(input, output, session) {
+  d <- reactive(readRDS(input$dataset))          # Depends only on the dataset choice
+  output$plot <- renderPlot({
+    ggplot(d(), aes(x = .data[[input$xvar]])) +  # An x-axis change appropriately redraws the plot
+      geom_histogram(bins = isolate(input$bins)) # Read bins without a dependency
+  })
+}
+```
+`.data[[input$xvar]]` is the standard way to select a ggplot column through a **variable containing its name**. The rlang `.data` pronoun avoids the complexity of `{{ }}` for this case.
+:::
+
+## 5. Modules as namespaces: NS() and moduleServer()
+
+Consider a module when the second instance of the same interface appears. A module is fundamentally a **namespace**: a pair of functions packages UI IDs and server logic, allowing repeated instances without crossed connections.
+
+::: {.callout-example}
+```r
+hist_ui <- function(id, data) {              # The UI function receives an id
+  ns <- NS(id)                         # Pass every local ID through ns()
+  wellPanel(
+    selectInput(ns("col"), "Column", choices = names(data)),
+    plotOutput(ns("hist"))
+  )
+}
+hist_server <- function(id, data) {    # Data enter only through arguments
+  moduleServer(id, function(input, output, session) {
+    output$hist <- renderPlot({
+      ggplot(data, aes(x = .data[[input$col]])) + geom_histogram(bins = 30)
+    })
+  })
+}
+# Two instances: different IDs create independent namespaces
+iris_num <- iris |> dplyr::select(tidyselect::where(is.numeric))
+ui <- fluidPage(hist_ui("a", mtcars), hist_ui("b", iris_num))
+server <- function(input, output, session) {
+  hist_server("a", mtcars)
+  hist_server("b", iris_num)
+}
+shinyApp(ui, server)
+```
+The module contract has three parts: **the UI function receives `id`; the server function uses `moduleServer()`; data cross module boundaries only through arguments**. Do not reach into another module's `input`.
+:::
+
+## 6. golem-lite: A structure your app can grow into
+
+Strip the scaffolding from golem's project conventions and you get a lightweight **golem-lite** structure:
+
+```text
+myapp/
+├── app.R           # Assembly only: source R/ files, then shinyApp(ui, server)
+├── R/
+│   ├── ui.R        # Page layout
+│   ├── server.R    # Connections only; delegate the logic
+│   ├── mod_hist.R  # One file per module, using the mod_ prefix
+│   └── fct_stats.R # Non-reactive pure functions, using the fct_ prefix
+└── tests/          # Preview of Unit 3: a home for shinytest2
+```
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Aim to keep `app.R` under 100 lines. A practical rule: **split files when the app spans more than two screens, and extract a module when a control pattern appears a second time**. Golem-lite is about finding your code three months later, not following a ceremony.
+:::
+
+## 7. Seeing reactivity with reactlog
+
+`reactlog` makes invalidation, recomputation, and timing visible in a replayable visualization.
+
+::: {.callout-example}
+```r
+reactlog::reactlog_enable()   # ① Enable recording before starting the app
+shiny::runApp("myapp/")       # ② Use the app and change several inputs
+shiny::reactlogShow()         # ③ Replay the dependency graph after stopping the app
+```
+Remember: **enable before starting; show after stopping**. Faded nodes indicate invalidation; illuminated nodes indicate recomputation.
+:::
+
+::: {.callout-important}
+## Check In: Three quick decisions
+
+Choose a tool for each requirement and give a one-line reason: ① recalculate a summary table whenever a slider changes; ② generate a CSV only when “Download” is clicked; ③ write one log entry whenever an input changes. Hint: ② and ③ differ in whether a value must be returned.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+This server repeats the same filtering logic twice:
+
+```r
+server <- function(input, output, session) {
+  output$t1 <- renderTable(dplyr::filter(mtcars, cyl == input$cyl))
+  output$t2 <- renderTable(nrow(dplyr::filter(mtcars, cyl == input$cyl)))
+}
+```
+
+Draw its reactive graph in three columns: inputs, conductors, and outputs. Extract the repeated filter into one `reactive()`, then redraw the graph to check that the duplication is gone.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Add `textInput("title", ...)` to the Practice 1 app. Use `isolate()` to ensure a title change does **not** refilter the data. Verify with reactlog that the filter node no longer recomputes on title changes. Submit before/after reactlog screenshots.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI-off stage)
+
+**Round 1 (AI prohibited):** Using only this chapter and `?moduleServer`, extend the §5 `hist` module into a `scatter` module with two column selectors for x/y and a color selector. Keep all logic inside the module and instantiate it twice in one app, with IDs `main` and `side`. Do not consult any AI assistant.
+**Round 2 (AI allowed):** Give Posit Assistant the code and ask only: “Does my module violate the contract that data cross module boundaries only through arguments?” Record its findings.
+:::
+
+## Capstone
+
+**Task:** Take over a troubled app: the class provides `messy_app.R`, a 180-line file with one giant reactive, three copy-pasted sections, and no modules. Refactor in three stages: ① draw the current reactive graph; ② split files using golem-lite, separate reactive responsibilities, and add `isolate()` where appropriate; ③ extract repeated functionality into a module and instantiate it twice. Deliver the refactored project, before/after reactlog replays, and a one-page refactoring note.
+
+| Dimension | Meets expectations | Strong | Excellent |
+|---|---|---|---|
+| Reactive design | Correct graph and extracted reactive | Clearly reduces invalidation scope | Quantifies reduced recomputation with reactlog |
+| Modules | Extracts one module | Two instances operate independently | Clean contract: all data enter through arguments |
+| Project structure | Splits files following golem-lite | Follows mod_/fct_ naming | server.R contains only connections, with all logic delegated |
+| Rationale | Complete refactoring note | Each change cites a chapter principle | Provides a roadmap for the next refactoring step |
+
+## SOURCES
+
+| Chapter section | Material | Use |
+|---|---|---|
+| §1–§3 sources/conductors/endpoints, `.data`, and reactlog | posit::conf(2025) shiny-r, `slides/02-Reactivity.qmd` (Colin Rundel; README: CC-BY 4.0; LICENSE.md: CC-BY-SA 4.0) | Adaptation |
+| §4–§6 modules, slow-app diagnosis, and app organization | posit::conf(2024) level-up-shiny, `09_modules`, `12_slow_app`, “Organizing your Shiny apps” (Garrick Aden-Buie; README: CC-BY 4.0; LICENSE.md: CC-BY-SA 4.0) | Adaptation |
+| Decision table, golem-lite structure, exercises, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

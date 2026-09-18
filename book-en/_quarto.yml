@@ -5,12 +5,12 @@ project:
     - downloads/
 
 book:
-  title: "现代 R 进阶"
-  subtitle: "Modern R in Practice · 从分析脚本到可信赖的交付物"
+  title: "Modern R in Practice"
+  subtitle: "From Analysis Scripts to Reliable Deliverables"
   author: "Jaime Yan"
   cover-image: assets/cover.svg
-  description: "面向已有 R 基础的分析人员，以交付任务串联分析、可视化、应用与软件工程，并提供临床研究和制药领域的阅读路径。"
-  site-url: "https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/"
+  description: "A practical book for R users with foundational skills, connecting analysis, visualization, applications, and software engineering, with a clinical and pharmaceutical reading path."
+  site-url: "https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/"
   repo-url: "https://github.com/yanmingyu92/posit-conf-2026-bilingual"
   chapters:
     - index.qmd
@@ -53,7 +53,7 @@ book:
         - chapters/46-shinychat.qmd
         - chapters/47-clinical-reporting.qmd
         - chapters/48-regulated-gxp.qmd
-    - part: "Appendix · 附录"
+    - part: "Appendix"
       chapters:
         - further-reading.qmd
         - unit-1-map.qmd
@@ -67,7 +67,7 @@ book:
 format:
   html:
     theme: cosmo
-    lang: zh-CN
+    lang: en
     toc: true
     callout-icon: true
     number-sections: false

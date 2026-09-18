@@ -10,6 +10,8 @@ website:
     left:
       - text: "书籍"
         href: book/index.html
+      - text: "English Book"
+        href: book/en/index.html
       - text: "配套训练"
         file: training.qmd
       - text: "参考资料库"

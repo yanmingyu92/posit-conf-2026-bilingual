@@ -1,0 +1,198 @@
+---
+title: "4.8 R in GxP Environments"
+author: "Jaime Yan"
+objectives: |
+  Explain traceability, change control, and validation evidence for analysis
+  environments; choose validation depth by risk; pin environments with renv
+  and dated CRAN-like snapshots; design minimum viable governance from
+  research through development to GxP; specify guardrails for AI use.
+source-note: "Themes and structure adapted from posit::conf(2026) r-pharma-regulated (Mike Smith, Casey Johnson, Satish Murthy, Nicole Jones, Michael Mayer) and posit::conf(2025) reproducible-environments, under CC-BY-SA 4.0. Explanatory prose is original to this project."
+---
+
+# 4.8 R in GxP Environments
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **define** GxP, Good 'x' Practice, and three analysis-environment requirements: traceability, change control, and validation evidence.
+2. **differentiate** risk-based validation by intended use and package quality rather than applying one depth everywhere, following R Validation Hub thinking.
+3. **configure** renv lockfiles and dated CRAN-like repository snapshots for restorable environments.
+4. **design** minimum viable governance across research → dev → GxP.
+5. **justify** AI guardrails: human accountability, recorded prompts and outputs, and no PHI sent to external models.
+
+## Prerequisite check (≤5 minutes)
+
+- Have used `git commit`; otherwise revisit chapter 3.1.
+- Know that default `install.packages()` obtains currently available CRAN packages.
+
+::: {.callout-important}
+## Check In: prerequisites
+
+Could a colleague reproduce last week's analysis exactly on a new computer today? List three uncertainties: R version, package versions, system libraries, or others. This chapter addresses them in turn.
+:::
+
+## 1. GxP concerns process evidence
+
+GxP covers Good Laboratory, Clinical, Manufacturing, and related practices. For analysis code, R itself is not prohibited; open-source tools are already used in submissions. The central requirement is **evidence about the process**:
+
+| Requirement | Meaning | Application to R |
+|---|---|---|
+| Traceability | Connect every result to code, data, and environment | Version control, review, environment lockfile |
+| Change control | Authorized, recorded changes with impact assessment | Branch/PR workflow and repository snapshots |
+| Validation evidence | Written evidence that the system works as intended | Risk-based validation, §2 |
+
+::: {.callout-note}
+FDA 21 CFR Part 11, covering electronic records and signatures, and ICH E6, covering GCP, are common reference points for these requirements. This chapter explains general principles; it does not replace your organization's QA decisions or SOPs.
+:::
+
+## 2. Risk-based validation: packages are not all equivalent
+
+Fully validating every R package is impractical given large dependency graphs and unnecessary for many uses. R Validation Hub, a pharmaceutical-industry community initiative, promotes **risk stratification** using two axes:
+
+- **Intended-use risk:** Will output support a primary efficacy endpoint or patient-safety decision, or only an exploratory graphic?
+- **Package-quality signals:** Test coverage, maintenance, documentation, breadth of use, and issue responsiveness.
+
+| Risk | Typical use | Illustrative validation activities |
+|---|---|---|
+| High | Primary endpoint statistics, submission tables | Detailed review, independent testing, documented validation report |
+| Medium | Supporting analyses, internal decision tables | Review, sampled testing, usage records |
+| Low | Exploratory plots, temporary scripts | Pinned environment and ordinary code review |
+
+::: {.callout-warning}
+## Common misconception: frozen snapshot = validated
+Freezing package versions buys **reproducibility**, not **correctness**. Reproducibility is necessary but insufficient; validation evidence must still be developed according to risk.
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Too little governance can let unreliable data reach a submission. Too much can drive people back to untracked spreadsheets. **Minimum viable governance** means every requirement addresses a real risk. If no one can name that risk, question the control.
+:::
+
+## 3. Pin environments: renv and curated snapshots
+
+Reproducible environments have two complementary supports.
+
+**① renv lockfile: precise project-level restoration**
+
+::: {.callout-example}
+```r
+install.packages("renv")
+
+renv::init()      # New project: create a private library and renv.lock
+renv::snapshot()  # Record current dependencies, versions, and hashes
+renv::restore()   # Colleague/production machine: reinstall from the lockfile
+```
+
+`renv.lock` is a text file. **Commit it to git**: it is a source record for your package environment.
+:::
+
+**② Curated CRAN-like repository: controlled organization-wide sources**
+
+Posit Package Manager and similar tools expose CRAN-like URLs, can provide dated snapshots, and supply suitable binaries for supported operating systems:
+
+::: {.callout-example}
+```r
+# Pin the repository in .Rprofile; this illustrative URL uses latest.
+# Replace latest with a specific date to freeze it in time.
+options(repos = c(CRAN = "https://packagemanager.posit.co/cran/latest"))
+```
+:::
+
+The reproducible-environments workshop examines two strategies:
+
+| Strategy | Rolling, following latest | Frozen, pinned to a date |
+|---|---|---|
+| New packages/fixes | Available quickly | Wait for the next snapshot window |
+| Validation workload | Continuous | Concentrated at snapshot updates |
+| Suitable setting | Research / dev | GxP production |
+
+::: {.callout-warning}
+## Boundary: what a lockfile does not control
+`renv.lock` records the R version but **does not install R**, nor does it manage system libraries and OS differences. Section 5 discusses containers for those additional layers.
+:::
+
+## 4. Traceability and auditing: record each change
+
+- **Version control:** Put submission-related code in git. Branch protection and PR review implement change control using the tools from chapters 3.1–3.2.
+- **Code review:** Require independent review before merging, complementing chapter 4.7's dual programming.
+- **QC records:** Retain comparisons, explanations of discrepancies, and release decisions.
+- **Platform auditing:** Enterprise platforms can log who ran what, when, and in which environment. These records are a starting point for an audit.
+
+## 5. Production deployment: containers and managed platforms
+
+When an environment must move intact to production or reviewers, common approaches include:
+
+1. **Containers:** Package OS components, R, packages, and system libraries into an image. Shared **standard base images** are also discussed as a way to reduce repeated organization-by-organization effort.
+2. **Managed platforms:** Products such as Workbench and Connect centralize environments, credentials, auditing, and releases so every team need not build its own infrastructure.
+3. **Sharing with regulators:** Could a containerized analysis be delivered for direct reproduction? OS differences and legal boundaries remain open questions, discussed in the 2025 workshop.
+
+For now, remember the layers: **lockfiles track packages, containers capture the runtime environment, and platforms support governance**.
+
+## 6. Minimum viable governance: research → dev → GxP
+
+A central r-pharma-regulated exercise asks how organizations of different sizes can apply sufficient controls at different stages of use:
+
+| Dimension | Research | Dev | GxP production |
+|---|---|---|---|
+| Package source | Public CRAN latest | Organization snapshot, rolling | Dated frozen snapshot |
+| Environment | Optional renv | Required renv | renv and container image |
+| Validation depth | None / self-checks | Package-risk classification | Validation package for high-risk dependencies; change control |
+| Records | Personal git | PR review records | End-to-end audit and QC archive |
+| AI | Flexible use | Internal gateway | All §7 guardrails |
+
+Progressing rightward is a **promotion**, not merely a move. As an analysis matures, add the evidence the next stage's reviewer will need rather than imposing every control at the start.
+
+## 7. AI guardrails in regulated work
+
+The question becomes **how to make use auditable**:
+
+1. **Human accountability:** AI cannot sign off. The signing person remains responsible for its contributions.
+2. **Records:** Archive prompts and outputs for critical uses with the analysis record, so the AI-assisted work can be reviewed and replayed.
+3. **Data boundaries:** Do not send protected health information (PHI) or personal data to external models. Consider de-identified material, sanitized examples, or internally deployed models.
+4. **The same QC:** AI-generated code receives the same review, tests, and independent-programming constraints as human code. Chapter 4.7's false-independence problem still applies.
+
+::: {.callout-warning}
+## Common misconception: AI output is output from a validated tool
+Changes to model version, prompt, or sampling settings can change results. Do not assume deterministic, repeatable behavior. **Record it, test it, and avoid treating it as infallible.**
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Run `renv::init()` → `renv::snapshot()` in an existing analysis project and commit `renv.lock`. Restore on another machine or Posit Cloud with `renv::restore()`. List what the lockfile captured and what remains outside it: R itself, system libraries, Quarto, or other requirements.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Classify your five most-used packages as high, medium, or low risk using §2. For each, specify concrete validation activities and explain why. If a colleague assigns a different risk to the same package, identify the criterion causing the disagreement.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off):** Write a one-page team AI policy with four sections: permitted uses, prohibited uses, recordkeeping, and accountability, each with three to five items. **Round 2 (AI allowed):** Ask AI to act as an **auditor challenging the policy**: “How could I get around your guardrails?” Address two or three discovered gaps in version two.
+:::
+
+## Capstone
+
+**Task: “Minimum viable governance plan.”** Design R-environment governance for a real or fictional organization you know: organization profile → §6 progression tailored to its size → rolling/frozen decision and rationale → one-page AI policy → three-month migration roadmap. Submit one Quarto document.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Risk classification | Differentiates levels | Concrete activities for each | Defensible criteria make disagreements discussable |
+| Reproducibility | renv and snapshots included | Honest gap list, including container boundaries | Estimates rolling/frozen costs |
+| Traceability | Git and review | Complete who/when/what audit chain | Includes AI records |
+| Feasible policy | Four sections | Executable recordkeeping and accountability | Revised after an auditor challenge |
+
+## SOURCES · Attribution
+
+| Section | Material | Use |
+|---|---|---|
+| §1–§2 production-environment attributes and risk validation | posit::conf(2026) r-pharma-regulated materials: `01_AttributesOfProductionEnvironments.pdf`, `03_Validation and risk.pdf`; thematic alignment, not page-by-page quotation | Adapted |
+| §3 rolling/frozen; §5 containers and base images | posit::conf(2025) reproducible-environments (James Black, Orla Doyle, Doug Kelkhoff, Michael Mayer, Rafael Pereira) | Adapted |
+| §6 progression framework | r-pharma-regulated minimum-viable-approach topic in the workshop description | Adapted |
+| renv/repository usage, detailed progression table, AI guardrails, rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

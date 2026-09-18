@@ -1,0 +1,236 @@
+---
+title: "3.1 Package Structure"
+author: "Jaime Yan"
+objectives: |
+  Decide when code deserves to become a package; build and try a skeleton with
+  usethis/devtools; interpret DESCRIPTION (Imports versus Suggests); document
+  functions with roxygen2; explain R/, man/, tests/, and data-raw/;
+  run document() → check() → install().
+source-note: "Teaching structure and exercises adapted from the posit::conf(2025) pkg-dev workshop (Jenny Bryan; README states CC-BY 4.0, LICENSE.md contains CC-BY-SA 4.0). Tool facts checked against R Packages (2e), Hadley Wickham and Jenny Bryan, r-pkgs.org. Explanatory prose is original to this project."
+---
+
+# 3.1 Package Structure
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **justify** packaging code for personal reuse, team sharing, or CRAN, using different criteria for each.
+2. **create** a skeleton with `usethis::create_package()` and `use_r()`, then try it with `load_all()`.
+3. **interpret** DESCRIPTION fields, especially the responsibilities of Imports versus Suggests.
+4. **write** roxygen2 comments (`@param`, `@return`, `@export`) and generate help pages.
+5. **organize** R/, man/, tests/, and data-raw/, recognizing generated files that should not be edited by hand.
+6. **execute** the document() → check() → install() development cycle and interpret check output.
+
+## Prerequisite check (≤5 minutes)
+
+Answer both questions independently before continuing; otherwise revisit chapter 1.1.
+
+::: {.callout-important}
+## Check In: prerequisites
+
+1. What does each of `install.packages()` and `library()` do? Why do you need both?
+2. Write a function with a default argument and an explicit `return()` from memory, in no more than three lines.
+:::
+
+## 1. When does code deserve a package?
+
+| Level | Form | Signal to move up |
+|---|---|---|
+| L0 | Functions in one script | The level introduced in chapter 1.1 |
+| L1 | Project `R/` directory plus `source()` | Several scripts need the same functions |
+| L2 | Personal package, installed only for yourself | Reuse across projects; formal documentation and tests |
+| L3 | Team package, on GitHub or Posit Package Manager | Colleagues need it; definitions must agree |
+| L4 | CRAN package | The wider community needs it, and you accept long-term maintenance |
+
+A package gives you three things beyond a collection of `source()` calls: **versioned documentation** (`?function_name`), **runnable tests** (chapter 3.2), and **a check() health report**.
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+My threshold is simple: **when a second project sources a function file from the first, create a package**. CRAN is not the reason to package code. Building something for yourself two weeks from now already pays off.
+:::
+
+## 2. A skeleton in five minutes: create_package() and use_r()
+
+::: {.callout-example}
+```r
+install.packages("devtools")            # Once; includes usethis, roxygen2, etc.
+usethis::create_package("~/scorekit")   # Create the skeleton and open the IDE project
+usethis::use_r("grade_letter")          # Create R/grade_letter.R
+```
+:::
+
+Our running example, `scorekit`, contains a function that converts scores out of 100 to letter grades:
+
+```r
+# R/grade_letter.R
+grade_letter <- function(x) {
+  if (!is.numeric(x)) {
+    stop("`x` must be numeric.", call. = FALSE)
+  }
+  cut(x, c(0, 60, 70, 80, 90, 100), c("F", "D", "C", "B", "A"),
+      right = TRUE, include.lowest = TRUE)
+}
+```
+
+`devtools::load_all()` simulates installation and loading. Immediately try `grade_letter(c(95, 72, 58))` in the session: it returns `"A" "C" "F"`.
+
+::: {.callout-note}
+`load_all()` is the rhythm of package development: change a line, load_all, try it. It does **not** actually install the package; you are testing the latest source. Package names contain letters, numbers, and dots, begin with a letter, and must be unique on CRAN. Check early with `available::available("scorekit")`.
+:::
+
+## 3. DESCRIPTION: the package identity card
+
+```{.text}
+Package: scorekit
+Title: Grade and Score Helpers for Teaching Analytics
+Version: 0.0.0.9000
+Authors@R: person("You", "Name", email = "you@example.com", role = c("aut", "cre"))
+Description: Converts numeric scores to letter grades and
+    summarises grade distributions.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports:
+Suggests:
+```
+
+A quick reading: `Title` uses title case without a final period; `Version: 0.0.0.9000` is the devtools convention for development before 0.1.0; the `cre` (creator) in `Authors@R` is the responsible contact; `Description` is a paragraph in the third person, ending with a period.
+
+The key distinction is **the responsibility attached to Imports versus Suggests**:
+
+| | Imports | Suggests |
+|---|---|---|
+| When users install your package | Must be installed | Not mandatory |
+| Appropriate contents | Packages essential to function bodies | Tests, vignettes, optional features |
+| How to call them | Use explicit `pkg::fun()` calls | Check with `requireNamespace()` first |
+
+::: {.callout-example}
+```r
+usethis::use_package("dplyr")                       # Add to Imports
+usethis::use_package("ggplot2", type = "Suggests")  # Add to Suggests
+
+# Suggested dependencies: check first, then use
+plot_scores <- function(df) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package `ggplot2` required for plot_scores().")
+  }
+  ggplot2::ggplot(df, ggplot2::aes(score)) + ggplot2::geom_histogram()
+}
+```
+:::
+
+::: {.callout-warning}
+## Common mistake: library() inside R/
+Do not put `library()` in package code: it changes the **user's** session. Use qualified `pkg::fun()` calls. Packages used by the code must be declared in DESCRIPTION, or `check()` will flag them.
+:::
+
+::: {.callout-important}
+## Check In: version detective
+Look at `Version: 0.0.0.9000`: ① Why is the major version 0? ② What does `.9000` mean in devtools conventions? ③ What version would you use when development resumes after releasing 1.0.0?
+:::
+
+## 4. roxygen2: documentation beside the code
+
+roxygen2 follows a **single source of truth**: comments become documentation.
+
+::: {.callout-example}
+```r
+#' Convert numeric scores to letter grades
+#'
+#' Maps scores in `[0, 100]` to letter grades with cut points at 60/70/80/90.
+#'
+#' @param x A numeric vector of scores, in `[0, 100]`.
+#' @return A factor of letter grades, same length as `x`.
+#' @export
+#' @examples
+#' grade_letter(c(95, 72, 58))
+grade_letter <- function(x) {
+  if (!is.numeric(x)) {
+    stop("`x` must be numeric.", call. = FALSE)
+  }
+  cut(x, c(0, 60, 70, 80, 90, 100), c("F", "D", "C", "B", "A"),
+      right = TRUE, include.lowest = TRUE)
+}
+```
+:::
+
+Run `devtools::document()` to generate `man/grade_letter.Rd` and make `?grade_letter` available. `@export` also records the function in NAMESPACE so users can access it. Functions without `@export` are internal components, not part of the public interface; this is intentional.
+
+::: {.callout-warning}
+## Common mistake: editing man/ or NAMESPACE by hand
+Both are **generated files**, sourced from roxygen2 comments. A manual edit disappears the next time you run `document()`. Change documentation by editing comments, not generated files.
+:::
+
+## 5. Directory anatomy: R/, man/, tests/, data-raw/
+
+```{.text}
+scorekit/
+├── DESCRIPTION           Identity: manually maintained metadata
+├── NAMESPACE             Exports: generated by roxygen2; do not edit
+├── R/grade_letter.R      Function source and roxygen2 comments
+├── man/grade_letter.Rd   Help: generated by document(); do not edit
+├── tests/testthat/       Tests: chapter 3.2
+└── data-raw/scores.R     Script that generates example data
+```
+
+For `data-raw/`, `usethis::use_data_raw("scores")` creates a script. End it with `usethis::use_data(scores)` to **freeze** the result in `data/scores.rda`; users retrieve it with `data(scores)`. The discipline here is to commit the **generation script**, not the raw data.
+
+::: {.callout-note}
+Other directories include `vignettes/`, `src/`, and `inst/`; see R Packages for the full map. At the beginning, expect to spend 90% of your time in `R/` and `tests/`.
+:::
+
+## 6. The development cycle: document() → check() → install()
+
+| Action | Function | RStudio shortcut | Frequency |
+|---|---|---|---|
+| Simulate installation | `devtools::load_all()` | Cmd/Ctrl+Shift+L | Whenever needed |
+| Generate documentation | `devtools::document()` | Cmd/Ctrl+Shift+D | After editing comments |
+| Comprehensive check | `devtools::check()` | Cmd/Ctrl+Shift+E | Daily / each commit |
+| Install | `devtools::install()` | — | At milestones |
+
+`check()` runs R CMD check: it installs and examines the package in a clean session. Aim for **0 errors, 0 warnings, 0 notes**. Notes also deserve attention; CRAN reviewers will ask about them. In Positron, use the Run panel or search for “devtools” in the Command Palette.
+
+::: {.callout-warning}
+## Common mistake: fearing check()
+Waiting until every function is finished produces a screenful of problems with no obvious starting point. As with tests in chapter 3.2, **check after adding each function**. One or two problems at a time are manageable in minutes.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Follow §2–§6 to build `scorekit` from scratch: create_package → use_r → write `grade_letter()` → try load_all → add roxygen2 → document() → check(). Submit the `?grade_letter` help page and a screenshot showing “0 errors ✓ 0 warnings ✓ 0 notes ✓”.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Add `plot_scores(df)` to `scorekit`: a histogram with a vertical passing-score line at 60. ① Put ggplot2 in **Suggests**. ② Check with `requireNamespace()` and give a readable error. ③ Add complete roxygen2 documentation. ④ Uninstall ggplot2 and verify that the error is readable. Finish with two lines explaining why Suggests is the more considerate choice for users here.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off):** Package the three functions from your chapter 1.1 capstone, or your own selection, as `<yourname>kit`. Check the name with `available::available()`, complete DESCRIPTION and roxygen2 documentation, and achieve three zeros from check().
+**Round 2 (AI allowed):** Give Posit Assistant DESCRIPTION and one function's roxygen2 comments. Ask only: “Which entries might R CMD check or CRAN flag?” Fix two real issues and label them “found by AI / verified by me”.
+:::
+
+## Capstone
+
+**Task: “From script to package 0.1.”** Turn the functions extracted in your chapter 1.1/1.3 capstone into an installable package: standard structure, complete documentation, honest dependency declarations, and a `data-raw/` generation script. Acceptance: in a **fresh R session**, load the package with `library()` and run the help-page examples. Submit a one-page Quarto report with a directory tree and design decisions, a repository link, and demonstration screenshots.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Structure | Three directories used correctly | No manual edits to generated files | data-raw reproduces the data |
+| Documentation | Every exported function has Rd help | All examples run | Descriptions read as concise specifications |
+| Dependencies | Imports complete | No library(); qualified `::` calls | Appropriate Suggests and requireNamespace |
+| Installation | Installs locally | Three zeros from check | Demo reproducible in a fresh session / machine |
+
+## SOURCES · Attribution
+
+| Section | Material | Use |
+|---|---|---|
+| §1–§2, §6 workflow; paired use_r/use_test discipline | posit::conf(2025) pkg-dev README, materials, and `testing-prompts.md` (Jenny Bryan; TA Lionel Henry; README states CC-BY 4.0, LICENSE.md contains CC-BY-SA 4.0) | Adapted structure |
+| DESCRIPTION, roxygen2, and directory facts | R Packages (2e), Hadley Wickham and Jenny Bryan, <https://r-pkgs.org> | Reference |
+| scorekit, version detective, exercises, capstone, rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

@@ -1,0 +1,245 @@
+---
+title: "1.6 Great Tables with gt"
+objectives: |
+  Distinguish tables for storage from tables for communication; build gt() |> fmt_*()
+  pipelines with titles and column labels; format numbers, proportions, and dates;
+  organize row groups; apply conditional styles with tab_style() and where(); export and cite tables.
+source-note: "Teaching structure and exercise design adapted from posit::conf(2026) modern-ds-python great-tables (Jeroen Janssens, Richard Iannone, Isabel Zimmerman · CC-BY-SA 4.0); chapter prose and penguins/gapminder examples are original to this project"
+---
+
+# 1.6 Great Tables with gt
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **distinguish** storage tables from presentation tables and describe three typical differences
+2. **construct** tables with `gt(data) |> fmt_*() |> tab_*()`, including titles, subtitles, and column labels
+3. **format** readable numbers, proportions, and dates with `fmt_number()`, `fmt_percent()`, and `fmt_date()`
+4. **organize** long tables with `tab_row_group()` and `row_group_order()`
+5. **style** data-driven highlights using `tab_style()`, `cells_body()`, and `where()`
+6. **export** finished tables with `gtsave()` and identify sources with `tab_source_note()`
+
+## Prerequisite check (≤5 minutes)
+
+Answer these questions independently; otherwise review the [tidyverse prerequisites](../index.qmd#prerequisites):
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Use `dplyr` to summarize mean `body_mass_g` and sample size in `palmerpenguins::penguins` by `species`, ignoring missing values.
+2. Name two advantages of the `|>` pipe over nested function calls.
+:::
+
+## 1. Tables communicate; they do more than store
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Many people treat tables as dumped data: if `print()` makes them visible, that is enough. **Once a table is intended for a reader, it becomes a communication medium.** Titles, alignment, number formats, and sources all speak for your work. Use CSV for storage and gt for presentation; keep those jobs separate.
+:::
+
+How a storage table, such as `write_csv()` output, differs from a presentation table:
+
+| Dimension | Storage | Presentation |
+|---|---|---|
+| Column name | `body_mass_g` | Mean body mass (g) |
+| Number | `4201.754385964912` | 4,201.8 |
+| Source | Absent | Identified below the table |
+| Missing value | `NA` | `—`, with its meaning explained |
+
+gt divides these tasks among **`fmt_*()` for formatting, `tab_*()` for structure, and `opt_*()` for appearance**: data in, formatting next, styling last.
+
+## 2. The pipeline and its public face: `gt(data) |> fmt_*()`, `tab_header()`, and `cols_label()`
+
+gt operations take a `gt_tbl` as their first argument, so the whole table can be built in one pipeline. `fmt_*()` changes the **rendering layer**, leaving the underlying data unchanged. Display and data remain separate.
+
+::: {.callout-example}
+```r
+library(gt)
+library(dplyr)
+
+penguins_sum <- palmerpenguins::penguins |>
+  tidyr::drop_na() |>
+  group_by(species, island) |>
+  summarise(
+    n = n(),
+    mean_bill = mean(bill_length_mm),   # Mean bill length, mm
+    mean_mass = mean(body_mass_g),      # Mean body mass, g
+    .groups = "drop"
+  )
+
+penguins_sum |>
+  gt() |>
+  tab_header(
+    title = "Palmer penguin body-size summary",
+    subtitle = "By species and island; pooled 2007-2009 surveys"
+  ) |>
+  cols_label(
+    species = "Species", island = "Island", n = "Sample size",
+    mean_bill = "Mean bill length (mm)", mean_mass = "Mean body mass (g)"
+  ) |>
+  tab_spanner(label = "Mean measurements", columns = c(mean_bill, mean_mass))
+```
+:::
+
+Three rules for labels: **include units**, such as `Mean body mass (g)`, so readers need not consult documentation; **use readable language**, with `species` as the variable and `Species` as its label; **retain machine-readable names**, changing the display with `cols_label()` rather than using `rename()` solely for presentation.
+
+## 3. Make numbers speak clearly: `fmt_number()`, `fmt_percent()`, and `fmt_date()`
+
+Decimal places concern **meaningful precision**, not merely formatting. Reporting eight decimal places for a mean based on 68 penguins suggests false precision.
+
+::: {.callout-example}
+```r
+penguins_sum |>
+  gt() |>
+  fmt_number(columns = c(mean_bill, mean_mass), decimals = 1) |>
+  fmt_integer(columns = n)
+
+# Use fmt_percent() for proportions
+palmerpenguins::penguins |>
+  count(species, name = "n") |>
+  mutate(share = n / sum(n)) |>
+  gt() |>
+  fmt_percent(columns = share, decimals = 1)
+
+# Readable date formatting
+tibble::tibble(survey = c("First survey", "Second survey"),
+               date = as.Date(c("2007-11-15", "2009-01-10"))) |>
+  gt() |>
+  fmt_date(columns = date, date_style = "yMMMEd")   # For example, Sat, Jan 10, 2009
+```
+:::
+
+Missing values also belong to the formatting layer: `sub_missing(missing_text = "—")` replaces displayed `NA` values with a dash. The Python great-tables method with the same name serves the same purpose.
+
+::: {.callout-warning}
+## Common mistake: formatting before checking the underlying scale
+`fmt_percent()` does not change the stored data: it displays 0.442 as 44.2%. If the column already contains 44.2, it displays 4420%. **Store proportions in the data and let fmt handle their presentation.**
+:::
+
+## 4. Row groups: `tab_row_group()` and `row_group_order()`
+
+When a species label repeats across rows, promoting it to a **row-group label** makes the hierarchy clear.
+
+::: {.callout-example}
+```r
+# Shortcut: use groupname_col, then set display order
+penguins_sum |>
+  gt(groupname_col = "species") |>
+  row_group_order(groups = c("Adelie", "Chinstrap", "Gentoo"))
+
+# Explicit approach: customize the group label and hide the original column
+penguins_sum |>
+  gt() |>
+  tab_row_group(label = "Gentoo (largest species)", rows = species == "Gentoo") |>
+  cols_hide(columns = species)
+```
+:::
+
+`row_group_order()` is deliberately separate from dplyr's `arrange()`: **data order serves analysis; display order serves readers**, such as ordering groups by size rather than alphabetically.
+
+## 5. Conditional styling: `tab_style()`, `cells_body()`, and `where()`
+
+`tab_style()` has a consistent structure: **style plus locations**. `cells_body()` identifies the rows and columns in the body; column selection supports tidyselect, so `where()` can select many columns by type.
+
+::: {.callout-example}
+```r
+penguins_sum |>
+  gt(groupname_col = "species") |>
+  fmt_number(columns = c(mean_bill, mean_mass), decimals = 1) |>
+  tab_style(
+    style = cell_fill(color = "#FFF3CD"),          # Pale-yellow background
+    locations = cells_body(
+      columns = where(is.numeric),                 # All numeric columns
+      rows = mean_mass > 4200                      # Rows meeting the condition
+    )
+  ) |>
+  data_color(                                      # Data-driven coloring
+    columns = mean_mass,
+    method = "numeric",
+    palette = c("#f7fbff", "#08306b"),
+    domain = c(3000, 6000)
+  )
+```
+:::
+
+::: {.callout-important}
+## Check In: 60 seconds of practice
+
+Change the condition from “body mass > 4200” to “the two largest bill-length means in the table.” Hint: `rows = rank(desc(mean_bill)) <= 2`. Which columns does `columns = where(is.numeric)` select? Why is `species` excluded?
+:::
+
+::: {.callout-warning}
+## Common mistake: putting where() in the wrong argument
+`where(is.numeric)` selects **columns**, through `columns`. The `rows` argument takes an ordinary expression such as `mean_mass > 4200`. Putting `where()` in `rows` is a common source of errors.
+:::
+
+## 6. Sources and delivery: `tab_source_note()`, `tab_footnote()`, and `gtsave()`
+
+The last pieces of a publication table are **where the data came from**, a source note, and **what needs explanation**, a footnote. Then export the result.
+
+::: {.callout-example}
+```r
+final <- penguins_sum |>
+  gt(groupname_col = "species") |>
+  fmt_number(columns = c(mean_bill, mean_mass), decimals = 1) |>
+  tab_header(title = "Palmer penguin body-size summary", subtitle = "Pooled 2007-2009 surveys") |>
+  tab_source_note(source_note = md("Data: **palmerpenguins** package (Gorman et al., 2014)")) |>
+  tab_footnote(
+    footnote = "Smallest sample size; interpret the mean cautiously",
+    locations = cells_body(columns = n, rows = n == min(n))
+  )
+
+final |> gtsave("penguins_summary.html")   # HTML output
+final |> gtsave("penguins_summary.png")    # Static image; see the note below
+```
+:::
+
+::: {.callout-warning}
+## A hidden dependency when exporting PNG
+PNG export with `gtsave()` uses webshot2 and a local Chrome/Chromium installation. If a server has no browser, export `.html` or `.rtf` first. In CI, an environment variable can specify the browser path.
+:::
+
+::: {.callout-note}
+Python great-tables offers `fmt_nanoplot()` for miniature plots inside cells; R gt does not yet have it. As an interim approach, precompute a trend column and display arrows (↑/↓) with `fmt_markdown()`, switching when the upstream feature becomes available.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Follow §3–§4 to make a table for `Asia` in 2007 from `gapminder::gapminder`, with `country`, `lifeExp`, `gdpPercap`, and `pop`. Use `fmt_number()` to control decimals and thousands separators (`sep_mark = ","`), and include a `tab_header()` subtitle and `tab_source_note()`.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Adapt §5 to your Exercise 1 table: ① use `where()` to select numeric columns and apply a pale-yellow highlight to rows with `lifeExp > 80`; ② add a `data_color()` gradient to `gdpPercap`, checking `range()` first so `domain` covers the values; ③ explain one design choice with `tab_footnote()`.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off)**: start with an empty pipeline and make a male–female comparison table for `penguins`. Summarize mean `body_mass_g` by `species` and `sex`, group rows by species, and order by sex within each group. Include title, subtitle, labels, and source note, then export HTML with `gtsave()`.
+**Round 2 (AI allowed)**: show your code to Posit Assistant and ask only: “If the reader were a journal reviewer, which presentation details would they question?” Check every suggestion against the distinctions in §1. Record what you accept, what you reject, and why.
+:::
+
+## Capstone
+
+**Task**: create a one-page country briefing for readers who are not analysts. Use `gapminder` to build a **continent × year (1952/1982/2007)** table with continental mean `lifeExp` and total `pop`. Group year columns with `tab_spanner()`, highlight a `World` summary row with `tab_style()`, and include a header, source note, and footnote. Export HTML and PNG and add five lines explaining your design decisions.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Structure | Header, groups, and labels are present | Clear spanner hierarchy | Display order has a stated narrative rationale |
+| Formatting | Sensible decimal places | Thousands separators and missing-value handling | Justifies each column's format |
+| Styling | At least one conditional highlight | Highlight supports a conclusion | Explains data_color and its domain |
+| Delivery | HTML opens | Both PNG and HTML | Every design choice links to a principle in §1 |
+
+## SOURCES · Source mapping
+
+| Section | Material | Use |
+|---|---|---|
+| §2–§6 progression and fmt/tab/style/save exercises | posit::conf(2026) modern-ds-python `04_great_tables.ipynb` (Jeroen Janssens, Richard Iannone, Isabel Zimmerman · CC-BY-SA 4.0) | Adapted |
+| R gt API details: `where()`, `data_color()`, `gtsave()` | Official gt documentation | Referenced |
+| Tables-as-communication framework, penguins/gapminder examples, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

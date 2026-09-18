@@ -1,0 +1,32 @@
+# Title page {.unnumbered}
+
+A practical book for R users ready to develop their analysis and delivery skills.
+
+Move from repeated scripts to reusable functions, from a single chart to a report or application that others can use, and from “it runs on my machine” to code that can be tested and traced. These transitions organize the book: technical choices serve a concrete analytical task.
+
+**Author: Jaime Yan** · Online practice edition
+
+[Read the preface](preface.qmd){.btn .btn-primary}
+[Choose a reading path](reading-guide.qmd){.btn .btn-outline-primary}
+[Start the companion lab](companion.qmd){.btn .btn-outline-primary}
+
+## Four units, one focus on delivery {.unnumbered}
+
+| Unit | Question you will address | Expected outcome |
+|---|---|---|
+| [Complex analyses](unit-1-map.qmd) | How do you turn mixed data sources and repeated scripts into a clear, reliable analysis? | Reusable data-processing functions, tables, and plots |
+| [Professional deliverables](unit-2-map.qmd) | How do you put results into the hands of the people who need them? | A report, dashboard, or interactive application |
+| [Package development](unit-3-map.qmd) | How do you make code maintainable, testable, and shareable? | An R package with documentation and tests |
+| [AI and domain applications](unit-4-map.qmd) | How do you evaluate AI assistance and address requirements in specialist settings? | An AI workflow with explicit checks and domain examples |
+
+## Prerequisites {#prerequisites .unnumbered}
+
+You should be able to read a CSV, filter and summarize data, create a basic ggplot, and understand function calls and pipes. With those skills, you can start at the first chapter. Readers in clinical research and pharmaceuticals can also follow the [domain reading path](reading-guide.qmd#clinical-path).
+
+For a refresher, read the Whole game section of [R for Data Science, second edition](https://r4ds.hadley.nz/), then import, tidy, and plot a dataset of your own. You do not need prior experience with package development, Shiny, or LLM APIs.
+
+## Book, practice, and reference library {.unnumbered}
+
+The chapters follow learning outcomes; the [companion lab](companion.qmd) supplies tasks and acceptance criteria; the [conference catalog](https://yanmingyu92.github.io/posit-conf-2026-bilingual/catalog.html) provides access to the original workshops. You can read this book without browsing the catalog first.
+
+posit::conf workshops are an important source. Other books and official documentation provide conceptual support and further reading. Each chapter retains a SOURCES section. See [Further reading](further-reading.qmd) for additional resources and [Authorship and acknowledgments](acknowledgments.qmd) for the distinction between the book author and its source authors.

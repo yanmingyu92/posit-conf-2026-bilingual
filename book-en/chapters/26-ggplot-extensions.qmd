@@ -1,0 +1,222 @@
+---
+title: "2.6 ggplot Extensions"
+objectives: |
+  By the end of this chapter, you can explain how extensions add geoms, stats,
+  and themes to ggplot2; use ggrepel, ggridges, patchwork, ggforce, gghighlight,
+  and scales; discover and assess extensions through the official gallery;
+  combine them clearly; and read their documentation with three questions.
+source-note: "Teaching structure adapted from posit::conf(2025) ggplot2 sessions 5–6 (Thomas Lin Pedersen, Teun van den Brand; README: CC-BY 4.0; LICENSE.md: CC-BY-SA 4.0) and extension concepts from quarto-extend (Mine Çetinkaya-Rundel, Charlotte Wickham; CC-BY-SA 4.0). Chapter prose and exercises are original to this project."
+---
+
+# 2.6 ggplot Extensions
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **explain** how extensions join the grammar of graphics through `geom_*()`, `stat_*()`, `theme_*()`, and `scale_*()` functions.
+2. **run** minimal examples with six common extensions: ggrepel, ggridges, patchwork, ggforce, gghighlight, and scales.
+3. **discover** extensions through the official gallery and assess their maintenance.
+4. **combine** extensions in one figure without creating tangled code.
+5. **read** an unfamiliar extension's documentation within ten minutes using three questions.
+6. **justify** introducing a new dependency for a figure, with AI acting as a reviewer of that choice.
+
+## Prerequisite check (≤5 minutes)
+
+Complete these checks independently; otherwise revisit [Chapter 1.7](17-alt-geoms.qmd).
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Write a ggplot2 scatterplot with a smooth line using `palmerpenguins::penguins`: `bill_length_mm` × `bill_depth_mm`, colored by `species`.
+2. Does each addition with `+` add a layer or a global setting? Explain the difference between `geom_point()` and `labs()`.
+:::
+
+## 1. Extensions: New verbs in the grammar
+
+ggplot2's strength is its **grammar**: data, geometric objects, scales, and themes assembled with `+`. An extension package adds new verbs to that grammar. A new `geom_*()` is like a precise addition to your vocabulary; you need not relearn sentence structure.
+
+The good news is that **most of the knowledge transfers**. Use `ggforce::geom_mark_circle()` as you would `geom_point()`: map aesthetics, set parameters, and add it with `+`. Much of the learning lies in knowing that the extension exists.
+
+::: {.callout-note}
+ggplot2 extensions follow a shared Extension API built around `ggproto`. This chapter approaches them **as a user**. Return to writing extensions after Unit 3 on package development.
+:::
+
+## 2. Six useful extensions at a glance
+
+Run these examples after installing any missing packages with `install.packages()`.
+
+::: {.callout-example}
+```r
+library(ggplot2); library(palmerpenguins)
+pg <- dplyr::filter(penguins, !is.na(sex))
+
+# ① ggrepel: keep labels apart; compare with overlapping geom_text labels
+ggplot(pg, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+  geom_point() +
+  ggrepel::geom_text_repel(
+    aes(label = stringr::str_to_title(species)),
+    data = ~ dplyr::distinct(.x, species, .keep_all = TRUE)
+  )
+
+# ② ggridges: ridgeline plots for distributions across groups
+ggplot(pg, aes(bill_length_mm, species, fill = species)) +
+  ggridges::geom_density_ridges(alpha = 0.7)
+
+# ③ gghighlight: emphasize the subset under discussion
+ggplot(pg, aes(bill_length_mm, fill = species)) +
+  geom_histogram(bins = 30) +
+  gghighlight::gghighlight(species == "Gentoo")
+
+# ④ ggforce: zoom into a crowded region
+ggplot(pg, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+  geom_point() +
+  ggforce::facet_zoom(xy = species == "Gentoo")
+```
+:::
+
+::: {.callout-example}
+```r
+# ⑤ patchwork: assemble several plots into one composition
+library(patchwork)
+p1 <- ggplot(pg, aes(species, bill_length_mm)) +
+  geom_boxplot()
+p2 <- ggplot(pg, aes(flipper_length_mm)) +
+  geom_histogram(bins = 25)
+p3 <- ggplot(pg, aes(species, fill = island)) +
+  geom_bar(position = "fill")
+
+p1 | (p2 / p3)          # Operators express layout: one left, two right
+
+# ⑥ scales: refine axes and legends
+p2 + scale_x_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale()))
+```
+:::
+
+::: {.callout-warning}
+## Common error: Applying label_*() to the wrong scale
+```r
+p1 + scales::label_percent()  # Intentional error: a labeling function cannot be added directly to a ggplot
+```
+Pass the labeling function to `scale_*_continuous(labels = ...)`. Also, `scales::label_percent()` makes sense only for **proportions**. The histogram's x-axis contains raw millimeters; forcing percentage labels onto it creates absurd results or an error. **Identify what the axis values represent before choosing a label function.**
+:::
+
+## 3. Finding extensions: The official gallery and three checks
+
+The ggplot2 extension ecosystem contains more than 100 packages. A stable, citable starting point is the official **[ggplot2 extension gallery](https://exts.ggplot2.tidyverse.org)**. Browse thumbnails and search for your needs.
+
+Spend 60 seconds assessing each candidate:
+
+| Step | What to inspect | Warning sign |
+|---|---|---|
+| 1. Release channel | CRAN release? Version number? | GitHub only, with no activity for two years |
+| 2. Fit with the grammar | Are examples simply `+ geom_*()`? | Requires abandoning ggplot2 for another system |
+| 3. Maintenance | NEWS, issue responses, compatibility with recent ggplot2 | Many unresolved “not compatible” issues |
+
+::: {.callout-important}
+## Check In: Gallery treasure hunt
+
+Open the gallery and complete two tasks: ① find an extension for **parallel coordinates plots** and record its package and function names; ② find an extension not covered here that you might use in your capstone and assess it with the three checks. Record your answers in your learning notes. This is required but ungraded.
+:::
+
+## 4. Combining extensions without tangling the code
+
+Extensions become powerful in **combination**: one handles labels, another emphasis, another composition. Three extensions can also make code hard to follow. Use one rule: **build each plot as a sequence of named objects, adding one extension layer at a time**.
+
+::: {.callout-example}
+```r
+# Build and name each step so it can be rerun and adjusted independently
+base <- ggplot(pg, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+  geom_point(alpha = 0.6)
+
+labelled <- base +
+  ggrepel::geom_text_repel(
+    aes(label = stringr::str_to_title(species)),
+    data = ~ dplyr::distinct(.x, species, .keep_all = TRUE),
+    seed = 42                       # Repel layouts are random: fix the seed for reproducibility
+  )
+
+focused <- labelled + gghighlight::gghighlight(
+  species != "Chinstrap",
+  unhighlighted_params = list(colour = "grey80")
+)
+
+final <- focused + ggtitle("The two penguin species with the longest bills") + theme_minimal()
+final
+```
+:::
+
+Three principles for combining extensions:
+
+1. **One chain tells one story.** Highlighting with gghighlight and zooming with ggforce seldom belong together in the same display.
+2. **Fix random seeds** with `seed =`; otherwise successive renders can differ and complicate review.
+3. **Add patchwork last:** refine each component plot before composing them.
+
+## 5. Reading extension documentation: Three questions
+
+Ask these questions in order to decide within ten minutes whether an extension fits:
+
+| Question | Where to look | Criterion |
+|---|---|---|
+| Q1. What new function does it provide? | First screen of the README | Does the function name explain its role? |
+| Q2. What is the smallest example? | First README code example | Can I substitute my data directly? |
+| Q3. How does it interact with scales and themes? | Middle of the vignette | Do `scale_*()` and `theme()` still work normally? |
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Treat dependencies with restraint. Adding more than two new dependencies to one figure makes reproduction harder for a reviewer. Patchwork and ggrepel deserve consideration for a regular toolbox; introduce other extensions as projects require them. A rich ecosystem means a suitable tool is likely to exist when you need it, not that every tool belongs in every installation.
+:::
+
+## 6. The reverse check: Do you need an extension?
+
+ggplot2 itself evolves quickly; “Modern ggplot2” was a theme of the posit::conf(2025) workshop. Before adding an extension, ask:
+
+- **Can base ggplot2 already draw this?** `annotate()`, `coord_*()`, and `facet_wrap()` are often underestimated.
+- Has a newer version **built in** the feature? Check ggplot2 NEWS.
+- Does the dependency save only three lines of code? Writing the three lines may be simpler.
+
+::: {.callout-warning}
+## Common misconception: Hiding a design problem with an extension
+Labels often overlap because **there are too many labels**. Ask whether readers need all 40 before reaching for ggrepel. Extensions solve layout problems; they do not resolve information overload.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Choose an extension from the gallery and run the first README example **unchanged**. Then substitute `penguins`, adjusting column mappings. Deliver both code versions and one sentence explaining the limitation of base ggplot2 that the extension addresses.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Adapt the §4 build sequence to highlight island rather than species. Combine `focused` with a species-based ridgeline chart using `(focused | ridge) + patchwork::plot_annotation(tag_levels = "A")`. Fix random seeds and name every intermediate object.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI-off stage)
+
+**Round 1 (AI prohibited):** Using only the gallery and two extensions' official documentation, create an “editor's choice” penguins figure combining any three of faceting, highlighting, non-overlapping labels, and composition. Do not consult any AI assistant. Write your three-question answers for each extension, three lines each.
+**Round 2 (AI allowed):** Give Posit Assistant the finished code and ask only: “Which layer could be implemented with base ggplot2?” Record at least one suggestion.
+:::
+
+## Capstone
+
+**Task:** Choose health-check, penguins, or nycflights13 data and create a summary figure that tells the story in one composition. **Combine at least three extensions**: patchwork for composition, ggrepel for key labels, and a third extension of your choice with a stated rationale. Deliver one Quarto page containing the final figure, its named build sequence, and a defense of the three choices, including the assessment table.
+
+| Dimension | Meets expectations | Strong | Excellent |
+|---|---|---|---|
+| Composition | Three extensions and a readable figure | Each layer has one purpose; clear build sequence | Deliberate whitespace, hierarchy, and consistent emphasis |
+| Reproducibility | Code reruns | Random seeds fixed | Another person reproduces the figure without changes |
+| Choice of tools | States what was used | Explains why | Checks which layers base ggplot2 could replace |
+| Documentation efficiency | Uses the three questions | Includes written answers | Shares gallery-entry assessments classmates can reuse |
+
+## SOURCES
+
+| Chapter section | Material | Use |
+|---|---|---|
+| §1–§2 extension ecosystem and patchwork composition | posit::conf(2025) ggplot2, `sessions/5_composition.qmd`, `6_extensions.qmd` (Thomas Lin Pedersen, Teun van den Brand; README: CC-BY 4.0; LICENSE.md: CC-BY-SA 4.0) | Adaptation |
+| §3 extensions as entry points to Quarto / ggplot2 ecosystems | posit::conf(2025) quarto-extend (Mine Çetinkaya-Rundel, Charlotte Wickham; CC-BY-SA 4.0) | Structural inspiration |
+| Extension gallery | <https://exts.ggplot2.tidyverse.org>, official ggplot2 gallery | Reference |
+| Six-extension examples, three questions, assessment checks, exercises, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

@@ -1,0 +1,7 @@
+# Unit 1 · Complex Analyses {.unnumbered}
+
+Practical analysis often starts with untidy materials: several similarly structured files, an interface returning nested data, and summary rules that keep changing. These may be business records, research operations data, or authorized analysis datasets in clinical and pharmaceutical work. Building on basic data manipulation and plotting, this unit organizes repeated operations into steps you can explain, reuse, and check.
+
+Begin with [functions](chapters/01-functions.qmd) and [iteration](chapters/12-iteration.qmd), work with different data sources, then present results through [tables](chapters/16-great-tables.qmd) and [professional plots](chapters/18-styled-plots.qmd). Your deliverable should include data provenance, processing functions, and key graphics, going beyond a sequence of commands that happened to run.
+
+Keep asking: Which steps stay the same? Which assumptions need to be written down? How do missing values and unexpected inputs change the result? Practice these decisions with the [companion lab](companion.qmd#handoff-lab), which uses simulated quality scores from multiple sites and contains no patient data or treatment-effect evaluation. The next unit turns these analytical materials into deliverables others can use.

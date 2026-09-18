@@ -111,8 +111,9 @@ specs |> pmap(\(n, mean) rnorm(n, mean)) |> map_dbl(mean)
 
 ::: {.callout-warning}
 ## 高频错误：两个输入长度不齐
-`map2()` 遇到长度不整除的输入会**静默重循环**（recycle）或只给一条警告，
-结果长度取长者——单位对不上的「巧合」就这样进了论文。先 `stopifnot(length(a) == length(b))`。
+`map2()` 要求输入等长，或其中一个输入长度为 1（此时会重循环）。
+长度 2 与 3 等不兼容组合会**直接报错**，不会静默按较长输入重循环。
+若业务要求严格一一配对，先 `stopifnot(length(a) == length(b))`。
 :::
 
 ::: {.callout-important}

@@ -1,0 +1,182 @@
+---
+title: "3.2 Unit Testing with testthat"
+author: "Jaime Yan"
+objectives: |
+  Explain tests as a regression safety net and executable specifications;
+  write focused test_that() blocks and expect_* assertions; pair R/ with tests/
+  using use_test(); run tests in Positron/RStudio; capture output with
+  expect_snapshot(); read covr coverage as a map rather than a score.
+source-note: "Teaching structure and exercises adapted from the Testing section of posit::conf(2025) pkg-dev (Jenny Bryan, including testing-prompts.md; README states CC-BY 4.0, LICENSE.md contains CC-BY-SA 4.0). Explanatory prose is original to this project."
+---
+
+# 3.2 Unit Testing with testthat
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **explain** the two promises of testing: a regression safety net and executable specifications.
+2. **write** focused `test_that()` blocks, each describing one behavior.
+3. **select** appropriate assertions (`expect_equal`, `expect_error`, `expect_silent`, and others).
+4. **organize** paired `R/` and `tests/` files with `usethis::use_test()` and run them efficiently in an IDE.
+5. **apply** snapshot testing to human-readable output and messages.
+6. **evaluate** covr coverage to decide where the next test belongs, rather than chase percentages.
+
+## Prerequisite check (≤5 minutes)
+
+Complete chapter 3.1 and have `scorekit`, or another local package, available. Otherwise revisit 3.1.
+
+::: {.callout-important}
+## Check In: prerequisites
+
+1. The typical/boundary/invalid checks in chapter 1.1 were written as comments. Why will running `check()` not perform those checks for you?
+2. Will `expect_equal(0.1 + 0.2, 0.3)` fail? Why?
+:::
+
+## 1. What tests promise: a safety net and specifications
+
+| Promise | Meaning | What happens without it |
+|---|---|---|
+| Regression safety net | Tests watch existing behavior while code changes | Fix one bug and silently introduce two others |
+| Executable specification | Documentation that runs with the code | Comments describe one behavior; code implements another |
+
+One rule follows: **every fixed bug should leave behind a test that once failed**. It helps prevent the same mistake from returning.
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+“I'll add tests later” refers to a date that never appears on the calendar. Two good times to write a test are **when writing the function** and **when receiving a bug report**. That discipline is worth more than a coverage number.
+:::
+
+## 2. test_that(): one block, one behavior
+
+::: {.callout-example}
+```r
+# tests/testthat/test-grade_letter.R
+test_that("grade_letter() maps scores to grades", {
+  expect_equal(grade_letter(c(95, 72, 58)),
+               factor(c("A", "C", "F"), levels = c("F", "D", "C", "B", "A")))
+})
+
+test_that("grade_letter() rejects non-numeric input", {
+  expect_error(grade_letter("95"), "numeric")
+})
+```
+:::
+
+Three parts matter: ① The description is a **specification**: what input should produce what output? ② One block tests one behavior; its description is the first clue when it fails. ③ `test-grade_letter.R` pairs with `R/grade_letter.R`.
+
+## 3. The expect_* family: choose the assertion
+
+| Assertion | When to use it | Example |
+|---|---|---|
+| `expect_equal()` | Equal values, allowing numeric tolerance | `expect_equal(sqrt(2)^2, 2)` |
+| `expect_identical()` | Exact equality, including type and attributes | `expect_identical(1L, 1L)` |
+| `expect_error()` | Error with a matching message | `expect_error(grade_letter("a"), "numeric")` |
+| `expect_warning()` | Warning without stopping | `expect_warning(mean(NULL), "not numeric")` |
+| `expect_silent()` | No errors, warnings, or messages | `expect_silent(grade_letter(c(60, 90)))` |
+| `expect_length()` and other focused assertions | Structural properties | `expect_length(grade_letter(1:3), 3)` |
+
+Try `sqrt(2)^2` versus `2`: the default tolerance in `expect_equal()` accepts the result, while `expect_identical()` rejects it. **Use equal for numeric results; use identical when type and attributes must also remain unchanged.**
+
+::: {.callout-warning}
+## Common mistake: expect_error() without regexp
+```r
+expect_error(grade_letter("95"))          # Wrong: any error passes
+expect_error(grade_letter("95"), "numeric")  # Right: the expected message
+```
+Without a message check, an unrelated failure can make the test pass, giving false confidence.
+:::
+
+::: {.callout-important}
+## Check In: match assertions to situations
+① Invalid input should raise `"must be positive"`. ② A function should return a vector of length 12. ③ You fixed a bug that contaminated global options on repeated runs and want to lock down a clean run. Choose an expect_* assertion for each and write it out in full (≤5 minutes; comments are sufficient).
+:::
+
+## 4. The use_test() workflow: paired files, nearby tests
+
+::: {.callout-example}
+```r
+usethis::use_test("grade_letter")   # Create tests/testthat/test-grade_letter.R
+devtools::test()                    # Run all package tests
+devtools::test_active_file()        # Run the currently open test file
+```
+:::
+
+Pair `use_r("x")` with `use_test("x")`: create the test file when the function arrives. In RStudio, use the Build panel; in Positron, search for test in the Command Palette. The pkg-dev workshop also recommends **custom shortcuts** for frequent actions. A chord such as `Cmd+'` followed by `Cmd+T` can trigger `test_active_file()`; `Cmd+'` then `Cmd+C` can trigger `test_coverage_active_file()`. The idea comes from Emil Hvitfeldt's article on Positron key bindings.
+
+## 5. Snapshot testing: take a picture of output
+
+Error messages, warnings, and printed output are human-readable text. Asserting every character can be tedious; snapshots capture a baseline and compare later runs against it.
+
+::: {.callout-example}
+```r
+test_that("error messages are stable", {
+  expect_snapshot(grade_letter("95"), error = TRUE)
+})
+```
+:::
+
+The first run creates `tests/testthat/_snaps/grade_letter.md`. Later changes make the test fail; after reviewing and approving a change, accept the new snapshot with `testthat::snapshot_accept()`. The crucial argument when moving from `expect_error()` is `error = TRUE`: this code is expected to error, and its error text should be captured.
+
+::: {.callout-note}
+Snapshots work well for **messages and textual output**, not enormous objects that are impossible to review. Commit `_snaps/` to git: it records your public behavior contract, and changes become reviewable diffs.
+:::
+
+## 6. covr: coverage is a map, not a score
+
+::: {.callout-example}
+```r
+pkgcov <- covr::package_coverage()
+covr::report(pkgcov)        # HTML: green = executed lines; red = unexecuted lines
+devtools::test_coverage_active_file()   # Coverage for the active file only
+```
+:::
+
+Read the report as a map. Red areas are unpatrolled streets, answering **where should the next test go?** Prioritize exported functions' main logic, error branches, and every bug you have fixed. “100% coverage” guarantees little: lines were **executed**, not necessarily **asserted**. Placeholder assertions such as `expect_true(TRUE)` can accompany code that turns the map green. The number is a by-product, not the goal.
+
+## 7. Bringing tests into check()
+
+`check()` automatically runs all tests non-interactively; use `devtools::test()` whenever needed locally. The full daily cycle is: edit `R/` → try `load_all()` → `test_active_file()` → `check()` before committing. A red test is not embarrassing; **pretending not to see it** is.
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Write a complete test file for chapter 3.1's `grade_letter()`. Use at least three `test_that()` blocks covering typical values, boundaries (0, 100, and exactly 60/70/80/90), and `NA`. First use `load_all()` and inspect `grade_letter(c(90, NA))`; turn the observed behavior into assertions. If the behavior is unreasonable, fix the function before fixing the test.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Convert chapter 1.1's three-example checks to testthat: one file per function, at least three assertions per function, including one `expect_error()` with `regexp`. Run `devtools::test()` until green. Which old function's checks **failed** after automation? What did the manual checks miss?
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off):** Test the function in your package that you trust least. Cover typical, boundary, invalid, and `NA` inputs, plus one `expect_snapshot()`.
+**Round 2 (AI allowed):** Give Posit Assistant the **test file only**, without the implementation. Ask: “What does this function do, judging only from its tests?” and “Which situation is untested?” The first checks whether tests serve as specifications; the second finds blind spots. Add one genuine missing case it identifies, marked “found by AI / verified by me”.
+:::
+
+## Capstone
+
+**Task: “Safety net 0.1.”** Add tests to your chapter 3.1 capstone package. Every exported function needs tests; every input path that stops execution needs an error test with `regexp`; at least one snapshot must capture an error message. Produce a covr report and report its percentage without a prescribed target. Demonstrate acceptance by deliberately changing a cut point from 60 to 65: show a **red** test with the correct test_that description, then restore the cut point and show **green**. Submit a one-page Quarto report with coverage, red/green screenshots, and design explanations.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Coverage structure | Tests for every export | regexp checks for error branches | Each bug-relevant boundary has a name |
+| Assertions | Tests can actually fail | Appropriate equal/identical choices | Assertions explain the specification to a colleague |
+| Snapshot discipline | At least one snapshot | `_snaps/` committed | One intentional change reviewed through a diff |
+| Regression demonstration | Red and green screenshots | Description precisely identifies behavior | A change record showing the safety net helping |
+
+## SOURCES · Attribution
+
+| Section | Material | Use |
+|---|---|---|
+| §1–§4 structure, paired use_r/use_test, shortcut chords | posit::conf(2025) pkg-dev Testing slides and `testing-prompts.md` (Jenny Bryan; README states CC-BY 4.0, LICENSE.md contains CC-BY-SA 4.0) | Adapted |
+| §5 snapshot migration and `error = TRUE` | “Modernize testing” in `testing-prompts.md` | Adapted |
+| testthat 3e facts | Official documentation, <https://testthat.r-lib.org> | Reference |
+| Positron shortcut chords | Emil Hvitfeldt's Positron key bindings article, cited through testing-prompts.md | Reference |
+| covr usage | Official covr documentation | Reference |
+| Prose, exercises, capstone, rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

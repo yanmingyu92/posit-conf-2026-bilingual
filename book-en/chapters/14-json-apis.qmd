@@ -1,0 +1,244 @@
+---
+title: "1.4 JSON Data and APIs"
+objectives: |
+  Read JSON structures and parse them with jsonlite while anticipating type pitfalls;
+  build httr2 request pipelines and handle status codes; protect API keys; implement pagination and throttling.
+source-note: "Entirely original to this project; technical details follow the official httr2 and jsonlite documentation (see SOURCES)"
+---
+
+# 1.4 JSON Data and APIs
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **predict** how JSON objects and arrays map to R types, including `fromJSON()`'s `simplifyVector` pitfalls
+2. **construct** an httr2 pipeline: `request() |> req_url_path() |> req_url_query() |> req_perform()`
+3. **diagnose** common HTTP status codes (401/404/429/5xx) and make failures early and readable
+4. **protect** API keys with `Sys.getenv()` and `.Renviron`, never hard-coding them
+5. **implement** pagination and responsible request rates using `req_throttle()` and `req_retry()`
+
+## Prerequisite check (≤5 minutes)
+
+Answer these three questions independently; otherwise review 1.1 (functions) and 1.2 (iteration):
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Given `x <- list(a = list(b = 1))`, what do `x$a$b` and `x[["a"]][["b"]]` return?
+2. What is the result of `purrr::map_dbl(1:3, ~ .x^2)`?
+3. What is the part of a URL after `?` called, and what does it do?
+:::
+
+## 1. What JSON looks like: objects, arrays, and nesting
+
+CSV is a flat table. JSON, JavaScript Object Notation, is **a tree**, commonly used by web APIs to deliver data. Two building blocks allow arbitrary nesting:
+
+| JSON building block | Syntax | R counterpart |
+|---|---|---|
+| Object | `{"key": value}` | Named list |
+| Array | `[v1, v2, ...]` | Vector or list |
+
+::: {.callout-note}
+When reading JSON, **think list for `{}`, vector for `[]`, and descend one level at a time**. Values can be strings, numbers, `true/false`, `null`, or another nested structure.
+:::
+
+## 2. fromJSON(): mapping JSON types to R
+
+::: {.callout-example}
+```r
+json <- '{
+  "name": "Ada Lovelace",
+  "born": 1815,
+  "fields": ["math", "computing"],
+  "mentor": null
+}'
+
+jsonlite::fromJSON(json)
+# $name    chr "Ada Lovelace"
+# $born    int 1815
+# $fields  chr [1:2] "math" "computing"
+# $mentor  NULL
+```
+:::
+
+The default `simplifyVector = TRUE` tries to simplify arrays and turn homogeneous objects into data frames. This is convenient, but **the returned shape depends on the data**, our first major pitfall.
+
+::: {.callout-warning}
+## Common mistake: zero, one, and many records have different shapes
+```r
+jsonlite::fromJSON('{"data": ["a"]}')$data      # Simplifies to the scalar "a"
+jsonlite::fromJSON('{"data": ["a", "b"]}')$data # Vector c("a", "b")
+jsonlite::fromJSON('{"data": []}')$data         # Empty: what type? Predict before running
+```
+One API result becomes a scalar, two become a vector, and zero leaves an empty result. **Before batch processing, ask what zero, one, and many results look like.**
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+My default decision in API code is **always `simplifyVector = FALSE`**. Extract fields with `purrr::pluck()` and shape the result with `tibble()`. A few more lines buy protection against changes in record count.
+:::
+
+::: {.callout-important}
+## Check In: Predict, then run
+
+Write down the **type and contents** of each result before running it. The third array is ragged: can it still simplify to a vector?
+
+```r
+jsonlite::fromJSON('{"a": [1, 2]}')$a
+jsonlite::fromJSON('{"a": [1]}')$a
+jsonlite::fromJSON('{"a": [[1], [1, 2]]}')$a
+```
+:::
+
+## 3. httr2 request pipelines: let tools assemble the URL
+
+In httr2, a request is **an object you modify step by step**. Only the final step makes the network call.
+
+::: {.callout-example}
+```r
+library(httr2)
+
+resp <- request("https://api.open-meteo.com") |>
+  req_url_path("v1", "forecast") |>
+  req_url_query(
+    latitude = 39.90, longitude = 116.41,
+    current_weather = "true"   # Use a string: the API expects lowercase true
+  ) |>
+  req_perform()
+
+resp_body_json(resp)$current_weather$temperature  # One numeric value (degrees Celsius)
+```
+:::
+
+Why not assemble URLs with `paste0()`? Escaping parameters, spaces, and `&` separators invites mistakes. `req_url_query()` handles these details and keeps the parameters easy to read.
+
+::: {.callout-note}
+`resp_body_json()` defaults to `simplifyVector = FALSE`, the opposite of `fromJSON()`, and retains list structures. This is the workflow recommended in §2. Request `simplifyVector = TRUE` explicitly when you want simplification into a data-frame-like form.
+:::
+
+## 4. Status codes and errors: make failures visible early
+
+| Status | Meaning | What to do |
+|---|---|---|
+| 200 | Success | Retrieve the data |
+| 301/302 | Redirect | httr2 follows automatically in normal use |
+| 401/403 | Unauthorized or invalid key | Check credentials (§5) |
+| 404 | Path not found | Check `req_url_path()` |
+| 429 | Too many requests | Slow down and use `req_retry()` |
+| 5xx | Server-side failure | Retry later |
+
+By default, `req_perform()` **throws an error for 4xx/5xx responses**, with server error information. Early, visible failures are easier to diagnose. Three useful tools:
+
+::: {.callout-example}
+```r
+resp_status(resp)      # 200
+last_response()        # Inspect the last response after an error; no new request
+# rlang::last_error()  # Run only after an error recorded by rlang to inspect details
+```
+:::
+
+Use `req_retry(req, max_seconds = 60)` for automatic backoff on transient failures such as 429/5xx, respecting `Retry-After`. Use `req_dry_run()` to inspect a request; see Exercise 1.
+
+## 5. API keys and credential hygiene
+
+Open-Meteo does not require a key for this example; many real APIs do. One firm rule: **a key is a password**.
+
+- Never hard-code it in a script, Quarto file, or git repository.
+- Store it in `.Renviron`: open the file with `usethis::edit_r_environ()`, add `MY_API_KEY=xxxxxxxx` without quotes or spaces, save, and **restart R**.
+- Read it only through `Sys.getenv("MY_API_KEY")`, which returns `""` when unset rather than throwing an error.
+
+::: {.callout-example}
+```r
+key <- Sys.getenv("MY_API_KEY")
+if (!nzchar(key)) stop("MY_API_KEY is missing: check .Renviron and restart R")
+
+request("https://api.example.com") |>
+  req_url_path("v1", "data") |>
+  req_auth_bearer_token(token = key) |>  # Authorization is redacted when printed by default
+  req_perform()
+```
+:::
+
+::: {.callout-warning}
+## Common mistake: three ways to leak a key
+① Sharing a request object without checking redaction: Authorization is hidden by default, but custom key headers still need checking; ② tracking `.Renviron` in git instead of keeping it in `.gitignore`; ③ letting a key appear in rendered HTML. Any of these costs much more than rerunning an analysis.
+:::
+
+## 6. Pagination and throttling: treat the API as a partner
+
+Many APIs return only a few dozen records per page. Pagination uses `page`/`total_pages` or a cursor. The pattern is **get the first page → read its navigation metadata → fetch the remaining pages → combine them into a table**.
+
+::: {.callout-example}
+```r
+# ReqRes now requires a key:https://reqres.in/docs
+library(purrr)
+reqres_key <- Sys.getenv("REQRES_API_KEY")
+if (!nzchar(reqres_key)) stop("Set REQRES_API_KEY in .Renviron first")
+
+fetch_users <- function(page) {
+  request("https://reqres.in") |>          # Practice API with mock data; a key is required
+    req_headers("x-api-key" = reqres_key) |>
+    req_url_path("api", "users") |>
+    req_url_query(page = page) |>
+    req_throttle(rate = 1) |>              # At most one request per second
+    req_retry(max_seconds = 30) |>         # Retry transient failures
+    req_perform() |>
+    resp_body_json(simplifyVector = TRUE)
+}
+
+first <- fetch_users(1)
+first$total_pages                         # 2
+users <- seq_len(first$total_pages) |>
+  map(fetch_users) |>                     # Pagination: retrieve each page
+  map(pluck, "data") |>                   # Each page's data frame
+  list_rbind()
+nrow(users)                               # 12
+```
+:::
+
+::: {.callout-note}
+Pagination differs by API: page-number navigation (`page=2`) or cursors, passing the response's `next_cursor` into the next request. The idea is unchanged: **get the first page, then let the response describe the next one**. If reqres.in is unavailable, adapt the pattern to another page-based API.
+:::
+
+Four rules for considerate access: ① throttle proactively with `req_throttle()`; ② use `req_retry()` instead of repeatedly hammering through 429 responses; ③ cache when possible with `req_cache()`; ④ identify yourself with `req_user_agent("Name <email>")`. Free APIs are shared resources; treat them accordingly.
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Run the Open-Meteo request in §3 with your city's coordinates and print the current temperature. Use `req_dry_run()` to show the outgoing request, then open its URL in a browser. The content should agree.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Wrap the request in `current_temp(lat, lon)`. Use `purrr::map2_dbl()` to retrieve temperatures for at least three cities supplied through `tibble::tribble(~city, ~lat, ~lon, ...)`, returning a `city | temp` tibble. Include `req_throttle()` inside the pipeline and provide readable errors.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off)**: write `weather_bulletin(cities)` to accept a city table and return a tibble with `city / temperature / windspeed / time`. If one city fails, fill that row with NA and issue a warning (hint: `tryCatch()`). Empty input should quietly return an empty tibble: remember the zero/one/many lesson in §2.
+**Round 2 (AI allowed)**: show your function to Posit Assistant and ask only: “Where could this silently go wrong if an API response omits a field?” Fix the issues, rerun, and record how many it identified.
+:::
+
+## Capstone
+
+**Task**: create “City Weather Bulletin 0.1.” Choose five cities, including at least one overseas city, and collect data with `weather_bulletin()`. Render a one-page Quarto report with a ggplot2 temperature-comparison bar chart, an Open-Meteo source citation and access date, and your answer to “What would break first if the API changed?”
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Request pipeline | Retrieves temperatures for all cities | Functions and named arguments | Throttling, retries, and caching |
+| Robustness | Works on normal input | One city cannot stop the batch | Tests zero/one/many and missing-field paths |
+| Credential hygiene | No hard-coded secrets | Uses .Renviron and Sys.getenv | Verifies redaction before sharing logs |
+| Reuse | Script runs | Reusable with another city table | Identifies the weakest link and a plan to strengthen it |
+
+## SOURCES · Source mapping
+
+| Section | Material | Use |
+|---|---|---|
+| §1–§2: JSON structure and `fromJSON()` behavior | [Official jsonlite documentation](https://jeroen.r-lib.org/jsonlite/) | Referenced |
+| §3–§6: requests, errors, credentials, pagination | [Official httr2 documentation](https://httr2.tidyverse.org) | Referenced |
+| Example choices (Open-Meteo and reqres.in), exercises, capstone, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

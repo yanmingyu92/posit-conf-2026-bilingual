@@ -1,0 +1,11 @@
+<nav class="book-language" aria-label="书籍语言"><a id="book-language-link" href="en/index.html" lang="en" hreflang="en">English edition</a></nav>
+<script>
+(() => {
+  const link = document.getElementById("book-language-link");
+  const current = new URL(window.location.href);
+  const match = current.pathname.match(/(?:chapters\/)?[^/]+\.html$/);
+  const page = match ? match[0] : "index.html";
+  const prefix = page.startsWith("chapters/") ? "../" : "";
+  link.href = prefix + "en/" + page;
+})();
+</script>

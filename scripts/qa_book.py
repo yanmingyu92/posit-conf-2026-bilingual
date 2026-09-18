@@ -13,12 +13,13 @@ import subprocess
 import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
-QA = ROOT / '.qa'
+QA = ROOT / os.environ.get('QA_EVIDENCE_DIR', '.qa')
+BOOK = ROOT / os.environ.get('QA_BOOK_DIR', 'book')
 
 
 def extract():
     blocks = []
-    for path in sorted((ROOT / 'book/chapters').glob('*.qmd')):
+    for path in sorted((BOOK / 'chapters').glob('*.qmd')):
         source = path.read_text(encoding='utf-8')
         # Also include r fences nested in four-backtick Markdown examples.
         for i, match in enumerate(re.finditer(r'^```r[^\S\n]*\n(.*?)^```[^\S\n]*$', source, re.M | re.S), 1):
@@ -67,6 +68,7 @@ def run_chapter(chapter, blocks, args):
     shutil.copyfile(ROOT/'scripts/qa_book_runner.R', folder/'runner.R')
     env = os.environ.copy()
     env.update(QA_R_LIB=str(Path(args.library).resolve()), LC_ALL='C', LANG='C', RGL_USE_NULL='TRUE', NOT_CRAN='true')
+    env['QA_BOOK_DIR'] = str(BOOK.resolve())
     quarto = Path(os.environ.get('TEMP', '')) / 'opencode/quarto/bin/tools'
     env['RSTUDIO_PANDOC'] = str(quarto)
     env['PATH'] = str(quarto) + os.pathsep + env['PATH']
@@ -85,7 +87,7 @@ def main():
     parser.add_argument('--chapters', nargs='*')
     parser.add_argument('--extract-only', action='store_true')
     args = parser.parse_args()
-    QA.mkdir(exist_ok=True)
+    QA.mkdir(parents=True, exist_ok=True)
     blocks = extract()
     (QA / 'inventory.json').write_text(json.dumps(blocks, ensure_ascii=False, indent=2), encoding='utf-8')
     print(f'Extracted {len(blocks)} blocks across 28 chapters.', flush=True)

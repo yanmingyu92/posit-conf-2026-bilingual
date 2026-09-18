@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1120" viewBox="0 0 800 1120" role="img" aria-labelledby="title desc">
+  <title id="title">Modern R in Practice — Jaime Yan</title>
+  <desc id="desc">A cream and deep-teal book cover with four connected nodes representing analysis, communication, engineering, and application.</desc>
+  <rect width="800" height="1120" fill="#f4f0e6"/>
+  <rect width="18" height="1120" fill="#bd773b"/>
+  <g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" fill="#153c46">
+    <text x="78" y="105" font-size="21" letter-spacing="4">MODERN R IN PRACTICE</text>
+    <path d="M78 137H720" stroke="#153c46" stroke-width="2"/>
+    <text x="72" y="280" font-size="82" font-weight="700">Modern R</text>
+    <text x="72" y="397" font-size="88" font-weight="700">in Practice</text>
+    <text x="78" y="465" font-size="24">From Analysis Scripts to Reliable Deliverables</text>
+    <text x="78" y="517" font-size="18" fill="#536a6e">Analysis · Communication · Engineering · Applications</text>
+  </g>
+  <rect x="78" y="601" width="642" height="282" rx="3" fill="#153c46"/>
+  <g stroke="#f4f0e6" stroke-width="2" fill="none">
+    <path d="M145 783L300 720L457 755L644 661"/>
+    <path d="M145 816V646M300 816V646M457 816V646M644 816V646" stroke-opacity=".16"/>
+    <path d="M116 690H680M116 750H680M116 810H680" stroke-opacity=".16"/>
+  </g>
+  <g fill="#dfa564" stroke="#153c46" stroke-width="4">
+    <circle cx="145" cy="783" r="11"/><circle cx="300" cy="720" r="11"/>
+    <circle cx="457" cy="755" r="11"/><circle cx="644" cy="661" r="11"/>
+  </g>
+  <g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" fill="#f4f0e6" font-size="18" text-anchor="middle">
+    <text x="145" y="854">Analyze</text><text x="300" y="854">Communicate</text>
+    <text x="457" y="854">Engineer</text><text x="644" y="854">Apply</text>
+  </g>
+  <g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" fill="#153c46">
+    <text x="78" y="984" font-size="33" font-weight="600">Jaime Yan</text>
+    <text x="78" y="1030" font-size="18">Online practice edition · 2026</text>
+  </g>
+</svg>

@@ -1,0 +1,74 @@
+---
+title: "Further Reading: From Using Tools to Understanding Them"
+author: "Jaime Yan"
+---
+
+This reading map is for readers who can already manipulate data in R and want to deliver analyses to others. Each unit has three reading paths. Follow one when the corresponding problem arises, and return with a small practical artifact. You do not need to finish these books before starting the exercises here.
+
+The questions and follow-up tasks below are original contributions by this book's author. They guide reading; they are not summaries, translations, or adaptations of exercises from the linked books.
+
+## Unit 1: Make the analysis reliable
+
+**1. Turn repeated operations into a stable interface.** Read [Functions](https://r4ds.hadley.nz/functions.html) and [Iteration](https://r4ds.hadley.nz/iteration.html) in *R for Data Science*, second edition, by Hadley Wickham, Mine Çetinkaya-Rundel, and Garrett Grolemund. Focus on data-frame functions and organizing iteration results. Alongside Chapters 1.1–1.2, connect writing a function to providing an interface others can rely on.
+
+Read with a question: If one file in a batch fails, could returning an empty table make the overall result look complete? Design three fields for your batch summary: input identifier, processing status, and result location. Specify different behavior for empty inputs and failed inputs.
+
+**2. Explain where variables come from.** Read [Functions](https://adv-r.hadley.nz/functions.html) and [Environments](https://adv-r.hadley.nz/environments.html) in Hadley Wickham's *Advanced R*, second edition. Focus on arguments, lexical scoping, and environments alongside Chapters 1.1 and 1.3. You need not read all the metaprogramming material now.
+
+Read with a question: Why does the same function produce a different result in a clean session? Find a function in your script that refers to an external variable. Sketch three objects it depends on, then decide which belong in arguments and which belong in project configuration.
+
+**3. Turn network responses into checkable data.** Read the request, execution, and response sections of the [official httr2 introduction](https://httr2.r-lib.org/articles/httr2.html). Alongside Chapters 1.4–1.5, distinguish a successful request from obtaining the data you need.
+
+Read with a question: How will you detect an empty result, disappearing field, or changed type after an HTTP success? Write three input checks for a JSON example containing no secrets, and save it as an offline fixture. A live website's availability should not be your only evidence that the exercise is correct.
+
+## Unit 2: Make results understandable and reusable
+
+**1. Understand layers, not just chart names.** Read [Build a plot layer by layer](https://ggplot2-book.org/layers.html) and [Themes](https://ggplot2-book.org/themes.html) in the online third-edition draft of *ggplot2: Elegant Graphics for Data Analysis*, by Hadley Wickham, Danielle Navarro, and Thomas Lin Pedersen. Alongside Chapters 1.7–1.8 and 2.6, distinguish data representation from appearance.
+
+Read with a question: Does this change alter the statistical meaning or only the reading order? Make two versions of the same summary: one for an analyst's checks and one for a business reader's decision. Preserve the values and explain three design differences. The online third edition is still being developed, so its chapters may change.
+
+**2. Draw dependencies before running the app.** Read [The reactive graph](https://mastering-shiny.org/reactive-graph.html) in Hadley Wickham's *Mastering Shiny*, then [Shiny modules](https://mastering-shiny.org/scaling-modules.html) as needed. Alongside Chapters 2.4 and 2.7, clarify reactive updates and module boundaries.
+
+Read with a question: Why did changing a title trigger an expensive data calculation? Draw dependencies between one input, one filtered dataset, and two outputs. Mark calculations that should be shared. Before introducing a module, specify what it receives and returns.
+
+**3. Separate recomputation from reformatting.** Read Quarto's official [Managing Execution](https://quarto.org/docs/projects/code-execution.html) guide, focusing on project execution, caching, and freeze. Alongside Chapters 2.3 and 2.8, remember that this book displays static teaching code, while your analysis project needs an explicit execution strategy.
+
+Read with a question: When an input CSV changes, how do you ensure the report's numbers update? Make a table mapping data changes, parameter changes, and style changes to the work that should rerun. Test an actual change; simply opening the HTML is insufficient.
+
+## Unit 3: Make code ready for handoff
+
+**1. Build a small package that really installs.** Read [The Whole Game](https://r-pkgs.org/whole-game.html) and [Designing your test suite](https://r-pkgs.org/testing-design.html) in *R Packages*, second edition, by Hadley Wickham and Jennifer Bryan. Alongside Chapters 3.1–3.2, bring functions, documentation, dependencies, and tests into one deliverable.
+
+Read with a question: Do your tests cover only inputs you already know are valid? Choose an analysis function and write expectations for a normal value, a missing value, and an invalid value. Ask a colleague to call it using only the documentation, and record where the interface forces them to guess.
+
+**2. Locate the problem before fixing or speeding up code.** Read [Debugging](https://adv-r.hadley.nz/debugging.html) and [Measuring performance](https://adv-r.hadley.nz/perf-measure.html) in *Advanced R*. Alongside Chapters 3.3–3.4, answer separately: Where is the error? Where is the time spent?
+
+Read with a question: Do the original and optimized implementations calculate the same result? Keep a minimal reproduction, a result-equivalence check, and a measurement record. A speed improvement must preserve correctness.
+
+**3. Deliver the environment and explain its limits.** Read the [official renv introduction](https://rstudio.github.io/renv/articles/renv.html), starting with snapshot and restore, then Caveats. Alongside Chapters 3.1 and 4.8, understand project libraries and lockfiles.
+
+Read with a question: Does having renv.lock guarantee that another machine can generate the same PDF? List five dependency categories: R, R packages, system libraries, fonts, and data. Mark those with recorded restoration evidence. Clinical and pharmaceutical readers can include this in a technical handoff; the table itself is not evidence of completed project validation.
+
+## Unit 4: Make AI and domain applications inspectable
+
+**1. Separate output shape from correctness.** Read ellmer's official guides to [Structured data](https://ellmer.tidyverse.org/articles/structured-data.html) and [Tool/function calling](https://ellmer.tidyverse.org/articles/tool-calling.html). Alongside Chapters 4.1–4.4 and 4.6, check methods and arguments against your installed version before making model calls.
+
+Read with a question: If the returned object has the correct type but contains a number absent from the source, which layer should reject it? Write three short texts containing complete, missing, and contradictory information. Design an extraction contract and write expected results manually before deciding whether a model is needed.
+
+**2. Inspect retrieval, not only the final answer.** Read the [official ragnar documentation](https://ragnar.tidyverse.org/) on document processing, chunking, retrieval, and conversation integration. Alongside Chapter 4.5, treat retrieved material as an inspectable intermediate result.
+
+Read with a question: Is a passage about the right topic sufficient evidence for an answer? Use three short documents you have permission to use. Write two answerable questions and one unanswerable question; record whether each retrieved passage supports the conclusion. There is no need to copy entire books from this reading map.
+
+**3. Return to every denominator in the table.** Read the official [gtsummary tbl_summary tutorial](https://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html), focusing on variable types, missing values, and statistical settings. Alongside Chapter 4.7, connect formatted tables to checkable summary rules.
+
+Read with a question: When one participant has several records, does n count people or records? Construct six fictional rows and calculate a percentage by hand. Define inclusion, the denominator, and missing-value handling, then compare against the program. This practices programming and checking; analysis populations, imputation, and statistical methods must follow the project's agreed rules.
+
+## Choosing a short path
+
+For analysis delivery, start with stable interfaces, layers, test design, and environment handoff. For Shiny, prioritize the reactive graph. Clinical and pharmaceutical readers can connect test design, denominator checks, and environment handoff before moving from deterministic workflows to AI. Add one checkable artifact to your project after each reading path, then decide whether to continue.
+
+## Sources and use
+
+Links were checked on the authors' or maintainers' official sites on 2026-09-17. The book licenses for R4DS 2e, R Packages 2e, and Mastering Shiny include NC/ND conditions; the overall license for Advanced R includes an NC condition. See the individual statements on the [R4DS](https://r4ds.hadley.nz/), [R Packages](https://r-pkgs.org/), [Mastering Shiny](https://mastering-shiny.org/), and [Advanced R](https://adv-r.hadley.nz/) homepages. This page provides links and original reading guidance; it does not adapt those books' text, images, or exercises into this project. Package documentation and books retain their own licenses.
+
+Original reading guidance on this page is by Jaime Yan and is published under CC-BY-SA 4.0.

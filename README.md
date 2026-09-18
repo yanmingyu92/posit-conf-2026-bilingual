@@ -6,6 +6,8 @@
 
 *Modern R in Practice*, by Jaime Yan, combines an authored learning narrative with practice labs. The posit::conf archive remains a separate source catalog; further reading also draws on established R books and official documentation.
 
+Read the [English edition](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/) or [中文版](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/). Both contain the same 28 chapters, with a language switch on each page.
+
 > 📚 中文版说明见下方 [中文简介](#中文简介)。
 
 ---
@@ -17,6 +19,7 @@
 | Layer | Location | Description |
 |---|---|---|
 | **The Book** 📖 | `book/` | **《现代 R 进阶》**：Jaime Yan，四单元 28 章，含封面、前言、阅读指南和多来源阅读地图 |
+| **English book** | `book-en/` | *Modern R in Practice*, by Jaime Yan: all 28 chapters, cover, preface, reading paths, sources, and companion practice |
 | **Practice labs** | `training/` | 独立任务、模拟数据、起始脚本、参考实现与自动验收；当前 1 套完整综合实验 |
 | **Original curriculum** | `curriculum/` | **Our own course system** built on the corpus: 5-domain × 3-level competency matrix, learner personas, module blueprints (start with `curriculum/MATRIX.md`) |
 | Mirrored 2026 materials | `content/en/` | Verbatim copies of all 8 official 2026 workshop repos, organized by track, with provenance manifest |
@@ -38,15 +41,18 @@
 
 ### Quick start
 
-Read the [book](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/) or start the [practice lab](training/analysis-handoff/README.md). To build locally:
+Read the [English book](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/) or start the [English practice lab](training/en/analysis-handoff/README.md). To build locally:
 
 ```bash
 python scripts/build_training_download.py
 quarto render book
+quarto render book-en
 quarto render website
 ```
 
 Generated HTML stays outside version control; GitHub Actions rebuilds the book, training download and website from source.
+
+For code QA, `QA_BOOK_DIR=book-en` and `QA_EVIDENCE_DIR=.qa/en` select English sources and separate evidence in the `qa_book` scripts; defaults retain the Chinese edition. Run `python scripts/qa_book_english.py` for edition completeness and structural parity. Model-service examples retain their credential and execution limitations.
 
 ```bash
 git clone https://github.com/yanmingyu92/posit-conf-2026-bilingual.git

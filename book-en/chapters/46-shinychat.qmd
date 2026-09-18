@@ -1,0 +1,266 @@
+---
+title: "4.6 Data Chat Applications with shinychat and querychat"
+author: "Jaime Yan"
+objectives: |
+  Evaluate chat as a data-application interface; build a streaming shinychat
+  application with isolated session state; add guardrails; use querychat to
+  turn a data frame into natural-language queries and explain its security
+  model; identify deployment requirements.
+source-note: "Teaching structure and exercise numbering adapted from posit::conf(2026) llms (Garrick Aden-Buie, Sara Altman; CC-BY-SA 4.0). Explanatory prose is original to this project."
+---
+
+# 4.6 Data Chat Applications with shinychat and querychat
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **evaluate** when chat suits a task and when explicit controls are preferable.
+2. **build** a minimal app with `page_chat()` and `chat_server()`, wiring tools to UI events.
+3. **implement** a separate ellmer client for every session so histories cannot cross users.
+4. **apply** four guardrails: system-prompt boundaries, narrow tools, refusal behavior, and path validation.
+5. **assess** querychat's natural-language-to-SQL model and explain why you must **never eval raw model output**.
+
+## Prerequisite check
+
+- Know ellmer conversations, system prompts, and tool registration; revisit [4.1](41-llm-basics.qmd) and [4.3](43-agents.qmd).
+- Understand Shiny's `ui`, `server`, and `session`; see [2.7](27-shiny-reactive.qmd) for the full treatment.
+- We continue the Blockbuster scenario: chapter 4.4's skill-enabled renewal agent now becomes a Shiny app.
+
+## 1. What kind of interface is chat?
+
+Chat **moves the burden of specifying the request from the designer to the user**. That can help exploratory work but hinder precise, repetitive tasks: chat is slower than a button and harder to audit.
+
+| Task | Interface | Reason |
+|---|---|---|
+| Open exploration and follow-up analysis | Chat | Conversation helps clarify an incomplete request |
+| Precise, frequent, auditable tasks | Traditional controls | Repeated operations need precisely repeatable results |
+| A mixture | Chat followed by controls | Turn exploration into parameters and reports |
+
+::: {.callout-warning}
+## Common mistake: adding chat because it looks impressive
+Ask three questions. Do users know what to ask? If not, guide them with controls. Must answers enter a formal process? Use reproducible artifacts. Who is accountable when something fails? Compare the available conversation records with auditable control logs. If all three answers argue against chat, do not add it.
+:::
+
+## 2. A minimal shinychat application
+
+`shinychat` provides a pair: `page_chat()` for the UI and `chat_server()` for the server, adapted from llms `24_shinychat-1`. Run this chapter from the upstream `llms` project root, using its `_agent.R`, `blockbuster/`, `skills/`, and `data/` files.
+
+::: {.callout-example}
+```r
+library(ellmer)
+library(shiny)
+library(shinychat)
+
+activity_dir <- here::here("_solutions/24_shinychat-1")
+project_dir <- file.path(activity_dir, "blockbuster")
+skills_dir <- file.path(activity_dir, "skills")
+source(file.path(activity_dir, "_agent.R"))
+
+greeting <- paste(
+  "## Welcome to the renewal desk\n\nChoose a starting point, or write your own request.\n",
+  "* <span class=\"suggestion submit\">Draft renewal letters for the top three lapsed members.</span>",
+  "* <span class=\"suggestion submit\">List the draft letters already in the workspace.</span>",
+  "* <span class=\"suggestion submit\">Explain the renewal-letter skill.</span>",
+  sep = "\n"
+)
+
+ui <- page_chat(
+  "Blockbuster renewal assistant",
+  id = "chat",
+  greeting = chat_greeting(greeting),
+  placeholder = "Ask about the renewal campaign..."
+)
+
+server <- function(input, output, session) {
+  client <- chat_posit()
+  # Chapter 4.4 wiring: Blockbuster system prompt, file tools, and skills
+  prep_blockbuster_agent(client, project_dir, skills_dir)
+
+  chat_server("chat", client)   # Handles streaming, input, and conversation history
+}
+
+shinyApp(ui, server)
+```
+:::
+
+`chat_greeting()` accepts Markdown. `<span class="suggestion submit">` creates clickable **suggestion cards**, helping users start the first, often hardest, request.
+
+## 3. Session state: a separate conversation per user
+
+In §2, `chat_posit()` is **inside `server()`**. Shiny runs the server function separately for each user session, so browser tabs receive their own ellmer client and conversation history. That placement is deliberate.
+
+::: {.callout-warning}
+## Common mistake: a global client
+A global conversation object lets user A's history enter user B's context: a **privacy failure**. Their turns also increase each other's context costs. Use **one client per session**, account for costs per session, and use suggested questions to guide the first request efficiently.
+:::
+
+::: {.callout-important}
+## Check In: observe session isolation
+
+Open the local app in two browser windows. Ask each a different question, then ask both “What did I just ask?” Verify that each remembers only its own history. Move `client <- chat_posit()` to the global environment and repeat to observe the shared history. Explain it using chapter 4.1: the model does not remember; ellmer resends history.
+:::
+
+## 4. Tools as UI events
+
+A model's tool call is a moment when **R code executes**, so that code can update the Shiny UI. `25_shinychat-2` adds a draft-letter drawer: after writing a letter, the model opens it for human review. Add `drawer = chat_drawer(...)` to `page_chat()`:
+
+::: {.callout-example}
+```r
+drafts_dir <- file.path(project_dir, "letters", "drafts")
+
+ui <- page_chat(
+  "Blockbuster renewal assistant", id = "chat",
+  greeting = chat_greeting("## Welcome to the renewal desk\n\nDraft letters, then review them in the drawer."),
+  placeholder = "Ask about the renewal campaign...",
+  drawer = chat_drawer(
+    selectInput("letter", "Draft", choices = character()),
+    bslib::input_code_editor("letter_content", label = "Letter",
+                             language = "markdown", height = "500px"),
+    actionButton("save_letter", "Save letter"),
+    title = "Letter drafts", open = FALSE
+  )
+)
+
+server <- function(input, output, session) {
+  show_letter <- function(path) {
+    filename <- basename(path)                       # Remove directory components
+    files <- sort(list.files(drafts_dir, pattern = "\\.md$"))
+    if (!filename %in% files) {
+      stop("Could not find draft ", filename, ".")   # Reject rather than guess
+    }
+    updateSelectInput(session, "letter", choices = files, selected = filename)
+    chat_drawer_show("chat", session = session)      # Open the drawer
+    paste0("Opened ", filename, " in the letter drawer.")  # Confirmation for the model
+  }
+
+  tool_show_letter <- tool(
+    show_letter,
+    description = "Open a draft renewal letter in the app's letter drawer.",
+    arguments = list(
+      path = type_string("Path to a draft letter in letters/drafts/.")
+    )
+  )
+  client <- chat_posit()
+  client$register_tool(tool_show_letter)
+  prep_blockbuster_agent(client, project_dir, skills_dir)
+  chat_server("chat", client)
+
+  draft_files <- reactive({
+    invalidateLater(1000, session)
+    sort(list.files(drafts_dir, pattern = "\\.md$"))
+  })
+  observe({
+    files <- draft_files()
+    selected <- if (!is.null(input$letter) && input$letter %in% files) {
+      input$letter
+    } else if (length(files)) {
+      files[[1]]
+    } else {
+      NULL
+    }
+    updateSelectInput(session, "letter", choices = files, selected = selected)
+  })
+  observeEvent(input$letter, {
+    req(input$letter)
+    bslib::update_code_editor(
+      "letter_content",
+      value = brio::read_file(file.path(drafts_dir, input$letter))
+    )
+  })
+  observeEvent(input$save_letter, {
+    req(input$letter)
+    brio::write_file(input$letter_content, file.path(drafts_dir, input$letter))
+  })
+}
+
+shinyApp(ui, server)
+```
+:::
+
+Three points: `basename()` plus an allowlist reduces a model-supplied path to a controlled filename; `stop()` returns an error the model can respond to; and the return string confirms the action to the **model**, while the user sees the drawer open.
+
+## 5. Guardrails and deployment
+
+In a terminal you are the agent's user. In an application, the user can be **anyone**. Four minimum controls are:
+
+1. **Identity and boundaries:** Set role, data boundaries, and permitted actions in the system prompt.
+2. **Narrow scope:** Expose side effects through registered tools and confine paths to `project_dir`.
+3. **Refusal behavior:** Politely decline requests outside the tool scope; refusal is a feature.
+4. **Input validation:** Treat every model argument as **untrusted user input**, using patterns such as §4's filename allowlist.
+
+Deployment has three considerations. Choose Posit Connect for an enterprise setting with server credentials and access control, or shinyapps.io with `rsconnect`. Keep API keys in server environment variables, never code. Before launch, estimate cost per session multiplied by concurrency using chapter 4.1's model.
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Many data apps need only three dropdowns and a button. Chat serves the exploratory cases where users do not yet know what to ask. Build the controls first; add chat after observing repeated exploratory follow-ups. Starting with chat often overcomplicates the job.
+:::
+
+## 6. querychat: natural language to constrained queries
+
+Where shinychat supplies components, querychat supplies an application: a data frame becomes chat, data, and SQL views. Adapted from llms `26_querychat`:
+
+::: {.callout-example}
+```r
+library(ellmer)
+library(querychat)
+
+airbnb_data <- read.csv(here::here("data/airbnb-austin.csv"))
+
+qc <- QueryChat$new(
+  airbnb_data,
+  "airbnb_data",
+  client = chat_posit(),
+  greeting = "Ask me about Austin Airbnb listings.",
+  data_dict = here::here("data/airbnb-austin_data-dict.yaml")
+)
+
+qc$app()
+```
+:::
+
+Ask “Which neighborhood has the most private rooms?” Open the data drawer and select **Show Query** to inspect generated SQL. Follow with “Which private room in that neighborhood is cheapest?” and observe conversation context affecting the query. `data_dict`, a YAML data dictionary, explains each column's actual meaning and is a low-cost way to improve answers.
+
+::: {.callout-warning}
+## Red line: never eval model output
+Concatenating a reply into R code and executing it with `eval()` / `parse()` gives the input box control over the server. querychat instead constrains generation to SQL against the table and executes it through a restricted engine: a query can be inspected as a data operation. Choose a constrained language such as SQL or **structured parameters** from chapter 4.2's `chat_structured()`, executed by your own R function. The model supplies parameters; your code supplies actions.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Recreate §2 with your own dataset: `page_chat()`, three suggestion cards, and a custom placeholder. Cards should offer one useful question, one listing request, and one question about the app's capabilities. Adapted from `24_shinychat-1`.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Add a UI tool to §2, following §4: let the model pin an analysis result to a sidebar, using `chat_drawer()` or a `valueBox`. Require validation equivalent to `basename()`, an allowlist, and `stop()` on failure. Demonstrate safe rejection of one invalid model argument. Adapted from `25_shinychat-2`.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI off)
+
+**Round 1 (AI off throughout):** Assume public deployment. Write at least ten threats, including prompt injection in data, path traversal, PII leakage, and cost abuse. For each, state entry point → consequence → one mitigation sentence. **Round 2 (AI allowed):** Ask an assistant: “Which three risks am I most likely to underestimate? Give demonstration requests.” Update the list and test two cases, recording app behavior.
+:::
+
+## Capstone
+
+**Task: “Domain data-chat application.”** Choose ① shinychat: your data, a scoped system prompt, at least one validated UI tool, and initial suggestion cards; or ② querychat: your data and a handwritten `data_dict`. Submit deployment notes for Connect or shinyapps, a ten-question test script including two out-of-scope refusals, and per-session cost estimates.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Interaction | App runs and streams | Cards guide the first question | Conversations produce results that controls/reports can capture |
+| Guardrails | Client isolated by session | Validated tools and allowlists | Threats mapped to controls; two tested cases |
+| State and cost | No cross-session history | Costs broken down by turns | Concurrency estimate or rate-limiting approach |
+| Evidence boundaries | Out-of-scope refusals recorded | Polite refusals with direction | Test script includes adversarial requests |
+
+## SOURCES · Attribution
+
+| Section | Material | Use |
+|---|---|---|
+| §2 minimal app and cards; §4 drawer and UI tool | posit::conf(2026) llms `_exercises/24_shinychat-1`, `25_shinychat-2`, and corresponding `_solutions/` (Garrick Aden-Buie, Sara Altman; CC-BY-SA 4.0) | Adapted |
+| §6 querychat and Show Query | llms `_exercises/26_querychat` / `_solutions/26_querychat` | Adapted |
+| Chat-as-UI comparison, guardrails, eval warning, exercise adaptations, capstone, rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

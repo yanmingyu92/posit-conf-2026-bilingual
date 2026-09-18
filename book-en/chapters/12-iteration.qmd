@@ -1,0 +1,235 @@
+---
+title: "1.2 Iteration with purrr"
+objectives: |
+  Recognize implicit and explicit iteration; replace copying and for loops with
+  map/map2/pmap/walk; iterate over columns with across(); handle failures with possibly()/safely().
+source-note: "Teaching structure and exercise design adapted from posit::conf(2025) r-programming (Emma Rand, Garrett Grolemund, Ian Lyttle · CC-BY-SA 4.0); chapter prose is original to this project"
+---
+
+# 1.2 Iteration with purrr
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **recognize** iteration R already provides for free, such as vectorization and `group_by()`, and situations requiring explicit iteration
+2. **write** `map()` calls to replace copying, choose variants by output type, and write anonymous functions with `\(x)` or `~ .x`
+3. **predict** how `map2()` and `pmap()` pair arguments and structure their outputs
+4. **design** consistent transformations across columns with `across()` and `.names`, then wrap them in a function
+5. **harden** failure-prone operations with `possibly()` and `safely()` so one failure does not stop a batch
+
+## Prerequisite check (≤5 minutes)
+
+Complete these two questions independently; otherwise revisit 1.1 Writing Functions and the [tidyverse prerequisites](../index.qmd#prerequisites):
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Write `se(x)` to return a numeric vector's standard error: `sd()` divided by the square root of the nonmissing count, ignoring `NA`.
+2. Without running it, state the **return type** and contents of `map(1:3, \(x) x^2)`.
+:::
+
+## 1. Why for loops can be a code smell in R
+
+Consider a realistic pattern for reading several files:
+
+::: {.callout-example}
+```r
+data_2011 <- readr::read_csv("data/survey_2011.csv")
+data_2012 <- readr::read_csv("data/survey_2012.csv")
+data_2013 <- readr::read_csv("data/survey_2012.csv")   # Deliberate copy-and-paste mistake
+data_2014 <- readr::read_csv("data/survey_2014.csv")
+all <- dplyr::bind_rows(data_2011, data_2012, data_2013, data_2014)
+```
+:::
+
+The third line reads the **2012** file. There is no error or warning, but two years of data are now wrong. A for loop is not inherently wrong, yet it can bury **what** you want in **how** to do it: preallocation, indices, and accumulators compete with the intent. R supports functional programming: package the operation as a function and hand it to an iterator.
+
+::: {.callout-note}
+You already use iteration for free: `2 * nums`, `group_by() + summarise()`, and `facet_wrap()` all provide it. This chapter develops criteria for deciding whether you still need to write a loop.
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+I replace for loops because they can turn three lines of intent into eight lines of machinery, not because they are slow: `map()` is usually no faster. **Use map for simple iteration; use for when the evolving state is complex** (§6).
+:::
+
+## 2. The `map()` family and anonymous functions: `\(x)` or `~ .x`?
+
+`map(x, f)` calls `f` on every element of `x`, returning a **list** of the same length. If you do not need a list, choose a typed variant:
+
+| Function | Returns | Appropriate use |
+|---|---|---|
+| `map()` | List | Results with varied structures, such as models, plots, or data frames |
+| `map_dbl()` `map_int()` `map_chr()` `map_lgl()` | Atomic vector | Each call returns exactly one number, integer, string, or logical value |
+| `map_dfr()` | Data frame, combined by rows | Common in older code; prefer `map() \|> list_rbind()` in new code |
+
+::: {.callout-example}
+```r
+library(tidyverse)
+numbers <- list(1:5, c(2, 4, NA), c(10, 20))
+map(numbers, mean)                              # A list; a missing value produces NA
+map_dbl(numbers, \(x) mean(x, na.rm = TRUE))    # Anonymous function: native R >= 4.1 syntax
+map_dbl(numbers, ~ mean(.x, na.rm = TRUE))      # purrr formula shorthand (.x .y)
+map_int(numbers, length)                        # Length of each element
+```
+:::
+
+The function passed to `map()` is often an **anonymous function**, or lambda: used immediately without a name. `\()` is native syntax from R 4.1 onward and works throughout R. `~ .x` is purrr's formula shorthand. Recognize `~ .x` when reading older code; use `\()` consistently in new code.
+
+::: {.callout-warning}
+## Common mistake: calling the function too soon
+`map(numbers, mean())` immediately fails: pass **the function itself**, so `map()` can call it. A related mistake is `map_dbl(x, range)`: `range()` returns two values, while typed variants require **exactly one value per element**.
+:::
+
+::: {.callout-note}
+`~ mean(.x)` works in purrr/tidyverse functions. Passing it to `lapply()` gives that function a formula object rather than a callable function.
+:::
+
+## 3. Several inputs together: `map2()` and `pmap()`
+
+Need more than one vector? `map2()` iterates over two inputs together; `pmap()` iterates over a **named list**:
+
+::: {.callout-example}
+```r
+mu <- c(0, 5, 10); sigma <- c(1, 2, 3)
+map2(mu, sigma, \(m, s) rnorm(3, mean = m, sd = s))
+# pmap matches names: list names = function argument names
+specs <- list(n = c(30, 60, 90), mean = c(0, 5, 10))
+specs |> pmap(\(n, mean) rnorm(n, mean)) |> map_dbl(mean)
+```
+:::
+
+The key idea: **a data frame is a named list**, so `pmap(df, f)` iterates over rows, passing each row to `f` as a set of named arguments.
+
+::: {.callout-warning}
+## Common mistake: inputs with incompatible lengths
+`map2()` requires equal-length inputs, unless one has length 1 and can be recycled. Incompatible lengths such as 2 and 3 **raise an error** rather than silently recycling to the longer length. If the task requires strict one-to-one pairing, first use `stopifnot(length(a) == length(b))`.
+:::
+
+::: {.callout-important}
+## Check In: Predict the output
+
+Work it out on paper before running it. Then explain what happens if `c(2, 3)` becomes `c(2, 3, 4)`:
+
+```r
+map2_chr(c("Adelie", "Gentoo"), c(2, 3), \(s, n) str_c(rep(s, n), collapse = "-"))
+```
+:::
+
+## 4. Iterate over data-frame columns with `across()`
+
+dplyr provides a column-wise map: `across()`, for applying the same operation to many columns.
+
+::: {.callout-example}
+```r
+se <- \(x) sd(x, na.rm = TRUE) / sqrt(sum(!is.na(x)))
+palmerpenguins::penguins |>
+  group_by(species) |>
+  summarise(across(ends_with("mm"), list(mean = \(x) mean(x, na.rm = TRUE), se = se),
+                   .names = "{.fn}_{.col}"))
+```
+:::
+
+Three controls: `.cols` selects columns using `select()` syntax (`ends_with()`, `where(is.numeric)`, and so on); `.fns` receives functions **without calling them**, with multiple functions in a named list; `.names` is a glue string controlling output column names.
+
+::: {.callout-warning}
+## Common mistake: omitting .names inside mutate
+`mutate(across(ends_with("mm"), to_z))` **overwrites the original columns**: the original measurements disappear silently. Make `.names = "z_{.col}"` a habit inside `mutate()`.
+:::
+
+::: {.callout-note}
+Wrap `across()` in your own function, bringing back `{{ }}` from Chapter 1.1:
+
+```r
+my_summary <- function(df, cols = where(is.numeric)) {
+  df |> summarise(across({{ cols }}, list(mean = \(x) mean(x, na.rm = TRUE))), .groups = "drop")
+}
+palmerpenguins::penguins |> group_by(species) |> my_summary(ends_with("mm"))
+```
+:::
+
+## 5. When you want side effects: the `walk()` family
+
+Saving files, drawing plots, and printing are calls made for their **side effects**, not their return values. Use `walk()` to make that intent explicit:
+
+::: {.callout-example}
+```r
+penguins <- palmerpenguins::penguins
+plots <- split(penguins, penguins$species) |>
+  map(\(d) ggplot(d, aes(bill_length_mm, body_mass_g)) + geom_point())
+fs::dir_create("plots")
+iwalk(plots, \(p, name) ggsave(fs::path("plots", paste0(name, ".png")), p))
+```
+:::
+
+`walk()` returns its input unchanged and invisibly, making it convenient in a pipe. `iwalk()` also passes each element's **name** to the function, which is useful for filenames.
+
+::: {.callout-note}
+The working contract for `map()` is that calls do not interfere with one another or share state. Code that honors this contract can be rerun or parallelized freely, unlike a loop full of accumulators and shared state.
+:::
+
+## 6. One failure should not stop the batch: `possibly()` and `safely()`
+
+Suppose you read 30 files and the seventh is corrupt. `map()` stops, and the first six results are not returned. Adverb functions modify the operation: `possibly()` supplies a fallback and continues; `safely()` returns paired result/error information for auditing.
+
+::: {.callout-example}
+```r
+read_raw <- \(path) readr::read_csv(path, show_col_types = FALSE)
+paths <- c(fs::dir_ls("data/survey"), "data/survey/2099.csv")  # Include a nonexistent path
+possibly_read <- possibly(read_raw, otherwise = NULL)
+dfs <- map(paths, possibly_read) |> keep(\(x) !is.null(x))
+survey <- list_rbind(dfs)                    # Keep all successfully read files
+safe_read <- safely(read_raw)                # Which files failed?
+map(paths, safe_read) |> keep(\(r) !is.null(r$error)) |> map_chr(\(r) r$error$message)
+```
+:::
+
+Use `possibly()` when failure should yield a default value; use `safely()` when failures must be recorded.
+
+::: {.callout-warning}
+## Common mistake: hiding every error with possibly
+`possibly()` replaces **all** errors with a fallback, including logic errors you need to discover. Use it for failures in the outside world, such as missing files or network timeouts, not to conceal bugs in your own code.
+:::
+
+For loops remain an honest tool when ① each step depends on accumulated state, as in rolling forecasts or MCMC; ② runtime conditions determine how many iterations occur (`while`); or ③ debugging requires inspecting state at each iteration. Otherwise, consider vectorization first, then map.
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Copy the `across()` code in §4, replace the two summary functions with `median` and `mad` (both with `na.rm = TRUE`), and set `.names = "med_of_{.col}"`. **First predict on paper** which columns will appear, then run it and write three comment lines comparing predictions and actual results.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Turn §6 into `read_survey(dir, pattern = ".csv$")`, returning the successfully combined data frame and **reporting the names of skipped files and their failure reasons**. Create three valid CSVs and one nonexistent path in `tempdir()` as your test set. Require three successes and one reported failure. Hint: `safely()` plus `map_chr()`.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI off → AI review)
+
+**Round 1 (AI off)**: using only this chapter and `?pmap`, write `simulate_groups(specs)`. Take a named list `specs` containing `n`, `mean`, `sd`, and `label`; use `pmap()` to generate normal data for each group; combine the results into a tibble with a `label` column; and use `iwalk()` to save a `label.png` scatterplot for each group.
+**Round 2 (AI allowed)**: paste your code into Posit Assistant and ask only: “Which failures would stop the entire batch?” Add fault handling and record one overlooked problem that AI identified.
+:::
+
+## Capstone
+
+**Task**: build a monthly flight quality-control pipeline. Split `nycflights13::flights` by month. For each month, ① produce a quality tibble containing row count, missing `dep_delay` rate, and cancellation rate; ② save a delay-distribution histogram using the `walk()` family. Combine the 12 monthly quality tables and render a Quarto report. Demonstrate fault handling by deliberately including a bad month: the pipeline must finish and report why that month failed.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Iteration design | Uses map/walk to split, summarize, and save plots | Correct variants and return types throughout | Appropriate `pmap()`/`across()` use removes repetition; functions accept another dataset |
+| Robustness | One failed month does not interrupt the batch | Failed months have names and reasons in a report | Written rationale for using possibly versus safely |
+| Correctness | Results match direct `group_by()` calculations | Key outputs are predicted before verification | Identifies and fixes an indexing or recycling risk in the author's own code |
+| Communication | Complete report | One diagram explains the workflow | A personal rule for choosing map versus for |
+
+## SOURCES · Source mapping
+
+| Section | Material | Use |
+|---|---|---|
+| Structure and exercises in §1–§3 and §6: map family, iteration over parallel inputs, adverbs, and the wrong-year-file motivation | posit::conf(2025) r-programming `04-iteration-02.qmd` (Emma Rand, Garrett Grolemund, Ian Lyttle · CC-BY-SA 4.0) | Adapted |
+| §4: the three `across()` controls and function wrapping | Same workshop, `03-iteration-01.qmd` | Adapted |
+| Plot-saving exercise, monthly flights capstone, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

@@ -1,0 +1,15 @@
+# Unit 4 · AI and Domain Applications — Chapter Map
+
+> Use AI to extend the skills from the first three units and apply them in specialist settings.
+> This unit connects AI programming and domain practice through 2026 workshops and 2025 reproducible-environment materials.
+
+| Chapter | Topic | Source anchor | Matrix | Status |
+|---|---|---|---|---|
+| [4.1](chapters/41-llm-basics.qmd) | LLM Programming Basics (ellmer) | llms(2026) 01–11 | F | Published |
+| [4.2](chapters/42-structured-output.qmd) | Structured Output and Evaluation | llms(2026) 10/15 | F | Published |
+| [4.3](chapters/43-agents.qmd) | Agents and Tool Calling | llms(2026) 19–20 | F | Published |
+| [4.4](chapters/44-skills.qmd) | Engineering Agent Skills | llms(2026) 21–22 | F/A-L3 | Published |
+| [4.5](chapters/45-rag-mcp.qmd) | RAG and MCP | llms(2026) 51–52 | F/B-L3 | Published |
+| [4.6](chapters/46-shinychat.qmd) | Data Conversations with shinychat | llms(2026) 24–26 | E-L2 | Published |
+| [4.7](chapters/47-clinical-reporting.qmd) | Clinical Reporting (pharmaverse) | pharmaverse(2026) | E-L3 | Published |
+| [4.8](chapters/48-regulated-gxp.qmd) | Regulated Environments (GxP) | r-pharma-regulated(2026) + reproducible-environments(2025) | E-L3 | Published |

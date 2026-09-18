@@ -1,0 +1,266 @@
+---
+title: "1.8 Professionally Styled Plots"
+objectives: |
+  Control theme() components with element_*(); replace legends with direct endpoint labels;
+  choose color-vision-accessible palettes and use named vectors with manual scales;
+  organize labs() around a conclusion-led title; align Quarto and ggplot2 through brand.yml.
+source-note: "Teaching structure and exercise design adapted from the posit::conf(2025) ggplot2 workshop (Thomas Lin Pedersen, Teun van den Brand · README states CC-BY 4.0; LICENSE.md states CC-BY-SA 4.0) and quarto-brand workshop (Isabella Velásquez, Sara Altman · CC-BY-SA 4.0); chapter prose and makeover examples are original to this project"
+---
+
+# 1.8 Professionally Styled Plots
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **decompose** the four theme areas—text, axis, panel, and legend—and their `element_*()` controls
+2. **replace** legends with direct endpoint annotations to reduce interpretation effort
+3. **apply** accessible RColorBrewer/viridis palettes and drive `scale_*_manual()` with **named vectors**
+4. **compose** `labs()` with a conclusion in the title, context in the subtitle, and sources in the caption
+5. **integrate** `_brand.yml` with Quarto typography and ggplot2 output
+
+## Prerequisite check (≤5 minutes)
+
+Answer these questions independently; otherwise review the [tidyverse prerequisites](../index.qmd#prerequisites):
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. After drawing `ggplot(penguins, aes(bill_length_mm, body_mass_g)) + geom_point(aes(color = species))`, move the legend to the top with one line of code.
+2. Describe one visual difference between `theme_bw()` and `theme_minimal()`.
+:::
+
+## 1. Anatomy of `theme()`: four areas and `element_*()`
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Many people style plots by copying ten mysterious lines of `theme()`. The core distinction is that themes control **non-data ink**: grids, borders, and fonts. To change points and lines, use scales or geom arguments. A theme call in the wrong place accomplishes nothing.
+:::
+
+Theme names use dot notation, `area.component`, with the appropriate `element_*()` function:
+
+| Area | Typical arguments | Element function |
+|---|---|---|
+| text / axis | `plot.title` / `axis.title` / `axis.line` / `axis.text` | `element_text()` / `element_line()` |
+| panel | `panel.background` / `panel.grid.major` | `element_rect()` / `element_line()` |
+| legend | `legend.position` / `legend.title` | A string for position; `element_*()` for styling |
+
+::: {.callout-example}
+```r
+library(ggplot2)
+library(dplyr)
+
+p <- ggplot(palmerpenguins::penguins,
+            aes(bill_length_mm, body_mass_g, color = species)) +
+  geom_point(alpha = 0.75, size = 2)
+
+p + theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),      # Remove minor-grid clutter
+    panel.grid.major.x = element_blank(),    # Keep horizontal grid lines for comparison
+    legend.position = "top"
+  )
+```
+:::
+
+::: {.callout-note}
+## Workshop developments: ggplot2 4.0+
+The posit::conf(2025) theme session introduced newer APIs: `theme_gray(ink/paper/accent)` for global colors, `theme(geom = element_geom(...))` for default layer appearance, and `theme(palette.colour.continuous = ...)` for a default palette in the theme. Try them with ggplot2 ≥ 4.0; the main examples use established APIs.
+:::
+
+## 2. Replace legends with direct labels
+
+A legend makes readers repeatedly look between the plot and a lookup key. **Put labels beside the data**; for lines, the endpoint is often the natural location.
+
+::: {.callout-example}
+```r
+countries <- c("China", "India", "United States", "South Africa")
+g4 <- gapminder::gapminder |> filter(country %in% countries)   # Subset once
+ends <- filter(g4, year == 2007)              # Endpoints and label data
+
+ggplot(g4, aes(year, lifeExp, color = country)) +
+  geom_line(linewidth = 1) +
+  geom_text(data = ends, aes(label = country), hjust = 0, nudge_x = 1.5,
+            fontface = "bold") +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.25))) +  # Add space on the right
+  coord_cartesian(clip = "off") +             # Allow labels beyond the panel
+  guides(color = "none") +                    # Remove the legend
+  labs(x = NULL, y = "Life expectancy")
+```
+:::
+
+Three supporting steps: **add right-side space** with `expansion`, **disable clipping** with `clip = "off"`, and **remove the legend** with `guides(color = "none")`. Leaving out any of them can undermine the result.
+
+::: {.callout-warning}
+## Common mistake: keeping both labels and a legend
+If you add endpoint labels but forget `guides(color = "none")`, readers must check whether the duplicated information agrees. **When direct labels take over, remove the corresponding legend.**
+:::
+
+## 3. Color discipline: accessible palettes and `scale_*_manual()`
+
+About 8% of male readers have color vision deficiency; design your plot with these readers in mind. Two reliable approaches:
+
+::: {.callout-example}
+```r
+# Option 1: qualitative RColorBrewer colors; inspect display.brewer.all(colorblindFriendly = TRUE)
+p + scale_colour_brewer(palette = "Dark2")
+# Option 2: viridis; trim the lightest yellow for contrast against white
+p + scale_colour_viridis_d(end = 0.85)
+```
+:::
+
+viridis is a useful default because it is **perceptually uniform** (equal numeric differences produce roughly equal visual differences), **accessible for color vision deficiencies**, and **ordered in grayscale**. `Dark2` and `Set2` suit qualitative comparisons with ≤8 categories. Beyond eight, consider facets rather than stretching a palette (1.7 §6).
+
+Brand colors may need manual selection, but **position-based manual scales are fragile**: changing factor levels can silently change color assignments. Use a **named vector**, with keys matching factor levels, to separate the mapping from order.
+
+::: {.callout-example}
+```r
+species_cols <- c(
+  Adelie    = "#0072B2",   # Okabe-Ito blue
+  Chinstrap = "#E69F00",   # Orange
+  Gentoo    = "#009E73"    # Green
+)
+
+p + scale_colour_manual(values = species_cols)
+```
+:::
+
+Three rules: the named vector may contain extra keys, but **must not omit needed levels**, which otherwise receive the NA color; **define the palette once** and reuse it throughout the document, preparing for §5; named colors remain stable when upstream factor order changes.
+
+::: {.callout-important}
+## Check In: Two minutes of practice
+
+Use `colorspace::cvd_image()` or an online CVD simulator to inspect a recent plot under deuteranopia. Which colors become hard to distinguish? Replace one with an Okabe–Ito color and simulate again. Then deliberately reorder `penguins$species` factor levels and verify that the named palette preserves assignments.
+:::
+
+## 4. The `labs()` hierarchy: a title is a conclusion
+
+Readers often scan title → plot → axes and legend. Put the conclusion in `title` to help with the first step of interpretation; a conclusion buried in `caption` may go unread.
+
+| Position | Purpose | Poor choice |
+|---|---|---|
+| `title` | One-sentence conclusion | “Penguin data plot” |
+| `subtitle` | Scope, period, and definitions | Repeating the title |
+| `caption` | Sources and explanatory notes | Hiding the conclusion |
+| `tag` | Panel identifier such as “A” | Putting the panel identifier in the title |
+
+::: {.callout-example}
+```r
+p + labs(
+    title    = "Longer-billed penguins are heavier, with similar slopes across species",
+    subtitle = "Palmer station, 2007-2009; 333 complete records",
+    caption  = "Data: palmerpenguins (Gorman et al., 2014)",
+    x = "Bill length (mm)", y = "Body mass (g)", color = NULL   # Remove the legend title too
+  )
+```
+:::
+
+## 5. `brand.yml` × Quarto × ggplot2
+
+Quarto ≥ 1.8 reads `_brand.yml` from the project root to apply colors and fonts to HTML, PDF, and slides. Align ggplot2 with the same brand so figures and typography feel coherent.
+
+::: {.callout-example}
+```yaml
+# _brand.yml: read automatically by Quarto
+color:
+  palette:
+    brand-blue:  "#2266B1"
+    brand-green: "#1B7D3A"
+    brand-amber: "#B1781B"
+typography:
+  base: Inter   # Other brand settings include foreground, background, and headings
+```
+
+```r
+# Option A (no dependencies): maintain colors alongside _brand.yml and reuse one definition
+brand_cols <- c("#2266B1", "#1B7D3A", "#B1781B")
+# Option B (optional): install.packages("thematic") to apply brand colors and fonts to ggplot2
+if (requireNamespace("thematic", quietly = TRUE)) {
+  thematic::thematic_on(bg = "white", fg = "#1A1A1A", qualitative = brand_cols)
+} else {
+  message("Install thematic for the optional brand theme; basic plots remain available.")
+}
+```
+:::
+
+::: {.callout-note}
+The posit::conf(2025) quarto-brand workshop calls this “bring your own brand.” Quarto reads `_brand.yml` natively for HTML; thematic provides the graphics-side bridge. Option A has fewer dependencies and explicit behavior. Start there for team work and adopt B when branding requirements become stricter.
+:::
+
+## 6. A plot makeover: Before → After
+
+::: {.callout-example}
+**Before**: every choice asks more work of the reader.
+
+```r
+p + scale_colour_manual(values = c("red3", "limegreen", "deepskyblue1")) +
+  labs(title = "Figure 1") + theme_grey(base_size = 14)
+```
+
+Problems: harsh saturated colors that are not color-vision accessible, an uninformative title, competing gray background and grid, a default right-side legend, and axes without units. **After**: five changes using this chapter's tools.
+
+```r
+label_ends <- palmerpenguins::penguins |> tidyr::drop_na() |> group_by(species) |>
+  summarise(bill_length_mm = max(bill_length_mm) + 3,   # Just beyond the right edge of each species band
+            bill_depth_mm = median(bill_depth_mm), .groups = "drop")
+ggplot(palmerpenguins::penguins,
+       aes(bill_length_mm, bill_depth_mm, color = species)) +
+  geom_point(alpha = 0.75, size = 2) +
+  geom_text(data = label_ends, aes(label = species), fontface = "bold") +  # Step 1: direct labels
+  scale_colour_manual(values = c(Adelie = "#0072B2",    # Step 2: named Okabe-Ito colors
+    Chinstrap = "#E69F00", Gentoo = "#009E73")) +
+  guides(color = "none") +                              # Step 3: remove the legend
+  labs(title = "Three species occupy separate bill-shape bands",        # Step 4: conclusion-led title
+       subtitle = "Palmer station, 2007-2009; colors checked for color vision accessibility",
+       caption = "Data: palmerpenguins (Gorman et al., 2014)",
+       x = "Bill length (mm)", y = "Bill depth (mm)") +
+  theme_minimal(base_size = 12) +                       # Step 5: a restrained theme
+  theme(panel.grid.minor = element_blank(), plot.title = element_text(face = "bold"))
+```
+:::
+
+::: {.callout-warning}
+## Makeover order follows the dependencies
+Set **colors and annotations** first (steps 1–3, the information layer), then **labs and theme** (steps 4–5, presentation). Changing colors later can force another theme adjustment. **Wait until the information layer is stable before decorating.**
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Reproduce the endpoint-labeled plot in §2 for Rwanda, Botswana, Uganda, and Kenya, using `gapminder` `lifeExp` from 1962–2007. Some countries experienced declines: can all labels still sit at line ends? Show your approach, using `hjust`, small adjustments, or an endpoint `geom_point()` if useful.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Apply §3 to the dumbbell plot in Chapter 1.7. Use Okabe–Ito blue and orange (`#0072B2` / `#E69F00`) for female and male endpoints. Write two comment lines explaining their suitability for readers with color vision deficiencies. Deliberately change factor-level order and verify that named colors remain stable.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off)**: choose the least satisfactory plot in one of your old reports, or the result from 1.7 Exercise 3. Apply a complete makeover using only this chapter's checklist: direct labels, an accessible palette, named color vectors, conclusion-led `labs()`, and a restrained `theme()`.
+**Round 2 (AI allowed)**: show before and after to Posit Assistant and ask only: “Which three remaining style choices reduce readability?” Accept or reject each suggestion and connect each decision to a section of this chapter.
+:::
+
+## Capstone
+
+**Task**: create a submission-ready figure. Choose a conclusion from `penguins` or `gapminder` and deliver a final figure plus design decisions: endpoint or in-plot labels, an accessible palette defined by a named vector, the full `labs()` hierarchy, a custom `theme()`, and a draft `_brand.yml` with an explanation of its relationship to the plot palette. Deliver a one-page Quarto report: the figure and no more than ten lines of design explanation.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Information | Direct annotations present | Positions checked for overlap | Label order guides reading |
+| Color | Accessible palette | Named vector and contrast/range adjustments | CVD simulation checked and documented |
+| Hierarchy | All four labs components | Title is a testable conclusion | Subtitle explains definitions and limitations |
+| Consistency | Plot and document colors do not clash | Maps `_brand.yml` to the palette in a table | Optionally implements thematic and compares results |
+
+## SOURCES · Source mapping
+
+| Section | Material | Use |
+|---|---|---|
+| §1: theme anatomy and ggplot2 4.0 note | posit::conf(2025) ggplot2 workshop `slides/4_theme_guide.qmd` (Thomas Lin Pedersen, Teun van den Brand · README states CC-BY 4.0; LICENSE.md states CC-BY-SA 4.0) | Adapted |
+| §5: brand.yml workflow | posit::conf(2025) quarto-brand workshop (Isabella Velásquez, Sara Altman · CC-BY-SA 4.0) | Adapted |
+| viridis, RColorBrewer, and Okabe–Ito rationale | Official package documentation; Okabe & Ito (2008) | Referenced |
+| Endpoint labels, manual-scale discipline, labs hierarchy, makeover, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

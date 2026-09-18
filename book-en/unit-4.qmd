@@ -1,0 +1,7 @@
+# Unit 4 · AI and Domain Applications {.unnumbered}
+
+The first three units developed skills in analysis, delivery, and code maintenance. This unit introduces two further constraints: model outputs are uncertain, and specialist settings impose additional requirements on data and evidence. General analysts can learn to check AI workflows; clinical and pharmaceutical readers can extend that work to statistical tables, traceability, and environment governance.
+
+Begin with [LLM conversations](chapters/41-llm-basics.qmd) and [structured output](chapters/42-structured-output.qmd), explore tool calling, skills, and retrieval, then move to [clinical reporting](chapters/47-clinical-reporting.qmd) and [regulated environments](chapters/48-regulated-gxp.qmd). Model-service examples need the appropriate accounts, permissions, credentials, and network access. Without those, study the interfaces and evaluation designs first; static review is not evidence of a successful service call.
+
+Deliver a workflow with explicit inputs, processing steps, checks, and limitations. Distinguish program calculations, model-generated content, and human verification. Keep asking: Which conclusions have traceable sources? How will failures be detected? Who approves the results for use? These questions apply to ordinary reports as well as AI-assisted analysis. Course examples do not constitute organizational validation or regulatory approval.

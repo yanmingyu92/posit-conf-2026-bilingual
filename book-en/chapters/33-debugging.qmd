@@ -1,0 +1,209 @@
+---
+title: "3.3 Debugging Strategies"
+author: "Jaime Yan"
+objectives: |
+  Separate an error's message and call; reconstruct the stack with traceback();
+  investigate with browser() and n/c/f/Q; set Positron breakpoints and use
+  debugonce(); locate pipeline problems using cat/str and bisection;
+  request AI debugging help with a context rubric. This chapter deliberately
+  uses AI, provided that you supply sufficient evidence.
+source-note: "Debugging discipline and precise questions in section 7 adapted from posit::conf(2026) modern-r-workflow, module 01 Helping yourself (Hadley Wickham, Jenny Bryan; README states CC-BY 4.0, LICENSE.md contains CC-BY-SA 4.0). Exercise 1 adapted from the positron workshop debug.R (François Michonneau, Garrett Grolemund; same README/LICENSE discrepancy). Explanatory prose is original to this project."
+---
+
+# 3.3 Debugging Strategies
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **parse** the call and message in an error and distinguish three kinds of signals.
+2. **trace** the call stack at failure with `traceback()`.
+3. **operate** `browser()` using `n`, `c`, `f`, and `Q`.
+4. **apply** Positron breakpoints and `debugonce()` without editing the function body.
+5. **design** cat/str checkpoints and bisection for long pipelines.
+6. **formulate** evidence-rich AI debugging questions using the context rubric; this chapter is deliberately AI-on.
+
+## Prerequisite check (≤5 minutes)
+
+Answer both questions independently; otherwise revisit chapter 1.1.
+
+::: {.callout-important}
+## Check In: prerequisites
+
+1. Write one line that causes an `if (NA)`-style error. Hint: extract a value from a vector containing `NA`.
+2. Which of `message()`, `warning()`, and `stop()` interrupts execution?
+:::
+
+## 1. Read the error: message and call
+
+R has three signals, in increasing order of severity:
+
+| Signal | Function | Execution | Meaning |
+|---|---|---|---|
+| message | `message()` | Continues | Progress and information |
+| warning | `warning()` | Continues | Result is questionable but available |
+| error | `stop()` | **Stops** | Unacceptable input or state |
+
+An error has two parts: **call (where it happened) + message (what went wrong)**. For example, the class loan pipeline, from the positron workshop's `debug.R`, fails for an applicant whose credit score is `NA`:
+
+```{.text}
+Error in if (is_subprime) ... : missing value where TRUE/FALSE needed
+         call: which expression   message: what went wrong
+```
+
+Read the whole error, call first and message second. When searching for help, **quote an exact fragment of the message**. A warning is not merely colored text to ignore: R is telling you that you may not want to stand behind the result.
+
+::: {.callout-warning}
+## Common mistake: searching before reading
+Searching before finishing the call often finds somebody else's similarly named error. First identify the expression where yours occurred; then decide whether you need outside help.
+:::
+
+## 2. traceback(): reconstruct the scene
+
+Run `traceback()` immediately after an error. It shows the chain of calls from outer to inner; **the deepest frame is where the error was raised**. Positron, or RStudio with rlang, may display a tree beneath the error like this:
+
+```{.text}
+Error in `if (is_subprime)` ... : missing value where TRUE/FALSE needed
+Backtrace:
+1. ├─process_loan_application("A003", loan_applicants)
+2. └─assess_credit_risk("A003", loan_applicants)
+3.   └─calculate_risk_score(applicant)
+4.     └─classify_credit_tier(applicant$credit_score)   ← the failure site
+```
+
+Follow the tree downward. Its deepest level identifies **the function to inspect and the variable to examine**: here, the value of `credit_score`. `traceback()` reflects only the **most recent** error; another error overwrites the evidence.
+
+## 3. browser(): pause at the failure site
+
+Insert `browser()` in the suspect function. Execution pauses there for interactive inspection:
+
+```r
+classify_credit_tier <- function(credit_score) {
+  browser()                        # Pause here; the console shows Browse[1]>
+  is_subprime <- credit_score < 620
+  if (is_subprime) "subprime" else "prime"
+}
+```
+
+| Key | Name | Action |
+|---|---|---|
+| `n` | next | Execute the next line, then pause |
+| `c` | continue | Continue to the next browser()/breakpoint or the end |
+| `f` | finish | Finish the current loop/function |
+| `Q` | quit | Exit immediately; breakpoints remain |
+
+While paused, type **any R expression**: `credit_score`, `str(applicant)`, or `ls()`. You are inside the function and can inspect its local variables, the major advantage over print-based investigation.
+
+::: {.callout-important}
+## Check In: interpret this error
+```r
+mean_score <- function(df, col) mean(df[[col]], na.rm = TRUE)
+mean_score(palmerpenguins::penguins, 99)
+#> Error in `df[[col]]`: Can't extract columns past the end.
+#> Location 99 doesn't exist. There are only 8 columns.
+```
+① Which part is the call, and which is the message? ② Which function do you expect at the deepest traceback level? ③ Write your predictions before running the code.
+:::
+
+## 4. Breakpoints and debugonce(): pause without editing
+
+`browser()` changes the source, and forgetting to remove it can ship a debugger with your package. Two alternatives leave the source untouched:
+
+- **Breakpoint:** In Positron, click beside a line number to set a red dot. First use `load_all()` or source the script. Execution pauses at that line, much like `browser()` with `n`/`c`/`f`/`Q`; the environment panel shows local variables. Remove the dot to remove the breakpoint.
+- **`debugonce(f)`:** Pause at entry on the next call to `f`, then automatically disable debugging. It also works for package functions and is ideal for a quick inspection.
+
+::: {.callout-note}
+Heavier tools include persistent `debug(f)` and `options(error = recover)` for choosing a frame after failure. At first, breakpoints and debugonce are enough.
+:::
+
+## 5. The cat/str sandwich: simple evidence gathering
+
+During report rendering, long jobs, or runs on somebody else's machine, an interactive debugger may be unavailable. A durable alternative is to **put cat/str checks on both sides of suspect code**:
+
+```r
+cat(">> before clean: "); str(scores)
+scores <- clean_scores(scores)
+cat(">> after  clean: "); str(scores)
+```
+
+Why `str()` rather than `print()`? It compactly reports class, length, and sample values without flooding the console. In a loop, `cat("i =", i, "\n")` identifies the failing iteration. **Remove these lines immediately after diagnosis**: they are scaffolding, not the building.
+
+## 6. Bisection: narrow down a long pipeline
+
+Instead of inspecting every step in order, insert a checkpoint (`str()` or `cat()`) at the **midpoint** and see whether the intermediate object is already wrong:
+
+```r
+out <- raw |>
+  step_read() |>
+  step_clean() |>    # Check str() here: wrong = first half; correct = second half
+  step_merge() |>
+  step_report()
+```
+
+Each checkpoint eliminates half the candidates. An n-step pipeline takes roughly log₂(n) checks to isolate the problematic section, which you can then inspect with a breakpoint. This also works when the problem is bad data rather than faulty code.
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Debugging ends when you can explain the failure in one sentence, not when the code happens to run. An unexplained fix may merely persuade the bug to hide until later.
+:::
+
+## 7. Debugging with AI: the context rubric
+
+This chapter deliberately uses AI. Debugging is a useful application **if you supply evidence**. The modern-r-workflow workshop's memorable advice is to be “20% more specific for 80% better results”, and to ask questions as narrowly as Terence Tao: one precise question at a time.
+
+Before asking for help, assemble this context:
+
+| # | Element | Self-check |
+|---|---|---|
+| 1 | Exact error | Copy message and call verbatim |
+| 2 | Call stack | Full `traceback()` output |
+| 3 | Minimal reproduction | Runnable example packaged with `reprex::reprex()` |
+| 4 | Expected versus actual | One sentence for each |
+| 5 | Investigation so far | What you ruled out, so AI does not repeat it |
+
+Ask first to **explain** the error's mechanism. Restate and confirm that explanation before asking **how to fix it**. Request evidence: which documentation or function behavior supports the answer?
+
+::: {.callout-warning}
+## Common mistake: treating AI as an answer machine
+“My code errors; how do I fix it?” invites guesses. Copying the answer can introduce another bug. AI cannot see your machine or session; include a `sessionInfo()` summary when versions or platforms matter.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (adapt): Positron breakpoints
+
+Use the class repository's `debug.R`, a four-layer loan application pipeline adapted from the positron workshop. ① Source it and run `process_loan_application("A001", loan_applicants)` (success), then `"A003"` (error). ② From the error and stack alone, write which layer failed and which variable is suspect. ③ Set a breakpoint in `classify_credit_tier()`, rerun A003, and locate `credit_score` in the environment panel. ④ Step with `n` to the `if`, confirming `is_subprime` is `NA`. ⑤ Handle `NA` explicitly, for example with an `is.na()` branch or `isTRUE()`, and rerun both applicants. Submit a two-sentence root cause and a screenshot of the paused environment.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt): exchange bugs
+
+Write a three-function pipeline in a domain you choose, such as checkups/BMI. **Deliberately** plant a bug triggered by a particular input (`NA`, an empty table, or a type mismatch). Exchange it with a partner, who has 15 minutes and may use only traceback, `debugonce()`, and cat/str checkpoints. Each partner writes one line identifying the step that exposed the planted bug, plus the sequence of tools used.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI reversal: deliberately AI-on)
+
+Run two help-seeking experiments with the A003 error. **Round 1, no context:** send only “My R code errors. How do I fix it?” and record how generic the reply is. **Round 2, rubric context:** supply the five §7 elements: exact error, full stack, a three-line reproduction with a tibble containing an `NA` credit score, expected versus actual behavior, and prior investigation. Did the second reply identify the correct root cause? Did it hallucinate line numbers or function behavior? Write three lines about which context element mattered most. Rule: “explain first, I restate, then fix”; do not paste in AI's entire proposed repair.
+:::
+
+## Capstone
+
+**Task: a postmortem.** Use the class repository's mini-package with three planted bugs, or have a partner create one following Exercise 2. Investigate each: read the error → locate the layer with traceback → locate the cause with breakpoints/debugonce → use bisection if needed. Write one page per bug: exact symptom, chronological investigation, one-sentence root cause, fix, and regression test, following chapter 3.2's rule that each fixed bug leaves a test. If you used AI, include your question and its compliance with the context rubric.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Investigation | All three bugs fixed | Stack/breakpoint evidence for each | Tool choices justified, including why heavier tools were unnecessary |
+| Root cause | One sentence per bug | Understandable without reading the code | A design lesson behind each bug |
+| Fix and regression | Fixed and demo passes | Regression test for each bug | Message text checked by snapshot/regexp |
+| AI collaboration | No AI, or compliant use | All five context elements | Evidence supports the two-round comparison |
+
+## SOURCES · Attribution
+
+| Section | Material | Use |
+|---|---|---|
+| §1 error-reading discipline; §7 specificity and questioning | modern-r-workflow module 01 Helping yourself (Hadley Wickham, Jenny Bryan; posit::conf 2026; README states CC-BY 4.0, LICENSE.md contains CC-BY-SA 4.0) | Adapted |
+| §4 breakpoint practice and loan pipeline, Exercise 1 | positron workshop `debug.R` (François Michonneau, Garrett Grolemund; posit::conf 2026; README states CC-BY 4.0, LICENSE.md contains CC-BY-SA 4.0) | Adapted |
+| browser()/traceback() | Base R documentation; Advanced R, Wickham | Reference |
+| cat/str checkpoints, bisection, AI rubric details, Exercises 2/3, capstone, rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

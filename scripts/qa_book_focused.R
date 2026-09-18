@@ -2,12 +2,12 @@
 lib <- Sys.getenv("QA_R_LIB", file.path(Sys.getenv("TEMP"), "book-qa-r-library"))
 .libPaths(c(lib, .libPaths()))
 repo <- normalizePath(".", winslash = "/")
-out <- file.path(repo, ".qa")
-dir.create(out, showWarnings = FALSE)
+out <- file.path(repo, Sys.getenv("QA_EVIDENCE_DIR", ".qa"))
+dir.create(out, showWarnings = FALSE, recursive = TRUE)
 sandbox <- file.path(out, "focused-artifacts")
 dir.create(sandbox, showWarnings = FALSE)
 blocks <- function(prefix) {
-  path <- list.files(file.path(repo, "book/chapters"), pattern = paste0("^", prefix, "-"), full.names = TRUE)
+  path <- list.files(file.path(repo, Sys.getenv("QA_BOOK_DIR", "book"), "chapters"), pattern = paste0("^", prefix, "-"), full.names = TRUE)
   lines <- readLines(path, encoding = "UTF-8", warn = FALSE)
   starts <- which(grepl("^```r[[:space:]]*$", lines))
   lapply(starts, function(start) {

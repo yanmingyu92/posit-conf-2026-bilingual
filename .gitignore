@@ -3,6 +3,8 @@
 /docs/
 /.quarto/
 /book/_book/
+/book-en/_book/
+/book-en/.quarto/
 /website/_site/
 
 # R

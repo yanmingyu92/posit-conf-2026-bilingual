@@ -1,0 +1,259 @@
+---
+title: "2.5 Web Maps with leaflet"
+objectives: |
+  By the end of this chapter, you can organize points by longitude and latitude;
+  add basemaps and markers with popups and labels; map colors with colorNumeric()
+  and colorFactor() and add legends; shade polygons using sf and addPolygons();
+  organize layers and views; and save a map widget.
+source-note: "This chapter is entirely original and cites only official documentation: Leaflet for R (https://rstudio.github.io/leaflet/)."
+---
+
+# 2.5 Web Maps with leaflet
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **model** spatial data as points with longitude/latitude, avoiding reversed coordinates.
+2. **construct** a basemap with `addTiles()` and overlay `addMarkers()` / `addCircleMarkers()`.
+3. **differentiate** labels, which give brief hover information, from popups, which show details on click.
+4. **encode** data as colors using `colorNumeric()` / `colorFactor()` and `addLegend()`.
+5. **build** a simple choropleth with sf and `addPolygons()`, recognizing when counts need a denominator.
+6. **orchestrate** layer controls and framing with `setView()` / `fitBounds()`, then save a shareable map widget.
+
+## Prerequisite check (≤5 minutes)
+
+Continue when you understand rows as observations, columns as variables, and how to use `filter()`; otherwise revisit the [tidyverse prerequisites](../index.qmd#prerequisites).
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. R's built-in `quakes` dataset contains 1000 earthquakes near Fiji. Run `head(quakes)` and identify the longitude and latitude columns.
+2. Which sea region contains longitude 178°E and latitude 20°S? That is the setting for this chapter.
+:::
+
+## 1. A spatial mental model: Points and coordinates
+
+The smallest data unit on a web map is a **point**: a coordinate pair consisting of longitude (`lng`) and latitude (`lat`).
+
+| Concept | Common notation | Direction | Intuition |
+|---|---|---|---|
+| Longitude | lng / lon / long | East–west | Like x; negative values are west |
+| Latitude | lat | North–south | Like y; negative values are south |
+
+::: {.callout-example}
+```r
+head(quakes)
+# long ≈ 165–190 (east), lat ≈ -38 to -10 (south): 1000 earthquakes near Fiji
+```
+:::
+
+::: {.callout-warning}
+## Common error: Swapping lng and lat
+`addMarkers(lng = ~lat, lat = ~long)` may place points somewhere entirely wrong instead of producing a useful error. The §3 Check In has you make this mistake deliberately so you recognize the symptom.
+:::
+
+::: {.callout-note}
+Leaflet uses **WGS84 (EPSG:4326)** longitude and latitude. If GIS data use another coordinate reference system or projection, transform them with `sf::st_transform(x, 4326)` first; §5 uses this step.
+:::
+
+## 2. Basemaps: addTiles()
+
+A map combines a **basemap**, assembled from small image tiles served online, with **your data layers**. Start with the basemap:
+
+::: {.callout-example}
+```r
+library(leaflet)
+
+leaflet() |>                               # Minimal map with default OpenStreetMap tiles
+  addTiles() |>
+  setView(lng = 178, lat = -20, zoom = 4)
+
+# A quieter basemap helps the data stand out in a formal deliverable:
+leaflet() |>
+  addProviderTiles(providers$CartoDB.Positron) |>   # Light, low-distraction background
+  setView(lng = 178, lat = -20, zoom = 4)
+```
+:::
+
+::: {.callout-note}
+Tile attribution appears automatically in the lower-right corner; do not crop it out. Tiles come from a network server. **Offline or on a restricted intranet, the basemap may become a gray background.** We return to this in §7.
+:::
+
+## 3. Marker layers: addMarkers / addCircleMarkers
+
+::: {.callout-example}
+```r
+leaflet(data = quakes[1:200, ]) |>
+  addTiles() |>
+  addMarkers(lng = ~long, lat = ~lat,
+             label = ~as.character(mag),            # Hover: one number
+             popup = ~paste0("Magnitude ", mag, " · Depth ", depth,
+                             " km · Stations ", stations))  # Click: details
+```
+:::
+
+| Affordance | Trigger | Suitable content |
+|---|---|---|
+| label | Hover | One word or number for quick scanning |
+| popup | Click | Structured details across several fields |
+
+Pin markers suit a small number of named points. For more observations, or **size and color mapped to data**, use vector circles with `addCircleMarkers()`:
+
+::: {.callout-example}
+```r
+leaflet(data = quakes) |>
+  addTiles() |>
+  addCircleMarkers(lng = ~long, lat = ~lat,
+                   radius = ~mag / 2,          # Radius follows magnitude
+                   stroke = FALSE, fillOpacity = 0.5)
+```
+:::
+
+::: {.callout-note}
+Thousands of pin markers can slow the browser. Enable clustering with `addMarkers(clusterOptions = markerClusterOptions())`; markers group and separate as you zoom.
+:::
+
+::: {.callout-important}
+## Check In: Deliberately break the map
+
+First render `setView(lng = -122.4, lat = 37.8, zoom = 10)` for San Francisco. Then **deliberately** swap the coordinates to `setView(lng = 37.8, lat = -122.4)` and observe the resulting view. Save a screenshot. Seeing this bug once is more memorable than repeatedly being warned about it.
+:::
+
+## 4. Data-driven colors: colorNumeric / colorFactor + addLegend
+
+Continuous values need a continuous palette (`colorNumeric`); categories need discrete colors (`colorFactor`). First create a palette function, then pass it into the color mapping:
+
+::: {.callout-example}
+```r
+pal <- colorNumeric(palette = "viridis", domain = quakes$mag)
+
+leaflet(quakes) |>
+  addProviderTiles(providers$CartoDB.Positron) |>
+  addCircleMarkers(lng = ~long, lat = ~lat, radius = 3,
+                   color = ~pal(mag), stroke = FALSE, fillOpacity = 0.7,
+                   popup = ~paste0("Magnitude ", mag)) |>
+  addLegend(pal = pal, values = ~mag, opacity = 1, title = "Magnitude")
+
+# Categorical colors: bin a continuous variable, then map discrete colors
+quakes$depth_band <- cut(quakes$depth, breaks = c(0, 200, 400, 700),
+                         labels = c("Shallow", "Intermediate", "Deep"))
+pal_band <- colorFactor("Set1", domain = quakes$depth_band)
+# Then use color = ~pal_band(depth_band) + addLegend(pal = pal_band, values = ~depth_band)
+```
+:::
+
+::: {.callout-note}
+Use `colorNumeric` for continuous values and `colorFactor` for categories; `colorBin` also supports equal-width bins. **`addLegend()` is essential, not decoration**: unexplained colors are a guessing game.
+:::
+
+## 5. Shading polygons: sf + addPolygons
+
+The second spatial unit is a **polygon**: an administrative region, watershed, or grid cell. The sf package's built-in `nc` dataset contains the 100 counties of North Carolina and provides public teaching data:
+
+::: {.callout-example}
+```r
+library(sf)
+nc <- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE) |>
+  st_transform(4326)                       # Transform to WGS84 for leaflet
+
+pal_nc <- colorNumeric("YlOrRd", domain = nc$SID79)
+
+leaflet(nc) |>
+  addProviderTiles(providers$CartoDB.Positron) |>
+  addPolygons(weight = 1, color = "white",
+              fillColor = ~pal_nc(SID79), fillOpacity = 0.7,
+              highlightOptions = highlightOptions(weight = 3, bringToFront = TRUE),
+              popup = ~paste0(NAME, " County: SIDS ", SID79, " cases"))
+```
+:::
+
+::: {.callout-warning}
+## Common misconception: Coloring by totals
+SID79 is a **count**: counties with more people naturally tend to have more events. To show risk rather than population size, divide by the denominator: `rate = SID79 / BIR79 * 1000`, per thousand live births. Map the rate and put raw counts in the popup.
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+A common choropleth trap is coloring by totals: you think you are showing disease, but you are showing population. Ask whether color represents intensity or scale before drawing the map. Normalize when the story requires it, and preserve raw counts in popups. Basemaps also carry choices: place names, boundaries, and colors present a particular geographic account. Try another provider before final delivery.
+:::
+
+## 6. Layers and framing: addLayersControl / setView / fitBounds
+
+Layer groups form the map's contents menu. Readers select one basemap and may switch multiple data layers on or off. The view determines what they see first:
+
+::: {.callout-example}
+```r
+m <- leaflet(quakes) |>
+  addTiles(group = "Default OSM") |>
+  addProviderTiles(providers$CartoDB.Positron, group = "Light basemap") |>
+  addCircleMarkers(lng = ~long, lat = ~lat, radius = ~mag / 2,
+                   stroke = FALSE, fillOpacity = 0.5,
+                   color = ~pal(mag), group = "Earthquakes") |>
+  addLayersControl(baseGroups = c("Default OSM", "Light basemap"),
+                   overlayGroups = c("Earthquakes"),
+                   options = layersControlOptions(collapsed = FALSE))
+
+m |> setView(lng = 178, lat = -20, zoom = 5)                     # Fixed center and zoom
+m |> fitBounds(lng1 = 165, lat1 = -38, lng2 = 190, lat2 = -10)   # Frame the data bounds
+```
+:::
+
+::: {.callout-note}
+`baseGroups` are mutually exclusive; `overlayGroups` can be displayed together. `collapsed = FALSE` keeps the control open, saving readers a click. **Framing tells a story**: `fitBounds()` establishes the full extent; `setView()` focuses attention on a chosen region.
+:::
+
+## 7. Saving a map widget
+
+Leaflet maps are htmlwidgets, just like the Chapter 2.1 plotly charts, and use the same saving method:
+
+::: {.callout-example}
+```r
+htmlwidgets::saveWidget(m, "quakes-map.html")   # Self-contained file; tradeoffs in Chapter 2.1 §5
+```
+:::
+
+::: {.callout-warning}
+## Common misconception: A saved map must work offline
+Your **data** are embedded in the widget, but **tiles come from the network**. Offline, the data layers may remain above a gray background. State that a connection is required or use self-hosted tiles, which are beyond this chapter; see the leaflet documentation. In executable Quarto HTML documents, leaflet output is embedded automatically and does not need a separate save step.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Recreate the §2 basemap and the §3 `addMarkers()` map of the first 200 earthquakes. Use `setView()` with your city's coordinates and `zoom = 10`, then compare screenshots with the default view.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Add three features to the §4 colorNumeric map: ① `radius = ~mag / 2`; ② a second data layer using the depth bands and `colorFactor`; ③ `addLayersControl()` for two data layers and two basemaps. Finish with `fitBounds()` to frame all earthquakes.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI off → AI review)
+
+**Round 1 (AI prohibited):** Change the §5 nc map to color by SIDS rate per thousand live births (`SID79 / BIR79 * 1000`). Show **both the rate and raw count** in popups and add `addLegend()`.
+**Round 2 (AI allowed):** Ask Posit Assistant only: “Is my palette suitable for readers with color-vision deficiencies? Suggest a change I can verify.” Record the suggestion and test how well you distinguish the scale before and after the change.
+:::
+
+## Capstone
+
+**Task: “A one-page map briefing.”** Choose point data—another quakes variable or your own CSV of cities, stores, or stations—or polygon data—another nc variable or your own shapefile. Deliver: ① a leaflet map with basemap switching, a data layer, legend, and popup/label; ② `setView()` or `fitBounds()`, with one sentence explaining the framing; ③ standalone HTML from `saveWidget()`; ④ a one-page Quarto briefing explaining why a map suits the information, your color and radius choices, the coordinate reference system, and basemap attribution.
+
+| Dimension | Meets expectations | Strong | Excellent |
+|---|---|---|---|
+| Spatial reasoning | Longitude/latitude are correct | Explains the source CRS and its relation to 4326 | View and zoom serve a stated narrative purpose |
+| Visual encoding | Data-driven colors with a legend | Justifies scale/radius choices, including continuous versus categorical | Addresses color-vision accessibility and choropleth denominators |
+| Interaction design | Working popup or label | Layer controls and basemap switching | Every control serves a question without overloading interaction |
+| Publication boundaries | Saved widget opens independently | Explains offline basemap limitations | Provides a static screenshot fallback and attribution |
+
+## SOURCES
+
+| Chapter section | Material | Use |
+|---|---|---|
+| Structure, examples, exercises, capstone, and rubric | This project | Original |
+| `addTiles`, `addMarkers`, `addCircleMarkers`, `colorNumeric`, `addPolygons`, `addLayersControl`, and related functions | Official Leaflet for R documentation, https://rstudio.github.io/leaflet/ | Reference |
+| nc.shp example data | North Carolina county boundaries bundled with sf; public teaching data | Data |
+
+This chapter is published under CC-BY-SA 4.0.

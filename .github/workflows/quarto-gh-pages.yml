@@ -24,6 +24,7 @@ jobs:
         run: |
           python scripts/build_training_download.py
           python scripts/qa_book_structure.py
+          python scripts/qa_book_english.py
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -38,10 +39,17 @@ jobs:
         with:
           path: book
 
-      - name: Nest book into site
+      - name: Render English book
+        uses: quarto-dev/quarto-actions/render@v2
+        with:
+          path: book-en
+
+      - name: Nest both book editions into site
         run: |
           mkdir -p website/_site/book
           cp -r book/_book/* website/_site/book/
+          mkdir -p website/_site/book/en
+          cp -r book-en/_book/* website/_site/book/en/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

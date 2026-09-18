@@ -1,0 +1,25 @@
+# Authorship, sources, and acknowledgments {.unnumbered}
+
+## Authorship and editorial responsibility {.unnumbered}
+
+The author of *Modern R in Practice* is **Jaime Yan**. The book's selection, organization, explanations, and training materials are maintained as an independent textbook.
+
+Book authorship and source attribution serve different purposes. Third-party material quoted, adapted, or retained in the book remains attributed to its original authors. The book's byline does not claim that every piece of code, illustration, or teaching design originated with one person. Chapter SOURCES sections distinguish original work, adaptations, and quotations.
+
+## Acknowledgments {.unnumbered}
+
+Thank you to the posit::conf instructors who share their workshop materials and practical examples publicly. Kelly Bodwin and Allison Theobold's STAT 541 *Advanced R* course provides a reference for unit organization and teaching labels. This book adds an AI and domain applications unit to that three-unit foundation.
+
+Specific workshop authors, repositories, versions, and license statements are listed in the [complete attribution record](https://github.com/yanmingyu92/posit-conf-2026-bilingual/blob/main/ATTRIBUTION.md). The book has no official affiliation with or endorsement from Posit, PBC, the instructors' institutions, or Cal Poly.
+
+## Using other sources {.unnumbered}
+
+The book also directs readers to established textbooks and official documentation. [Further reading](further-reading.qmd) explains the contribution of each resource. Listing a resource does not mean its contents have been copied or adapted here; the original text remains available from its own website.
+
+New content will identify its sources in the relevant chapter. Direct use of third-party text, illustrations, or code requires preserving the applicable attribution and license.
+
+## License and editions {.unnumbered}
+
+The project's existing original and adapted content is published under [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Consult the complete attribution record for specific third-party statements and differences between upstream README and LICENSE files. Linked resources retain their own terms.
+
+This is a maintained online practice edition. Changes to code and content can be traced in the [version history](https://github.com/yanmingyu92/posit-conf-2026-bilingual/commits/main/); report corrections through the [issue tracker](https://github.com/yanmingyu92/posit-conf-2026-bilingual/issues).

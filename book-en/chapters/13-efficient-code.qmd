@@ -1,0 +1,246 @@
+---
+title: "1.3 Efficient Code"
+objectives: |
+  Explain R's copy-on-modify memory model; use bench::mark for credible
+  microbenchmarks; locate hotspots with profvis; apply four practical performance rules.
+source-note: "Original to this project; measurement tools follow official bench and profvis documentation; the filter-before-collecting context is supported by the posit::conf(2024) databases / r-in-production workshop READMEs (CC-BY 4.0)"
+---
+
+# 1.3 Efficient Code
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **explain** copy-on-modify: when R copies data and why changing a copy leaves the original unchanged
+2. **measure** alternatives with `bench::mark()` and interpret median, `itr/sec`, and `mem_alloc`
+3. **locate** real hotspots with `profvis` rather than guessing
+4. **predict** the relative costs of vectorization, preallocated loops, and growing vectors, then verify them
+5. **apply** four rules: measure first, avoid growing vectors, prefer vectorization, and filter before collecting
+6. **evaluate** whether a speed improvement justifies its cost in readability
+
+## Prerequisite check (≤5 minutes)
+
+Give your intuitive answers now and revisit them at the end. If `map()` is unfamiliar, review Chapter 1.2 first.
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. What could go wrong with accumulating results through `out <- c(out, x)` inside `for (i in 1:n)`?
+2. Which is faster, `map_dbl(1:1e6, \(x) x^2)` or `(1:1e6)^2`, and by what factor? Write down your estimate.
+:::
+
+## 1. A mental model: copy-on-modify
+
+R assignment copies a **name**, not the underlying data. The actual copy occurs on **modification**: this is copy-on-modify.
+
+::: {.callout-example}
+```r
+x <- c(1, 2, 3)
+tracemem(x)        # Track x in memory (built into base R)
+y <- x             # No copy yet: x and y refer to the same memory
+y[[1]] <- 99       # Changing y triggers a copy; tracemem reports the move
+x                  # Still 1 2 3: the original is unchanged
+untracemem(x)
+```
+:::
+
+Two implications: ① a function cannot change its caller's object, so passing a large object to a function is safe; ② **modifying a named large object may trigger a full copy**.
+
+::: {.callout-warning}
+## Common mistake: patching a large data frame one column at a time
+```r
+df <- data.frame(a = 1:3, b = 4:6)
+df$c <- df$a * 2   # May copy the data-frame structure, not necessarily every column
+```
+Create new columns in **one** `mutate()` call: `mutate(df, c = a * 2, d = b * 2)`.
+:::
+
+## 2. Intermediate objects and memory: names keep objects alive
+
+Here are three ways to express the same three-stage transformation, with different memory footprints:
+
+::: {.callout-example}
+```r
+library(dplyr)
+raw <- tibble(year = c(2023, 2024, 2024), value = c(10, 12, 15))
+
+# A: name each step, keeping intermediate objects in memory
+step1 <- raw |> filter(year == 2024)
+step2 <- step1 |> mutate(gain = value - lag(value))
+result <- step2 |> summarise(total = sum(gain, na.rm = TRUE))
+# B: pipe; unused temporary objects become eligible for garbage collection
+result <- raw |> filter(year == 2024) |>
+  mutate(gain = value - lag(value)) |>
+  summarise(total = sum(gain, na.rm = TRUE))
+# C: if an intermediate object is needed, release it after use
+rm(step1, raw)
+```
+:::
+
+A pipe is not a zero-copy trick: it still produces intermediate copies. Unnamed temporary objects do not remain bound after the next step. Keeping every intermediate result under a name and never releasing it consumes memory.
+
+::: {.callout-note}
+You rarely need to call `gc()` manually: R runs garbage collection when needed. Treating it as a speed spell is misguided; it is useful for **observing** memory use.
+:::
+
+## 3. Vectorization versus iteration: a measured comparison
+
+Let `bench::mark()` settle the comparison. It repeatedly runs expressions and reports median elapsed time and memory allocation. Documentation: https://bench.r-lib.org.
+
+::: {.callout-example}
+```r
+library(bench)
+x <- runif(1e5)
+mark(
+  vectorized = x^2,
+  loop = {
+    out <- numeric(length(x))
+    for (i in seq_along(x)) out[i] <- x[i]^2
+    out
+  },
+  mapped = purrr::map_dbl(x, \(v) v^2),
+  iterations = 20
+)
+```
+:::
+
+Start with three columns: `median` (typical time), `itr/sec` (iterations per second), and `mem_alloc` (total allocated memory). Typical results put **vectorization 50–200 times ahead of a loop**; `map_dbl()` and for loops are of a similar order. purrr offers expressiveness, not a promise of speed.
+
+::: {.callout-warning}
+## Common mistake: benchmarking different answers
+`mark()` defaults to `check = TRUE`: it **verifies that all expressions return equivalent results** and errors if they do not. Comparing the speed of different answers is an expensive mistake; do not disable the check merely to make the benchmark run.
+:::
+
+::: {.callout-important}
+## Check In: Predict, then run
+
+Predict the ratio of the three `median` values, such as 1 : 80 : 70. Run `mark()` and write three comment lines comparing predictions with measurements. Which expression has the largest `mem_alloc`? Why does the loop allocate more than `map_dbl()`?
+:::
+
+## 4. The cost of growing a vector
+
+::: {.callout-example}
+```r
+grow <- \(n) {
+  out <- NULL
+  for (i in 1:n) out <- c(out, i)   # Allocate a longer vector and copy existing values each time
+  out
+}
+prealloc <- \(n) {
+  out <- numeric(n)                  # Allocate once
+  for (i in seq_along(out)) out[i] <- i
+  out
+}
+mark(grow(1e4), prealloc(1e4), iterations = 10)
+```
+:::
+
+Each `c(out, i)` **allocates a longer vector and copies the previous contents**. Accumulating n elements moves roughly n²/2 elements in total: increasing n tenfold increases time by roughly a factor of 100. Preallocation restores linear growth; vectorization removes the explicit loop altogether.
+
+::: {.callout-warning}
+## Common mistake: `1:n` goes backward when n = 0
+When `n == 0`, `for (i in 1:n)` uses `1:0` and **takes two descending steps**. Empty input produces nonempty output. Use `seq_along(x)` or `seq_len(n)` instead.
+:::
+
+## 5. Find hotspots with profvis: measure instead of guessing
+
+A slow script often spends 90% of its time in one function. profvis (https://rstudio.github.io/profvis/) samples execution and displays where time goes as a flame graph:
+
+::: {.callout-example}
+```r
+library(profvis)
+profvis({
+  d <- tibble(x = runif(2e5), g = sample(letters[1:4], 2e5, replace = TRUE))
+  d |> group_by(g) |> summarise(m = mean(x), s = sd(x))
+  d |> filter(x > 0.9) |> nrow()
+})
+```
+:::
+
+Key points: ① run it in an **interactive session**; knitting does not open a window; ② the **widest bars** identify the most time-consuming functions; ③ the Data view lets you inspect time and memory by line. Optimize the widest bars first.
+
+::: {.callout-note}
+The order is: find the hotspot with profvis → change that section → compare before and after with `bench::mark()`. Editing before measuring is simply another way of guessing.
+:::
+
+## 6. Practical rules at a glance
+
+| Rule | Action | Reason |
+|---|---|---|
+| Measure before optimizing | Locate with profvis, compare with `mark()` | Intuition can mislead; address one bottleneck at a time |
+| Do not grow vectors | Preallocate or use vectorized accumulation | Repeated `c()` involves quadratic copying |
+| Prefer vectorization | Use `x^2`, `ifelse()`, `pmin()` | Process a column together and avoid interpreted loop overhead |
+| Filter before collecting | Push `filter()` to the data source | Collecting everything fails when data exceed memory |
+| Batch modifications | Create new columns in one `mutate()` | Reduce repeated changes to named large objects |
+
+Filtering early deserves emphasis: when a database or parquet dataset exceeds memory, where filtering occurs determines whether the analysis is feasible.
+
+::: {.callout-example}
+```r
+# Slow: collect 100 GB into memory, then filter
+# full <- tbl(con, "claims") |> collect()
+# small <- full |> filter(year == 2024)
+# Faster: filter in the database/disk engine and return only needed rows
+# small <- tbl(con, "claims") |> filter(year == 2024) |> collect()
+```
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+For 90% of analysis scripts, slowness does not change the conclusions. Make the code **correct** first. Optimize when waiting blocks your work, such as ten minutes after each change, or blocks delivery, such as a report timeout. But writing vectorized code is also simply writing idiomatic R.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Rerun the two `mark()` examples in §3 and §4 **on your own machine**. Put their expressions' `median` and `mem_alloc` values in a one-page table. Repeat on another machine or after ten minutes. Write two conclusions: what stays stable (relative ratios), and what changes (absolute time)?
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+**Predict first**: what are the approximate `grow()`/`prealloc()` time ratios for n = 1e3, 1e4, and 1e5? Measure them, use `map_dfr()` to collect a tibble with `n`, `median_grow`, `median_prealloc`, and `ratio`, and plot time against n on log-log axes. Explain quadratic versus linear behavior. For n = 1e5, reduce `iterations` to 5.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI off → AI review)
+
+**Round 1 (AI off)**: here is a slow implementation of within-group z scores:
+
+```r
+slow_z <- function(df, group, value) {
+  out <- NULL
+  for (g in unique(df[[group]])) {
+    sub <- df[df[[group]] == g, ]
+    out <- c(out, (sub[[value]] - mean(sub[[value]])) / sd(sub[[value]]))
+  }
+  out
+}
+```
+
+Use profvis to locate its hotspots: it has at least three sources of slowness. Rewrite it using, for example, `group_by()` plus `mutate()`, or `split()` plus `map()`. Compare before and after with `mark()`, including `mem_alloc`.
+**Round 2 (AI allowed)**: show both versions to Posit Assistant and ask only: “What hidden copying or growth remains in my new version?” Record one real issue it identifies.
+:::
+
+## Capstone
+
+**Task**: conduct a performance audit. Choose a slow script or use the class `messy-qc.R`, which contains repeated `c()` growth, column-by-column assignment, and collecting all data before filtering. Deliver a one-page Quarto audit: a profvis flame graph with the hotspot marked → an optimization of only the largest bottleneck → a before/after `bench::mark()` table with median and `mem_alloc` → a cost–benefit explanation of why the change was worth making.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Measurement discipline | Before/after mark comparison | Median, fixed iterations, and a confirming rerun | Reports machine/load differences and limits on interpretation |
+| Hotspot diagnosis | Identifies a bottleneck | Uses profvis evidence rather than intuition | Rules out a plausible but innocent suspect |
+| Improvement | Measured improvement in the bottleneck | Explains copying, growth, or interpretation costs | Removes other occurrences of the same pattern |
+| Honest scope | Acknowledges unchanged code | Separates measurement from inference | Discusses readability costs and why optimization stops here |
+
+## SOURCES · Source mapping
+
+| Section | Material | Use |
+|---|---|---|
+| Chapter structure, examples, exercises, capstone, and rubric | This project | Original |
+| `bench::mark()` usage and output | Official bench documentation, https://bench.r-lib.org | Referenced |
+| profvis usage | Official profvis documentation, https://rstudio.github.io/profvis/ | Referenced |
+| §6: filtering early in larger-than-memory workflows | posit::conf(2024) databases and r-in-production workshop READMEs (Kirill Müller and colleagues · CC-BY 4.0) | Supporting reference |
+
+This chapter is published under CC-BY-SA 4.0.

@@ -1,0 +1,237 @@
+---
+title: "2.8 Publication-Ready Reports"
+objectives: |
+  By the end of this chapter, you can use _brand.yml for HTML, PDF, and slides;
+  share a brand across projects; extract repeated layouts into template partials;
+  explain Typst versus LaTeX tradeoffs; adjust light and dark modes; and
+  transform a plain report into a branded set of deliverables.
+source-note: "Teaching structure adapted from posit::conf(2026) practical-quarto modules 02-brand / 03-partials / 04-typst (Charlotte Wickham, Mine Çetinkaya-Rundel; CC-BY-SA 4.0). Chapter prose and exercises are original to this project."
+---
+
+# 2.8 Publication-Ready Reports
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **apply** colors and fonts to HTML, PDF (Typst), and slides from one `_brand.yml`.
+2. **share** a single brand definition across Quarto projects without drift.
+3. **factor** repeated mastheads, footers, and other layouts into template partials.
+4. **compare** Typst and LaTeX by speed, installation, and output differences.
+5. **configure** and customize HTML light/dark modes.
+6. **execute** a complete transformation from a plain report to a branded deliverable set.
+
+## Prerequisite check (≤5 minutes)
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. What YAML produces HTML and PDF through `quarto render`? Which engine does PDF use by default?
+2. How do `_quarto.yml` and an individual `.qmd` file's YAML divide their responsibilities? If unsure, revisit [Chapter 2.3](23-dashboards-static.qmd).
+:::
+
+## 1. Design once, use anywhere: One source for the brand
+
+The same analysis may go to colleagues as HTML on Monday, to a manager as PDF on Wednesday, and to a conference as slides on Friday. Maintaining separate CSS in three projects invites drift when brand colors change. A **brand-driven workflow** instead defines colors, fonts, and logos in **one** `_brand.yml` ([specification](https://posit-dev.github.io/brand-yml/)), which HTML, Typst PDF, and revealjs all follow. That is design once, use anywhere.
+
+## 2. `_brand.yml`: One definition for colors and fonts
+
+::: {.callout-example}
+Create `_brand.yml` in the project root; rendering in that directory discovers it automatically. `source: bunny` retrieves fonts from the Bunny Fonts CDN; use local `files:` for offline fonts.
+
+```yaml
+brand:
+  color:
+    palette:
+      blue: "#1a3d7c"
+      teal: "#2c8c99"
+      paper: "#faf8f5"
+    foreground: blue
+    background: paper
+    primary: teal
+  typography:
+    fonts:
+      - family: Inter
+        source: bunny
+    base: Inter
+    monospace: IBM Plex Mono
+  logo:
+    small: logos/marker.png
+```
+
+Then configure the three formats in `_quarto.yml` to share it:
+
+```yaml
+format:
+  html:
+    theme: cosmo          # Brand colors override the theme defaults
+  typst:                  # Typst reads _brand.yml natively
+    papersize: a4
+  revealjs:
+    logo: logos/marker.png
+```
+:::
+
+::: {.callout-warning}
+## Common error: The wrong brand filename or directory
+The file must be named `_brand.yml`, with the leading underscore, and placed in the project root. Naming it `brand.yml` can leave it silently unapplied. **If branding has no effect, check the filename and directory first.**
+:::
+
+## 3. Sharing a brand: One definition, many repositories
+
+| Route | Approach | Suitable for |
+|---|---|---|
+| Quarto extension | Package the brand as an extension installed with `quarto use` | An official, versioned team brand |
+| Git reference | Submodule / copying with CI checks | Small teams or several personal projects |
+
+```yaml
+# Project YAML can explicitly reference an external brand file
+brand:
+  brand: ../shared-brand/_brand.yml
+```
+
+Should the brand file be committed to every project repository? **Yes by default, for reproducibility**, but synchronize it from one upstream source with a script instead of manually editing copies.
+
+## 4. Template partials: Extracting repeated layouts
+
+Repeated mastheads, footers, and status bars drift when copied between documents. **Template partials** replace one small part of a template rather than the entire template:
+
+```text
+templates/partials/
+├── masthead.html   # HTML masthead component
+└── masthead.typ    # Typst masthead component
+```
+
+::: {.callout-example}
+A partial uses Pandoc template syntax: `$title$` inserts metadata, and `$if(...)$...$endif$` provides conditional rendering. Attach it through `template-partials` in document YAML:
+
+```html
+<!-- partials/masthead.html -->
+<header class="masthead">
+  <img src="$if(brand.logo.small)$$brand.logo.small$$endif$" alt="logo"/>
+  <div>
+    <h1>$title$</h1>
+    <p class="byline">$author$ · $date$</p>
+  </div>
+</header>
+```
+
+```yaml
+format:
+  html:
+    template-partials:
+      - partials/masthead.html
+```
+:::
+
+::: {.callout-warning}
+## Common misconception: Treating a partial as a content include
+`{{< include >}}` reuses **content**, such as a Markdown passage. A template partial reuses **layout**, through a Pandoc template fragment. Placing a masthead in the document body as an include can put it in unexpected positions in PDFs and slides.
+:::
+
+## 5. Typst versus LaTeX: Practical PDF tradeoffs
+
+| Dimension | Typst | LaTeX |
+|---|---|---|
+| Installation | Included with Quarto; **no separate installation** | Requires TinyTeX / TeX Live, typically hundreds of MB |
+| Rendering speed | Fast incremental rendering | Full compilation on each run |
+| Errors | Readable messages with line locations | Often requires inspecting the `.log` |
+| Ecosystem | Younger, fewer templates | Decades of templates |
+| Output differences | Some typesetting details differ from LaTeX | Established final-submission format for many journals and theses |
+
+::: {.callout-example}
+```yaml
+format:
+  typst:
+    margin: [2cm, 2.5cm]   # x, y
+```
+
+For debugging, inspect the intermediate `.typ` file Quarto generates before compilation, or preserve it with `keep-typ: true`. It makes the source of an error easier to locate. More advanced customization uses Typst `set` / `show` rules in raw Typst blocks.
+:::
+
+Selection rule: **internal review, data reports, and quick iteration → Typst; journal submissions, theses, and `.cls` compliance → LaTeX.**
+
+## 6. Light/dark modes: One document, two lighting conditions
+
+::: {.callout-example}
+```yaml
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+```
+
+Readers receive a mode switch in the upper-right corner. Define mode-specific `color.background` / `foreground` values when brand colors lack contrast in dark mode. Thematic can coordinate chart colors so ggplot changes its drawing colors accordingly.
+:::
+
+## 7. Transformation workflow: Plain report to branded formats
+
+Combine the preceding sections into a workflow starting with `report.qmd`, using a default theme and HTML only.
+
+::: {.callout-example}
+```text
+# Six-step transformation: render and inspect after every step
+1. brand    Create _brand.yml: palette, two fonts, and logo            → §2
+2. formats  Add typst and revealjs in _quarto.yml for three formats    → §2
+3. dark     Configure HTML light/dark themes                           → §6
+4. partials Extract masthead/footer; attach to html and typst          → §4
+5. share    Move the brand to shared-brand/ and reference _brand.yml   → §3
+6. verify   Render every format and compare brand colors              → All sections
+```
+
+Delivery check: the same title has **the same color, font, and logo** across the three formats. That is the baseline for publication-ready output.
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Branding reduces readers' cognitive effort: a consistent palette helps them recognize a familiar weekly report within seconds. Establish the brand before choosing formats and writing the first page. Defining `_brand.yml` early is much cheaper than adding a visual layer after everything is finished.
+:::
+
+::: {.callout-important}
+## Check In: Three quick questions
+
+① To change margins with `format: typst`, do you edit YAML or write LaTeX commands?
+② How many partial files are needed for a masthead in HTML and Typst PDF, and why?
+③ What problem might `paper: "#faf8f5"` cause in dark mode, and which field would you adjust?
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Create a Quarto project and copy the §2 `_brand.yml`, using any small image as the logo. Render HTML and capture three brand elements: title color, body font, and logo. Render a `format: typst` PDF with the same brand and compare the fonts.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Add to Practice 1: ① light/dark themes and a check of brand-color contrast in dark mode; ② a masthead partial inserting `$title$` and `$date$`, attached to both `html` and `typst`. Submit screenshots of both rendered formats and the partial source.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI-off stage)
+
+**Round 1 (AI prohibited):** Using only this chapter and quarto.org documentation, apply all six steps in §7 to an old report, or start with `report.qmd`. Do not consult any AI assistant. During the process, inspect an intermediate `.typ` file at least once to locate the origin of a style.
+**Round 2 (AI allowed):** Give Posit Assistant `_brand.yml` and `_quarto.yml` and ask only: “Where is rendering most likely to differ across machines?” Make and record a correction.
+:::
+
+## Capstone
+
+**Task: “A research group's quarterly reporting kit.”** Start with a plain `report.qmd` and deliver a `shared-brand/` brand repository, a main project with three formats—HTML with light/dark modes, Typst PDF, and revealjs—plus masthead/footer partials and a brand usage guide. Submit the project repository, all three rendered formats, and before/after screenshots.
+
+| Dimension | Meets expectations | Strong | Excellent |
+|---|---|---|---|
+| Brand consistency | Same colors and logo in three formats | Consistent fonts, with recorded checks | A teammate reproduces it from the guide within ten minutes |
+| Layout engineering | Partials work | Shared partial design supports multiple formats | Clear separation between content includes and layout partials |
+| Format choices | All three formats render | Explains Typst/LaTeX tradeoffs | Gives a reason to decline a particular format |
+| Maintainability | One source for the brand | Brand changes are versioned | CI or a script checks for brand drift |
+
+## SOURCES
+
+| Chapter section | Material | Use |
+|---|---|---|
+| §1–§4 brand.yml, shared branding, and template partials | posit::conf(2026) practical-quarto, `modules/02-brand.qmd`, `03-partials.qmd` (Charlotte Wickham, Mine Çetinkaya-Rundel; CC-BY-SA 4.0) | Adaptation |
+| §5–§6 Typst, inspecting .typ, set/show, and dark mode | practical-quarto, `modules/04-typst.qmd` | Adaptation |
+| §7 six-step transformation, exercises, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

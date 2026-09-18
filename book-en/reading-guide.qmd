@@ -1,0 +1,63 @@
+# Reading and study guide {.unnumbered}
+
+Read in sequence or start with the deliverable you currently need. Every path should include independent practice; finishing the reading alone is not the completion criterion.
+
+## General analysis and delivery path {#analysis-path .unnumbered}
+
+| Stage | Suggested chapters | Evidence of completion |
+|---|---|---|
+| Organize your scripts | [1.1 Functions](chapters/01-functions.qmd), [1.2 Iteration](chapters/12-iteration.qmd), [1.3 Efficiency](chapters/13-efficient-code.qmd) | The same function processes two batches, with checks for boundary inputs |
+| Make results readable | [1.6 Tables](chapters/16-great-tables.qmd), [1.8 Plots](chapters/18-styled-plots.qmd), [2.8 Reports](chapters/28-pub-ready-reports.qmd) | Readers understand results, units, and sources without opening the code |
+| Make delivery maintainable | [3.1 Package structure](chapters/31-pkg-structure.qmd), [3.2 Testing](chapters/32-unit-testing.qmd), [3.3 Debugging](chapters/33-debugging.qmd) | Checks run in a fresh session and detect a deliberately introduced error |
+| Add capabilities as needed | [2.3 Static dashboards](chapters/23-dashboards-static.qmd), [2.7 Shiny](chapters/27-shiny-reactive.qmd), [4.1 LLMs](chapters/41-llm-basics.qmd) | You can explain the practical problem solved by added interactivity or AI |
+
+Begin with the [analysis handoff lab](companion.qmd#handoff-lab). Then explore maps, animation, data interfaces, or tool calling as your task requires.
+
+## Clinical research and pharmaceutical path {#clinical-path .unnumbered}
+
+Start with functions, tables, reports, and tests from the general path. Many problems in clinical outputs begin with data definitions, program behavior, or delivery checks, so these foundations matter before the domain examples.
+
+| Focus | Suggested chapters | Questions to answer |
+|---|---|---|
+| Explainable data processing | [1.1](chapters/01-functions.qmd), [1.2](chapters/12-iteration.qmd), [3.2](chapters/32-unit-testing.qmd) | How are missing values, duplicate records, and boundary dates handled? Who defines the expected results? |
+| Clinical tables and reports | [1.6](chapters/16-great-tables.qmd), [2.8](chapters/28-pub-ready-reports.qmd), [4.7](chapters/47-clinical-reporting.qmd) | Are the analysis population, denominators, variable types, and display precision clear? |
+| Environments and reproducibility | [3.1](chapters/31-pkg-structure.qmd), [3.2](chapters/32-unit-testing.qmd), [4.8](chapters/48-regulated-gxp.qmd) | Can another person identify data, code, and environment versions and reproduce the result? |
+| AI applications with explicit checks | [4.1](chapters/41-llm-basics.qmd), [4.2](chapters/42-structured-output.qmd), [4.6](chapters/46-shinychat.qmd) | What comes from source material, what is model-generated, and how is each independently checked? |
+
+The companion lab uses simulated data. For real studies, define acceptance criteria using the actual study definitions and your institution's procedures.
+
+## A chapter study cycle {.unnumbered}
+
+1. **Assess.** Complete the prerequisite self-check and record uncertain concepts.
+2. **Reproduce.** Run examples in order in a fresh R session, predicting key outputs first.
+3. **Change the conditions.** Replace data or variables; introduce empty inputs, missing values, or incorrect types.
+4. **Deliver independently.** Complete the create exercise or capstone and assess it against the rubric.
+5. **Explain and review.** Record your design reasoning; use AI to extend checks only in the stages that permit it.
+
+Use [Further reading](further-reading.qmd) to fill a specific prerequisite gap, then return to the task.
+
+## Code and environments {.unnumbered}
+
+The book's `r` fences display teaching code and do not execute during publication. Start a new R session for each chapter and run examples in order. Prepare required files, packages, and services first. Intentionally failing examples are for diagnosing errors and should not be included unchanged in a working program.
+
+Copy the complete dashboard templates in Chapters 2.3 and 2.4 to separate `.qmd` files. Change the R fence language in those copied files from `r` to `{r}` to execute them. The book sources retain static fences.
+
+Chapters requiring API credentials or external services can first be studied through their interfaces and evaluation designs. Without calling the service, do not describe an example as having passed an end-to-end execution test.
+
+## Teaching labels and terminology {.unnumbered}
+
+| Label | How to use it |
+|---|---|
+| Example | Inspect the input, process, and output; reproduce the example |
+| Check In | Check your understanding, preferably answering independently first |
+| Practice Exercise | Move from copy to adapt to create, with progressively fewer prompts |
+| Warning; Note | Recognize incorrect approaches and distinguish easily confused concepts |
+| Required Reading / Video | Complete the additional reading or viewing specified by the chapter |
+| Learn More; Opinion | Explore optional material and consider advice in context |
+
+| Term | Meaning in this book |
+|---|---|
+| Chat / conversation | An interaction with a model that can retain conversation history |
+| Reactive | A computation or output that responds to changes in its dependencies |
+| Skills | Reusable instructions and supporting resources for an agent |
+| Capstone | A concluding project that integrates the chapter's skills |

@@ -14,6 +14,7 @@ toc: false
 四个单元、28 章，围绕数据处理、专业报告、可维护代码与领域应用展开。按学习目标选择章节，结合示例、练习与压轴项目形成自己的交付能力。
 
 [进入书籍](book/index.html){.btn .btn-primary}
+[English edition](book/en/index.html){.btn .btn-outline-primary}
 [阅读前言](book/preface.html){.btn .btn-outline-primary}
 [选择学习路径](book/reading-guide.html){.btn .btn-outline-primary}
 

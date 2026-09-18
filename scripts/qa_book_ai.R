@@ -10,7 +10,8 @@ cat("credential_present=", any(nzchar(Sys.getenv(c("ANTHROPIC_API_KEY", "OPENAI_
 x <- gregexpr("absent", "present", fixed = TRUE)[[1]]
 stopifnot(!identical(x, -1L), x[[1]] == -1L)
 cat("gregexpr_regression=PASS\n")
-chapter_files <- Sys.glob("book/chapters/4[1-6]*.qmd")
+book_dir <- Sys.getenv("QA_BOOK_DIR", "book")
+chapter_files <- Sys.glob(file.path(book_dir, "chapters/4[1-6]*.qmd"))
 stopifnot(length(chapter_files) == 6L)
 for (f in chapter_files) {
   lines <- readLines(f, encoding = "UTF-8", warn = FALSE)
@@ -25,7 +26,7 @@ for (f in chapter_files) {
 if (requireNamespace("ellmer", quietly = TRUE)) {
   library(ellmer)
   get_block <- function(pattern, id) {
-    lines <- readLines(Sys.glob(pattern), encoding = "UTF-8", warn = FALSE)
+    lines <- readLines(Sys.glob(sub("^book/", paste0(book_dir, "/"), pattern)), encoding = "UTF-8", warn = FALSE)
     first <- which(lines == "```r")[[id]] + 1L
     last <- first + which(lines[first:length(lines)] == "```")[[1]] - 2L
     parse(text = lines[first:last])

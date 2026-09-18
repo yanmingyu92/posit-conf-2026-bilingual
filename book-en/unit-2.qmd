@@ -1,0 +1,7 @@
+# Unit 2 · Professional Deliverables {.unnumbered}
+
+After an analysis is complete, its users still need to find answers, understand limitations, and apply results to their own tasks. A static plot can communicate a conclusion; an interactive plot can support exploration; a dashboard needs a clear information hierarchy. This unit builds on Unit 1's functions, tables, and graphics to choose a delivery format for a particular audience and setting.
+
+Move from [interactive graphics](chapters/21-interactive-graphics.qmd) to [static dashboards](chapters/23-dashboards-static.qmd), then examine the different requirements of [reactive applications](chapters/27-shiny-reactive.qmd) and [publication-ready reports](chapters/28-pub-ready-reports.qmd). Whether the audience is a business colleague, research team, or pharmaceutical project reviewer, make the data scope, filters, and interpretation visible. Deliver a report, dashboard, or application organized around a specific question.
+
+Ask yourself: What should readers see first? Which results change when a filter changes? Does added interactivity help them judge the evidence? You can use the [companion lab's](companion.qmd#handoff-lab) simulated site quality scores to build a delivery page; it is an analysis exercise, not a clinical evaluation tool. The next unit addresses maintenance and verification of the code behind these deliverables.

@@ -1,0 +1,7 @@
+# Unit 3 · Package Development {.unnumbered}
+
+When the same functions support several reports or projects, their responsibilities grow. Does the code still behave correctly after a change? Can others understand its input requirements? Can it be maintained months later? The first two units covered analysis and delivery. This unit organizes reusable work into an R package with explicit interfaces, documentation, and tests.
+
+Start with [package structure](chapters/31-pkg-structure.qmd), express expected behavior through [unit tests](chapters/32-unit-testing.qmd), locate failures through [debugging](chapters/33-debugging.qmd), and use [performance measurements](chapters/34-code-speed.qmd) to decide whether optimization is worthwhile. Teams can use these skills to share analysis tools. Clinical and pharmaceutical teams must also connect engineering evidence to their organization's review and validation requirements. An installable package does not by itself satisfy a regulated use.
+
+Deliver a small installable package with help documentation, tests for typical and boundary inputs, and reviewable error handling. The simulated quality-score functions from the [companion lab](companion.qmd#handoff-lab) can provide the starting material. Ask: What does the function promise, and what do its tests actually establish? The next unit builds on this inspectable foundation to introduce AI and domain workflows.

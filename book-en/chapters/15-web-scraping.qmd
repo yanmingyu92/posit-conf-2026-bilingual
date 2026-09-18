@@ -1,0 +1,224 @@
+---
+title: "1.5 Web Scraping"
+objectives: |
+  Locate HTML content with CSS selectors; extract text and tables with rvest;
+  scrape politely with polite; assess legal and ethical boundaries;
+  look for an API when scraping fails.
+source-note: "Entirely original to this project; technical details follow the official rvest and polite documentation (see SOURCES)"
+---
+
+# 1.5 Web Scraping
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **model** HTML through tags, classes, and IDs
+2. **extract** content using four rvest tools: `read_html()`, `html_elements()`, `html_text2()`, and `html_table()`
+3. **locate** and verify selectors using browser developer tools
+4. **apply** the polite sequence `bow()` → `scrape()` → `nod()`, respecting robots.txt and request limits
+5. **judge** legal and ethical boundaries: terms of service, personal data, copyright, and request frequency
+6. **pivot** to API/JSON endpoints when JavaScript renders a page
+
+## Prerequisite check (≤5 minutes)
+
+Answer these two questions independently. If the first is unfamiliar, review list navigation in 1.4 §2.
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Given `x <- list(a = list(b = c("p", "q")))`, how do you extract `"q"`?
+2. What do `.price`, `#main`, and `li a` match? It is fine to guess: §1 explains them.
+:::
+
+## 1. A mental model of HTML: tags, classes, and IDs
+
+A web page is a labeled tree. For scraping, start with three concepts:
+
+| Concept | Syntax | Selector | Property |
+|---|---|---|---|
+| Tag | `<p>...</p>` | `p` | Element type; a page can contain hundreds or thousands |
+| Class | `<p class="note">` | `.note` | Reusable label; multiple elements can share it |
+| ID | `<p id="notice">` | `#notice` | Unique within a page |
+
+::: {.callout-example}
+Store this miniature page as a string. It is reproducible offline, so we can learn the tools first:
+
+```r
+html <- '
+<div id="shop" class="page">
+  <h2>Menu for the week</h2>
+  <p class="note">Closed on Wednesdays</p>
+  <ul>
+    <li class="dish">Kung pao chicken <span class="price">28</span></li>
+    <li class="dish">Mapo tofu <span class="price">22</span></li>
+  </ul>
+  <a href="menu-full.html">Full menu</a>
+</div>
+'
+```
+:::
+
+Useful combinations: `div.page` is a div with class page; `.dish .price` finds price elements descended from dish elements; `a[href]` finds links with an href attribute.
+
+## 2. Four rvest tools: read, find, extract text, extract tables
+
+::: {.callout-example}
+```r
+library(rvest)
+
+page <- read_html(html)              # 1. Read a string, local file, or URL
+
+page |> html_elements("h2")          # 2. Find all matches
+page |> html_elements(".price") |>
+  html_text2()                       # 3. Extract text: c("28", "22")
+
+page |> html_element("a") |>
+  html_attr("href")                  # Extract an attribute: "menu-full.html"
+```
+:::
+
+The fourth tool handles tables: much of the data you want is already inside a `<table>` element.
+
+::: {.callout-example}
+```r
+page2 <- read_html('
+<table>
+  <tr><th>Dish</th><th>Price</th></tr>
+  <tr><td>Kung pao chicken</td><td>28</td></tr>
+  <tr><td>Mapo tofu</td><td>22</td></tr>
+</table>')
+
+page2 |> html_element("table") |> html_table()
+# A 2-row, 2-column tibble: dish and price
+```
+:::
+
+::: {.callout-warning}
+## Common mistake: html_elements() versus html_element()
+The plural version returns **all** matches, possibly none. The singular version takes **the first**. Use the singular form with `html_table()` for one table; use the plural form for text from many elements. A typical symptom of choosing incorrectly is one row or zero results when the page visibly contains dozens.
+:::
+
+::: {.callout-note}
+`html_text2()` cleans up whitespace such as indentation and line breaks, making it preferable for readable page text. `html_text()` retains the raw text and can help with debugging.
+:::
+
+::: {.callout-important}
+## Check In: Selector practice
+For the `html` string in §1, **write the selector first, then verify it**: ① extract both dish names without their prices; ② extract the text of every `li` inside the `div`; ③ turn both prices into the numeric vector `c(28, 22)` (hint: `as.numeric()`).
+:::
+
+## 3. Find selectors with browser developer tools
+
+Real pages are much messier than teaching strings. Use this workflow:
+
+1. Open the target page, right-click the content, and choose **Inspect**.
+2. Right-click the highlighted element, then Copy → **Copy selector**, but do not use it uncritically.
+3. Verify it in R with `read_html(url) |> html_elements(sel) |> html_text2()`. Check both the number of results and their contents.
+
+::: {.callout-warning}
+## Common mistake: trusting a fragile generated selector
+Copy selector often gives a positional path such as `#root > div:nth-child(3) > div > span:nth-child(2)`. Moving a single div can break it. Prefer **semantic selectors**: the element's own class or ID, or a nearby stable container. If you see a chain of `:nth-child` selectors, look again for a meaningful class name.
+:::
+
+## 4. The polite sequence: bow() → scrape() → nod()
+
+For a real website, replace direct `read_html(url)` calls with the **three-step polite workflow**. polite checks robots.txt, manages request delays, and maintains a session.
+
+::: {.callout-example}
+```r
+library(polite)
+library(rvest)
+
+session <- bow(
+  "https://rvest.tidyverse.org/",         # First, bow to the host
+  user_agent = "posit-conf-2026 course exercise (contact: me@example.com)"
+)
+session        # Print robots.txt permissions and delay in seconds
+
+page <- scrape(session)                    # Retrieve the page after the required delay
+page |> html_elements("a") |> html_attr("href") |> head()
+
+session <- nod(session, "reference/")      # Change path on the same host with nod()
+scrape(session) |> html_elements("a") |> length()
+```
+:::
+
+Use `bow()` once per host; call it again for a new host. `scrape()` waits as required before making a request. `nod()` changes the path while retaining the session and rate limits. Fetch multiple pages **sequentially**, not concurrently.
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Each semester I tell students that 90% of “I need a scraper” problems hide an undiscovered API or download button. Before writing a scraper, spend ten minutes looking for Data, Download, or API links. Scraping should be a last resort, not the first reaction. That advice can save a week of debugging.
+:::
+
+## 5. Law and ethics: four questions before scraping
+
+| Question | What to assess |
+|---|---|
+| Does robots.txt allow access? | Etiquette: polite checks it, but permission here is not permission to do anything you wish |
+| Do the terms of service prohibit scraping? | Contractual restrictions: some sites explicitly prohibit it; violations may lead to account suspension or other consequences |
+| Does the data concern people? | Personal information is protected by laws such as GDPR and PIPL; a lawful basis is needed |
+| Is the content copyrighted? | Facts can be organized; republishing passages or images requires attention to permission |
+
+One more rule about frequency: **keep requests at a pace comparable to a person browsing manually**. The server and its bandwidth bill belong to someone else.
+
+::: {.callout-note}
+For research, record source URLs and access dates, collect only what is needed, cite the source in outputs, and obtain appropriate ethics review for data about people, including anonymization where needed.
+:::
+
+## 6. When scraping fails: JavaScript and finding the API first
+
+The symptom: content is visible in the browser but absent from HTML retrieved with `read_html()`. The page may be a shell whose data is rendered by **JavaScript** in the browser.
+
+To diagnose this, press Ctrl+U to inspect **page source**: the original content sent by the server. If the data is absent there, ordinary rvest HTML retrieval will not see it.
+
+Work through these options in order:
+
+1. **Find the data endpoint**: open developer tools → Network → XHR/Fetch, refresh, and find a response containing JSON. This is the endpoint the website uses. Copy its URL and parameters and return to the httr2 workflow in Chapter 1.4. JSON is often much cleaner than HTML.
+2. **Find an official export**: a download page, official API, or open dataset takes priority over scraping.
+3. **Last resort**: a headless browser, such as real Chrome controlled by chromote. This is slower, more fragile, and more expensive to maintain. This course only introduces the option.
+
+::: {.callout-warning}
+## Common mistake: blaming the selector for JavaScript-rendered content
+First check whether **the content exists in the original HTML**, using page source. Only then question the selector. Otherwise, you can spend an entire evening debugging the wrong thing.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Use the `html` string in §1 to create a two-column tibble of dish names and prices. Hint: use `html_elements(".dish")`, then `html_element(".price")` within each element; rvest selects the first match per node in a node set. Alternatively, extract two vectors and combine them with `tibble()`. Dish names must contain neither price digits nor extra whitespace.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Write `polite_text(url, selector, delay = 5)` using `bow()` and `scrape()` internally, returning matching text as a character vector. Test two selectors, such as `"h1"` and `"a"`, on `https://rvest.tidyverse.org/`. In comments, record the robots.txt conclusion and request delay printed by the session.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off)**: choose a public data page, preferably a statistical Wikipedia article with a `<table>`. Follow the complete polite workflow: check robots.txt → `bow()` → `scrape()` → `html_table()` → clean into a tidy tibble. Record source and access date.
+**Round 2 (AI allowed)**: show your code to Posit Assistant and ask only: “If the site is redesigned tomorrow, what breaks first, and how can that failure be more useful?” Revise it and record which suggestions you accepted or rejected, and why.
+:::
+
+## Capstone
+
+**Task**: become a data scout. Find a source in your field that **requires scraping**; first establish that it has no API or download option, which is part of the assignment. Deliver: ① a compliance record with the robots.txt conclusion, relevant terms-of-service excerpts, and request-frequency plan; ② a polite session extracting at least one table and one list, cleaned into tidy tibbles; ③ a one-page Quarto report with data, sources, access dates, and an ethics statement.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Responsible access | Records robots.txt | Includes terms and frequency plan | Proactively minimizes collection |
+| Extraction | Table agrees with the page | Clean tidy tibble | Handles missing cells and footnotes |
+| Robustness | Runs successfully | Validates key selectors | Failure messages support concrete action |
+| Ethics reporting | Cites sources | Includes access dates | Explains personal-data and copyright considerations |
+
+## SOURCES · Source mapping
+
+| Section | Material | Use |
+|---|---|---|
+| §2–§3: rvest functions and selectors | [Official rvest documentation](https://rvest.tidyverse.org) | Referenced |
+| §4: polite workflow | [Official polite documentation](https://dmi3kno.github.io/polite/) | Referenced |
+| Miniature page, selector practice, ethics framework, exercises, capstone, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

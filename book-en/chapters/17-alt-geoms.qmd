@@ -1,0 +1,245 @@
+---
+title: "1.7 Non-Standard Geometries"
+objectives: |
+  Choose geometries for distribution comparisons, changing composition, and endpoint changes;
+  build heatmaps with geom_tile(), ridgelines with ggridges, and distinguish ribbons from areas;
+  construct slope and dumbbell plots; extend these comparisons with facet_grid().
+source-note: "Teaching structure and exercise design adapted from the posit::conf(2025) ggplot2 workshop (Thomas Lin Pedersen, Teun van den Brand · README states CC-BY 4.0; LICENSE.md states CC-BY-SA 4.0); chapter prose and penguins/gapminder examples are original to this project"
+---
+
+# 1.7 Non-Standard Geometries
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **match** a question to an appropriate geometry instead of defaulting to `geom_point()`
+2. **construct** heatmaps of categories and numeric values with `geom_tile()`
+3. **visualize** changes across distributions with `ggridges::geom_density_ridges()`
+4. **differentiate** interval bands with `geom_ribbon()` from stacked composition with `geom_area()`
+5. **build** slope graphs and dumbbell plots by hand without adding dependencies
+6. **amplify** any geometry into small multiples with `facet_grid()`
+
+## Prerequisite check (≤5 minutes)
+
+Answer these questions independently; otherwise review the [tidyverse prerequisites](../index.qmd#prerequisites):
+
+::: {.callout-important}
+## Check In: Prerequisites
+
+1. Draw `ggplot(penguins, aes(bill_length_mm, species)) + geom_boxplot()` and explain the x and y mappings.
+2. Explain the difference between `fill` and `color`: one typically controls interiors, the other outlines.
+:::
+
+## 1. Beyond points, lines, and bars: let the question choose the geometry
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Scatterplots, bars, and lines are general-purpose answers, which can make them inefficient for specific questions. Three boxplots for distribution shifts or grouped bars for endpoint differences are not necessarily wrong, but they can waste the reader's time. **Identify the kind of question before choosing the geometry.** That is the central skill of this chapter.
+:::
+
+| Question type | Typical question | Preferred geometry | Avoid as a default |
+|---|---|---|---|
+| Intensity on a grid | Which combinations are high or low? | `geom_tile()` heatmap | Thirty bars |
+| Multiple distributions | How does the whole distribution shift? | `geom_density_ridges()` | A row of boxplots |
+| Intervals and composition | How wide is the band? How do shares change? | `geom_ribbon()` / `geom_area()` | Forced error-bar layouts or sequences of pies |
+| Endpoint change | Who changed by how much from A to B? | Hand-built slope or dumbbell plot | Grouped bars |
+| Any of these, by another group | Does the pattern hold within groups? | `facet_grid()` | Everything squeezed into one panel |
+
+One criterion matters: **the graphic should answer the reader's question through its structure, without requiring mental arithmetic**.
+
+## 2. `geom_tile()`: heatmaps
+
+Two categorical axes and a continuous fill value turn table lookup into visual comparison of colored cells.
+
+::: {.callout-example}
+```r
+library(ggplot2)
+library(dplyr)
+
+gapminder::gapminder |>
+  filter(year %in% c(1952, 1972, 1992, 2007)) |>
+  group_by(continent, year) |>
+  summarise(mean_life = mean(lifeExp), .groups = "drop") |>
+  ggplot(aes(x = factor(year), y = continent, fill = mean_life)) +
+  geom_tile(color = "white", linewidth = 1) +   # White gaps separate cells
+  scale_fill_viridis_c() +                      # Perceptually uniform scale for continuous values
+  labs(x = NULL, y = NULL, fill = "Life expectancy",
+       title = "Life expectancy by continent over fifty years")
+```
+:::
+
+::: {.callout-note}
+`geom_tile()` and `geom_raster()` serve similar purposes; `geom_raster()` renders regular, evenly spaced grids faster. Category-by-category counts, such as species by island, work too: map `fill` to `n`.
+:::
+
+## 3. `ggridges::geom_density_ridges()`: ridgelines
+
+To compare one variable across groups or periods, ridgelines **stack distributions with vertical offsets**. Shifts become visible along with shape information that boxplots cannot show.
+
+::: {.callout-example}
+```r
+# install.packages("ggridges")   # The only additional package needed for this chapter
+library(ggridges)
+
+gapminder::gapminder |>
+  filter(year %in% seq(1952, 2007, by = 5)) |>
+  ggplot(aes(x = lifeExp, y = factor(year), fill = year)) +
+  geom_density_ridges(scale = 1.2, show.legend = FALSE) +
+  scale_fill_viridis_c(option = "mako", begin = 0.2, end = 0.9) +
+  labs(x = "Life expectancy", y = NULL,
+       title = "Global life expectancy: shifting right, with a narrowing left tail")
+```
+:::
+
+Two useful arguments: `scale` controls overlap (1 means neighboring ridges just touch; >1 allows overlap), and `rel_min_height`, such as 0.01, trims low tails to reduce clutter.
+
+::: {.callout-warning}
+## Common mistake: relying on alphabetical group order
+For categorical y values, default ordering can place groups alphabetically and disrupt time order. **Set the order with `factor(year, levels = ...)` before plotting**, keeping the earliest period at one end.
+:::
+
+## 4. `geom_ribbon()` and `geom_area()`: bands and stacks
+
+Both draw filled regions but answer different questions: **ribbons show intervals or ranges; areas show changing composition**.
+
+::: {.callout-example}
+```r
+# ribbon: global median life expectancy and 10%-90% quantile band
+gapminder::gapminder |>
+  group_by(year) |>
+  summarise(
+    med = median(lifeExp),
+    lo  = quantile(lifeExp, 0.10),
+    hi  = quantile(lifeExp, 0.90)
+  ) |>
+  ggplot(aes(year, med)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.25, fill = "steelblue") +
+  geom_line(linewidth = 1)
+
+# area: changing population composition by continent
+gapminder::gapminder |>
+  filter(continent != "Oceania") |>
+  count(year, continent, wt = pop, name = "pop") |>
+  ggplot(aes(year, pop / 1e9, fill = continent)) +
+  geom_area(alpha = 0.85) +
+  labs(y = "Population (billions)", fill = NULL)
+```
+:::
+
+::: {.callout-note}
+Stacked area charts suit situations where **the total matters and composition is the focus**. If comparing continents' growth patterns, consider normalized shares with `position = "fill"` or separate facets instead.
+:::
+
+## 5. Build slope graphs and dumbbell plots by hand
+
+Both compare two time points or states. Packages such as `ggalt` and `ggdist` offer convenience functions, but **building the plot with core ggplot2 gives complete control** and avoids another dependency.
+
+::: {.callout-example}
+```r
+# Slope graph: European life expectancy, 1952 to 2007; highlight the largest gain
+top_gain <- gapminder::gapminder |>
+  filter(continent == "Europe", year %in% c(1952, 2007)) |>
+  select(country, year, lifeExp) |>
+  tidyr::pivot_wider(names_from = year, values_from = lifeExp,
+                     names_prefix = "y") |>
+  mutate(gain = y2007 - y1952)
+
+champion <- top_gain |> slice_max(gain, n = 1) |> pull(country)
+
+gapminder::gapminder |>
+  filter(country %in% top_gain$country, year %in% c(1952, 2007)) |>
+  ggplot(aes(x = factor(year), y = lifeExp, group = country)) +
+  geom_line(color = "grey75", linewidth = 0.6) +    # Background: all countries
+  geom_point(color = "grey75") +
+  geom_line(                                         # Highlight the country with the largest gain
+    data = \(d) filter(d, country == champion),
+    color = "#D55E00", linewidth = 1.2
+  ) +
+  labs(x = NULL, y = "Life expectancy",
+       title = paste(champion, ": Europe's largest life-expectancy gain over half a century"))
+```
+
+```r
+# Dumbbell: mean female/male body mass by species; distance shows the difference
+palmerpenguins::penguins |>
+  tidyr::drop_na(sex) |>
+  group_by(species, sex) |>
+  summarise(mass = mean(body_mass_g), .groups = "drop") |>
+  tidyr::pivot_wider(names_from = sex, values_from = mass) |>
+  ggplot(aes(y = species)) +
+  geom_segment(aes(x = female, xend = male, yend = species),
+               color = "grey70", linewidth = 2) +
+  geom_point(aes(x = female), color = "#0072B2", size = 3.2) +
+  geom_point(aes(x = male),    color = "#E69F00", size = 3.2) +
+  labs(x = "Mean body mass (g)", y = NULL,
+       title = "Males are heavier in every species, but the gaps differ")
+```
+:::
+
+::: {.callout-important}
+## Check In: Three minutes of practice
+
+Change the dumbbell plot to compare male and female `bill_length_mm`. Which species has the smallest relative difference? Then inspect `bill_depth_mm`: is the conclusion the same? **If the conclusions differ, which plot would you show readers, and why?**
+:::
+
+::: {.callout-warning}
+## Common mistake: using a continuous palette for dumbbell endpoints
+The endpoints represent **states**, such as female/male or before/after. Use two distinct qualitative colors, such as Okabe–Ito blue and orange (`#0072B2` / `#E69F00`), rather than `scale_colour_gradient()`. A gradient implies quantity and encourages the wrong interpretation.
+:::
+
+## 6. `facet_grid()`: extend comparisons with small multiples
+
+Faceting adds another comparison dimension to **any** geometry. Compared with `facet_wrap()`, `facet_grid()` assigns explicit meanings to rows and columns. It suits comparisons with **few levels in both categorical variables**, such as ≤4 × ≤3. Facets **share scales** by default, supporting comparison; avoid `scales = "free"` without a reason such as different measurement units.
+
+::: {.callout-example}
+```r
+palmerpenguins::penguins |>
+  filter(!is.na(sex)) |>
+  ggplot(aes(bill_length_mm, bill_depth_mm)) +
+  geom_point(aes(color = species), alpha = 0.7, size = 1.6) +
+  facet_grid(rows = vars(species), cols = vars(sex)) +
+  scale_colour_viridis_d(end = 0.85) +
+  labs(x = "Bill length (mm)", y = "Bill depth (mm)")
+```
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Follow §2 to draw a **species × island sample-size heatmap** using `penguins |> count(species, island)`. Use viridis fill, white gaps between cells, and a title framed as a question the reader can answer directly.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Adapt §3 to compare continents in 2007 with `x = lifeExp` and `y = continent`. ① Use `forcats::fct_reorder()` to set y-axis order by descending median `lifeExp`; ② try two viridis `option` values, select the more readable one, and explain why.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off)**: use `gapminder` to answer “Which countries climbed the most in GDP-per-capita rank from 1997 to 2007?” Choose a slope graph, dumbbell plot, or a better alternative yourself. Build it by hand without installing another package.
+**Round 2 (AI allowed)**: show the code to Posit Assistant and ask only: “Does the geometry fit the question? Could a design with less ink be easier to interpret?” Record its alternative, render it beside your version, and explain the tradeoff.
+:::
+
+## Capstone
+
+**Task**: three questions, three plots. Using `penguins` or `gapminder`, formulate questions of **three different types**: distribution shift, changing composition, and endpoint change. Choose a suitable geometry for each, with facets in at least one. Deliver a one-page Quarto report with three plots, two lines defending each geometry choice, and a question-to-geometry decision table.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Questions | Three different types | Specific and answerable | Form a developing narrative |
+| Geometry fit | All three fit | Each has a justification | Justification considers the reader's interpretation effort |
+| Implementation | Code runs and plots are readable | Hand-built slope/dumbbell without unnecessary dependencies | Facets, colors, and ordering support comparison |
+| Reflection | Includes decision table | Offers an alternative for one plot | Experiments with the tradeoff between alternatives |
+
+## SOURCES · Source mapping
+
+| Section | Material | Use |
+|---|---|---|
+| §1: question-first teaching structure; §6: faceting | posit::conf(2025) ggplot2 workshop sessions/slides (Thomas Lin Pedersen, Teun van den Brand · README states CC-BY 4.0; LICENSE.md states CC-BY-SA 4.0) | Adapted |
+| `geom_density_ridges()` arguments and `geom_raster()` comparison | Official ggridges and ggplot2 documentation | Referenced |
+| Heatmap/ribbon/area/slope/dumbbell examples, geometry decision table, and rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

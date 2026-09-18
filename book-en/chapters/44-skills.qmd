@@ -1,0 +1,231 @@
+---
+title: "4.4 Packaging Agent Know-How"
+author: "Jaime Yan"
+objectives: |
+  Distinguish skills, system prompts, and tools; analyze and write SKILL.md;
+  turn repeated prompts into skills; organize multiple skills; test whether
+  an agent follows them; decide when a skill is unnecessary.
+source-note: "Teaching structure and exercise numbering adapted from posit::conf(2026) llms (Garrick Aden-Buie, Sara Altman; CC-BY-SA 4.0). Explanatory prose is original to this project."
+---
+
+# 4.4 Packaging Agent Know-How
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **distinguish** skills, system prompts, and tools by their contents and when they enter context.
+2. **deconstruct** SKILL.md: frontmatter `name`/`description` versus body.
+3. **port** a repeatedly pasted prompt into a reusable project skill.
+4. **organize** project `skills/` and repository/user `.agents/skills/` directories.
+5. **evaluate** routing from descriptions and compliance with instructions, and decide when not to create a skill.
+
+## Prerequisite check
+
+- Create ellmer conversations, set system prompts, and register a `tool()`; revisit [4.1](41-llm-basics.qmd) if needed.
+- Know the agent loop: model chooses a call → R executes → result returns (4.3). You can still follow without it; §3 provides minimal wiring.
+
+::: {.callout-note}
+The setting is the llms workshop's Last Blockbuster store. You are its coding agent; the skill text comes from the workshop materials.
+:::
+
+## 1. A skill packages a procedure in a folder
+
+A skill is **a directory plus `SKILL.md`**. Frontmatter gives its name and purpose; the body gives the complete procedure. Templates and vocabularies can sit beside it. Normally the agent sees only a one-line directory entry and reads the body when the job calls for it. The workshop repository itself includes `help`, `explain`, `check-my-work`, and `unslop`: instructions shaping its AI teaching assistant.
+
+| Mechanism | Contains | When it enters context | Analogy |
+|---|---|---|---|
+| System prompt | Identity and brief global constraints | Every request | First page of the employee handbook |
+| Tools | **Actions**: R functions and typed signatures | Signatures present; calls on demand | Tools at a workstation |
+| Skills | Domain procedures and supporting information | Descriptions present; bodies loaded on demand | A colleague's practical job manual |
+
+::: {.callout-warning}
+## Common misconception: a skill is a longer system prompt
+The distinction is **loading time**, not length. System prompts are present and billed each turn; skill bodies enter context when `read_skill()` loads them. Put global rules and task procedures in the appropriate places.
+:::
+
+## 2. SKILL.md and progressive disclosure
+
+Consider `skills/renewal-letters/SKILL.md` from the workshop:
+
+::: {.callout-example}
+```markdown
+---
+name: renewal-letters
+description: Draft renewal letters for lapsed Last Blockbuster members.
+  Use when drafting those letters, not when identifying lapsed members
+  or updating store records.
+---
+
+# Renewal letters
+
+Write with the voice of a neighbor who knows the store ...
+Save each letter in `letters/drafts/` ...
+
+Offer Basic members a free-rental code.
+Do not promise an unlisted discount or a title's availability.
+```
+:::
+
+1. **Frontmatter contains `name`**, a kebab-case job name, **and `description`**.
+2. **The description is its advertisement**: say when to use it **and when not to**. The neighboring `lapsed-audit` skill also defines its territory so the boundaries do not conflict.
+3. **The body is the procedure**: tone, output paths, required elements, decision branches, and prohibitions.
+
+This is **progressive disclosure**: a short, always-visible directory with full instructions loaded only when useful.
+
+## 3. Turn a repeated prompt into a skill
+
+Suppose you have pasted the same letter-writing instructions five times. Applying the rule of three referenced in 4.1, it is time to extract them. ① Move the text into `skills/<job>/SKILL.md`. ② Summarize when to use and avoid it in description. ③ Give the agent a tool to read it. The wiring below is adapted from `21_skills-1`.
+
+First place `skills/` and `blockbuster/` in your exercise project and run chapter 4.3's four file-tool definitions. Both directories can be copied from upstream `_solutions/21_skills-1/`.
+
+::: {.callout-example}
+```r
+library(ellmer)
+
+skills_dir <- "skills"   # Project skill directory
+
+read_skill <- function(skill) {
+  brio::read_file(file.path(skills_dir, skill, "SKILL.md"))
+}
+
+tool_read_skill <- tool(
+  read_skill,
+  description = paste("Read the full instructions for a listed skill.",
+                      "Call this before you do the job the skill describes."),
+  arguments = list(
+    skill = type_string("Name of the skill to read, such as 'renewal-letters'.")
+  )
+)
+
+list_skills <- function(skills_dir) {
+  files <- fs::dir_ls(skills_dir, recurse = TRUE, glob = "**/SKILL.md")
+  skills <- purrr::map_dfr(files, \(p) frontmatter::read_front_matter(p)$data)
+  paste(interpolate("- {{ skills$name }}: {{ skills$description }}"),
+        collapse = "\n")
+}
+
+chat <- chat_posit(
+  system_prompt = interpolate("
+    You are a coding agent for the Last Blockbuster in Bend, Oregon.
+
+    Read a skill with the read_skill tool before you do the job it describes.
+
+    ## Available skills
+
+    {{ list_skills(skills_dir) }}
+  ")
+)
+
+chat$register_tool(tool_read_skill)
+chat$register_tool(tool_read_file)
+chat$register_tool(tool_write_file)
+chat$register_tool(tool_list_files)
+chat$register_tool(tool_edit_file)
+chat$chat(paste(
+  "Draft renewal letters for the top three members on lapsed.csv.",
+  "Save one file for each member in letters/drafts/."
+))
+
+chat   # Did it call read_skill("renewal-letters") before drafting?
+```
+:::
+
+`list_skills()` compresses each skill to `- name: description` and inserts that directory into the system prompt. Printing `chat` exposes the tool trace: “read the skill before doing the job” is itself an acceptance criterion. Repeating that instruction in the system prompt and tool description is deliberate.
+
+## 4. Organizing multiple skills
+
+The store needs more than letters. `22_skills-2/skills/` contains four jobs:
+
+| Skill | Responsibility |
+|---|---|
+| `renewal-letters` | Write renewal letters to lapsed members |
+| `lapsed-audit` | Identify lapsed members and maintain the win-back list |
+| `tape-tracking` | Track unreturned tapes and write reminders |
+| `social-media-voice` | Write social posts in the store's voice |
+
+Use two levels. **Project `skills/`** travels with the repository and suits business-specific jobs; each workshop exercise keeps its own copy. **Repository/user `.agents/skills/`** is discovered by Positron Assistant and suits cross-project habits, such as `unslop` for removing generic AI prose or reviewing work.
+
+::: {.callout-important}
+## Check In: predict routing from descriptions
+
+Without running code, use only the four descriptions to predict the skill for each request:
+
+1. “List the tapes that have not been returned.”
+2. “Write a letter to each of the top three members on the win-back list.”
+3. “Write a post celebrating last week's small surge in returns.”
+4. “A member asks why they were marked lapsed; check the records.”
+
+Then run the requests. If request 2 triggers `lapsed-audit`, which description left its boundary unclear? Adapted from `22_skills-2`.
+:::
+
+## 5. Testing a skill: did the agent follow it?
+
+You are testing **instructions for a capable colleague without your context**, not the model itself. `22_skills-2` suggests four questions about `renewal-letters`:
+
+1. **Description only:** Is this enough to choose the right skill?
+2. **First two body sentences:** When will the agent see them, and is that the right time?
+3. **Body versus project files:** What duplicates information elsewhere and may drift?
+4. **Procedure:** Is each step executable, and where is interpretation required?
+
+Revise, rerun a real task, and print `chat`. Check whether it first calls `read_skill`, follows `letters/drafts/<member-name>.md`, and avoids unauthorized edits to read-only exports such as `rentals.csv`.
+
+::: {.callout-warning}
+## Common mistake: testing once
+Skill behavior is stochastic. Retest at least three boundary requests in fresh conversations: one in scope, one belonging to a neighboring skill, and one ambiguous. The “do not use” clause helps determine where ambiguous requests go.
+:::
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+A skill represents a **job**, not a prompt fragment. If deleting SKILL.md means you must paste its procedure back to get the job done, it carries real knowledge. If nothing changes, it may be decoration.
+:::
+
+## 6. When not to create a skill
+
+| Signal | Use instead |
+|---|---|
+| One-time task | An ordinary conversation |
+| An **action**, such as reading a file or querying a database | A tool, chapter 4.3 |
+| A few lines required for every task | A system prompt |
+| A repeated **job** with procedures and prohibitions | A skill |
+
+Warning signs include a description longer than the body, two skills competing for the same requests, or a body duplicating project files. Merge or separate overlapping skills. Store knowledge in files and explain how to use it in the skill: `lapsed-audit` keeps definitions, order, and forbidden actions in the body while the data stays in CSVs.
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Following §2, create `skills/<your-job>/SKILL.md` for your domain. State when to use and avoid it in frontmatter. Include tone, output paths, required elements, decision branches, and at least two prohibitions. Submit the file; no code required.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Adapt §3's wiring to your project with **two** skills whose responsibilities border each other. Run the four Check In requests. Do not paste skill bodies into chat. Report routing and the tool-call order in `chat`. Adapted from `21_skills-1` / `22_skills-2`.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI off)
+
+**Round 1 (AI off throughout):** Choose a repeated job from your real workflow, draft SKILL.md, and write five boundary requests: two in scope, two adjacent, one ambiguous. **Round 2 (AI allowed):** Ask an assistant only: “Give three requests that would cause misuse or missed use of this skill, and identify whether the description or body causes the problem.” Revise and test; record the unexpected case it found.
+:::
+
+## Capstone
+
+**Task: “Skill library 1.0.”** Build a `skills/` directory with at least three domain skills and minimal agent wiring: `list_skills()`, a `read_skill` tool, and file tools. Submit a routing report with predictions versus results for at least nine boundary requests, including one ambiguous request between every pair of skills, plus spot checks of instruction compliance.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Skills | Three complete SKILL.md files | Clear, noncompeting descriptions | No duplicate procedures; supporting knowledge in files |
+| Engineering | Wiring runs | Automatic directory; consistent tool/system instructions | New skills appear without code changes |
+| Testing | Runs a set of requests | Predictions written first | Fresh-session retests and routing inconsistency rate |
+| Judgment | Three skills completed | Identifies skills worth merging | Documents a task deliberately not made into a skill |
+
+## SOURCES · Attribution
+
+| Section | Material | Use |
+|---|---|---|
+| §1–§3 concepts, wiring, Blockbuster scenario | posit::conf(2026) llms `_exercises/21_skills-1` and `.agents/skills/` (Garrick Aden-Buie, Sara Altman; CC-BY-SA 4.0) | Adapted |
+| §4–§5 four-skill layout and four-question review | llms `_exercises/22_skills-2`, including `skills/*/SKILL.md` | Adapted / referenced |
+| Three-layer comparison, warning signs, exercise adaptations, capstone, rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

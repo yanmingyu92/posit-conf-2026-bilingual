@@ -13,3 +13,7 @@ h1, h2, h3 { color: var(--book-ink); }
 
 .book-language { padding: .6rem 1rem; text-align: right; font-size: .95rem; }
 .book-language a { color: var(--book-ink); font-weight: 600; }
+@media (max-width: 600px) {
+  main table { display: block; max-width: 100%; overflow-x: auto; }
+  main th, main td { min-width: 9rem; }
+}

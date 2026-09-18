@@ -1,0 +1,230 @@
+---
+title: "4.2 Structured Output and Evals"
+author: "Jaime Yan"
+objectives: |
+  Design nested data contracts using seven type_* constructors; choose
+  parallel or batch processing; build a 10–20-case gold dataset and score
+  it with vitals; iterate on prompts and judge readiness for deployment.
+source-note: "Teaching structure and exercise numbering adapted from posit::conf(2026) llms (Garrick Aden-Buie, Sara Altman; CC-BY-SA 4.0). Explanatory prose is original to this project."
+---
+
+# 4.2 Structured Output and Evals
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **design** nested schemas for real documents using `type_*()`.
+2. **explain** why a field description is both a type descriptor and a prompt.
+3. **select** between multiple items in one call and one call per item.
+4. **construct** a gold evaluation dataset of 10–20 cases.
+5. **evaluate** with vitals, revise prompts, and decide whether to deploy.
+
+## Prerequisite check
+
+- Run chapter 4.1's `chat_structured()`, recognize `type_object()` / `type_array()`, and remember: **models supply format; facts need sources**. Otherwise revisit [4.1](41-llm-basics.qmd) §5.
+
+::: {.callout-note}
+As in 4.1, this chapter uses the workshop's `chat_structured()` and `set_system_prompt()`. Older sources may say `extract_data()` and `set_system()`. Examples using `data/` or `_solutions/` must run from the upstream `llms` project root with its companion data intact.
+:::
+
+## 1. Why a schema beats parsing prose
+
+Without a contract, a model may return `Name: Alex; Age: 42`, requiring regular expressions before storage. A change to `Alex, 42 years old` breaks your parser. The lesson from 4.1 becomes **put the contract in the request instead of parsing prose**: supply a schema and receive an R object with specified types.
+
+::: {.callout-example}
+```r
+library(ellmer)
+chat <- chat_posit()
+chat$set_system_prompt("You are a data extraction assistant. Answer only from the supplied text.")
+
+type_person <- type_object(
+  name = type_string("The person's name"),
+  age  = type_integer("The person's age in completed years")
+)
+
+chat$chat_structured("My name is Chen Mo, and I am 42 years old.", type = type_person)
+#> $name: "Chen Mo"   $age: 42
+```
+:::
+
+::: {.callout-warning}
+## Common misconception: schema contract = factual contract
+The type system can require an **integer** age without making it **true**. If the source does not state it, the model may invent one. Section 2 introduces `required = FALSE` so missing information can remain missing rather than fabricated.
+:::
+
+## 2. Seven types and two important controls
+
+| Function | Contents | Typical fields |
+|---|---|---|
+| `type_string()` | Text | Titles, notes |
+| `type_number()` | Numbers, including decimals | Doses, amounts |
+| `type_integer()` | Integers | Sample sizes, counts |
+| `type_boolean()` | Logical values | Eligibility |
+| `type_enum()` | **Restricted vocabulary** | Grades, categories |
+| `type_array()` | Sequence, with an element type | Steps, row records |
+| `type_object()` | Record with named fields | One structured record |
+
+Two controls matter even more. **description**, the first argument in `type_string("...")`, is sent to the model: it **is part of the prompt**, where you specify meaning, units, and decision criteria. **required = FALSE** allows a missing field to return `NULL` rather than pressuring the model to invent it.
+
+::: {.callout-example}
+```r
+type_flag <- type_object(
+  severity = type_enum(
+    c("mild", "moderate", "severe"),
+    description = "Three severity levels; choose moderate if uncertain; do not invent another level"
+  ),
+  icu_days = type_integer("Days in ICU; missing if not admitted to ICU", required = FALSE)
+)
+```
+`type_enum()` restricts free text to a vocabulary that downstream code can safely turn into a `factor()`.
+:::
+
+## 3. Nested schemas for real documents
+
+A flat object is insufficient for many documents. The workshop's recipe example, `10_structured-output`, contains ingredients as an **array of objects** (name, quantity, unit, notes) and instructions as an **array of strings**. The argument to `type_array()` describes each element.
+
+::: {.callout-example}
+```r
+type_recipe <- type_object(
+  title = type_string(),
+  description = type_string(),
+  ingredients = type_array(
+    type_object(
+      name = type_string(),
+      quantity = type_string(required = FALSE),  # "Salt to taste" gives no quantity
+      unit = type_string(required = FALSE),
+      notes = type_string(required = FALSE)
+    )
+  ),
+  instructions = type_array(type_string())
+)
+
+txt <- brio::read_file("data/recipes/text/CinnamonPeachOatWaffles.md")
+chat$chat_structured(txt, type = type_recipe)
+```
+The three descriptive ingredient fields are optional. “To taste” and “a little” occur frequently; forced completion invites invented units.
+:::
+
+::: {.callout-important}
+## Check In: design a checkup-report schema
+
+Design `type_checkup` for a report containing a summary and measurement rows: name, result, unit, reference interval, and arrow. Include an array of objects, a `type_enum()`, and a `required = FALSE` field. Should ↑/↓/normal use enum or string, and why? Write the schema before running it, then identify the field with the highest failure rate. Adapted from `10_structured-output`.
+:::
+
+## 4. Batch choices: many items once, or many calls?
+
+| Route | Method | Suitable for | Risk |
+|---|---|---|---|
+| Multiple items in one call | `type_array(type_object())`, as in 4.1 | A few short items | Context overflow; one bad item can require redoing the batch |
+| One call per item | One request for each document | Long documents or many items | Slower; concurrency and failures need management |
+
+`chat$chat_structured()` **does not accept a vector of prompts**; passing the entire string list is an error. Use `parallel_chat_structured()`. A third option, `batch_chat_structured()`, uses a provider's batch queue: cheaper, but potentially hours of waiting, and not forwarded by Posit AI. For now, know it exists.
+
+::: {.callout-example}
+```r
+recipes <- fs::dir_ls("data/recipes/text") |> purrr::map(brio::read_file)
+recipes_data <- parallel_chat_structured(     # Adapted from llms `11_parallel`
+  chat_posit(model = "claude-haiku-4-5"),     # A smaller model for a simple task
+  prompts = recipes,
+  type = type_recipe,
+  max_active = 4,                             # Limit concurrency: requests cost money
+  on_error = "stop"
+)
+dplyr::as_tibble(recipes_data)
+```
+:::
+
+## 5. Evaluation: a prompt is a hypothesis, an eval an experiment
+
+Structured output constrains **format**, not **quality**. The workshop's bluffbench examples alter a familiar `mtcars` relationship before asking for an interpretation: models often **describe the plot they expect rather than the one presented**. In another example, six identical 54.1°F temperature readings are stuck, yet the model praises smooth data. A single impression cannot decide which prompt or model is better.
+
+> **A prompt is a hypothesis; an eval is an experiment.** Change the prompt, rerun the experiment.
+
+In vitals terminology, an eval contains a **dataset** of input questions and target answers or grading criteria, a **solver** that converts inputs to outputs, and a **scorer** (§6). Start with **10–20 typical and boundary cases**. For open tasks, the target states what a good answer must contain.
+
+::: {.callout-example}
+```r
+library(vitals)
+vitals::vitals_log_dir_set("./logs")
+source(here::here("_solutions/15_evals/_cases.R"))
+cases <- bluff_mini_cases()  # Inputs contain data flaws; targets specify scoring criteria
+
+task <- Task$new(
+  dataset = cases,
+  solver = generate(),
+  scorer = model_graded_qa(scorer_chat = chat_posit(model = "claude-sonnet-5"))
+)
+
+task$eval(
+  solver_chat = chat_posit(model = "claude-haiku-4-5"),
+  epochs = 2
+)  # Two runs assess variability; vitals_view() shows individual grades
+task$get_samples() |>
+  dplyr::summarise(pass_rate = mean(score == "C"), .by = id)  # C = Correct
+```
+:::
+
+## 6. Scorers, iteration, and deployment thresholds
+
+| Method | How it scores | Cost or limitation |
+|---|---|---|
+| Deterministic | Exact match, regex, executable tests | Fast and stable; suited to constrained outputs |
+| Model grading | A second LLM acts as judge | Flexible, but **the judge must itself be checked** |
+| Human rubric | A person checks criteria | Most trustworthy; costly to scale |
+
+::: {.callout-warning}
+## Common mistake: trusting the judge blindly
+`model_graded_qa()` grades are also model-generated. Before deployment, inspect 10–20 grading records: did it mark a wrong answer correct? More precise criteria can reduce drift. As in §1, a format contract is not a factual contract.
+:::
+
+Evaluation pays off through iteration: **baseline → one change to prompt, description, or model tier → rerun → compare pass_rate and cost**. Change `solver_chat` to compare models on the same eval. Rerunning when a new model arrives becomes a **regression test**. Require all three conditions before deployment:
+
+1. **Set the pass-rate threshold before the experiment**, for example ≥85%, to prevent retrospective justification.
+2. **Review failed cases manually**: failure modes must be acceptable and not systematically harm a category of input.
+3. **Check variability**: with epochs ≥2, similar pass rates suggest stability; large differences suggest unstable cases or grading.
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Do not tune ten prompts and only then think about evaluation. **Spend an hour writing 15 gold cases first.** Without evals, ten rounds of tuning treat “it feels better” as evidence. Models change; your evaluation cases remain an asset.
+:::
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Use §3's `type_recipe` unchanged on another recipe in `data/recipes/text/`. After `as_tibble()`, identify missing or wrongly extracted fields. Change one relevant description sentence, rerun, and record before versus after. Adapted from `10_structured-output`.
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Apply §4's parallel pattern to at least 10 texts you provide: abstracts, tickets, or resumes. Define a nested schema and set `max_active = 4`. Estimate total cost using chapter 4.1's function. Should you use a larger or smaller model, and on what evidence? Adapted from `11_parallel`.
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI off)
+
+**Round 1 (AI off throughout):** Handwrite 12–15 gold input/target cases for an extraction task in your field. Choose one of the three scorer types and write complete grading rules. **Round 2 (AI allowed):** Ask an assistant only: “Give three kinds of bad output that could fool this scorer.” Close the gaps, run an evaluation, and record one unexpected failure type it identified.
+:::
+
+## Capstone
+
+**Task: “Gold evaluation bench.”** Choose a real extraction task with at least 15 documents. Submit a nested schema, 15–20 gold cases, a vitals script, and one complete iteration report: baseline → one change → new pass rate → cost comparison → deployment recommendation.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Schema | Complete runnable nesting | Descriptions are judgeable criteria | Restrained optional fields and honest missingness |
+| Gold cases | 15 cases | Typical and boundary cases | At least three deliberately difficult cases |
+| Evaluation engineering | Produces a pass rate | Threshold set first; grades spot-checked | Two-model comparison and cost inform the decision |
+| Honest decision | Deployment conclusion | Every failed case reviewed | States when this pipeline should not be used |
+
+## SOURCES · Attribution
+
+| Section | Material | Use |
+|---|---|---|
+| §1–§3 types and nested recipe schema | llms `_exercises/10_structured-output` and slides-04 | Adapted |
+| §4 parallel and batch processing | llms `_solutions/11_parallel` | Adapted |
+| §5–§6 eval components, bluffbench, scorers | llms `15_evals`, `_solutions/15_evals`, slides-05 (vitals) | Adapted |
+| Checkup schema exercise, deployment thresholds, exercises, capstone, rubric | This project | Original |
+
+This chapter is published under CC-BY-SA 4.0.

@@ -1,0 +1,15 @@
+# Unit 2 · Professional Deliverables — Chapter Map
+
+> From telling a story to giving readers a tool for exploration.
+> By the end of this unit, deliver a dashboard combining static design, dynamic visuals, and user interaction.
+
+| Chapter | Topic | Source anchor | Matrix | Status |
+|---|---|---|---|---|
+| [2.1](chapters/21-interactive-graphics.qmd) | Interactive Graphics (plotly) | Original | D-L2 | Published |
+| [2.2](chapters/22-animation.qmd) | Animation (gganimate) | Original | D-L2 | Published |
+| [2.3](chapters/23-dashboards-static.qmd) | Static Quarto Dashboards | quarto-dashboards(2024) | D-L2 | Published |
+| [2.4](chapters/24-dashboards-dynamic.qmd) | Dynamic Quarto Dashboards | quarto-dashboards(2024) + shiny-r | D/E-L2 | Published |
+| [2.5](chapters/25-maps-leaflet.qmd) | Maps (leaflet) | Original | D-L2 | Published |
+| [2.6](chapters/26-ggplot-extensions.qmd) | ggplot Extensions | ggplot2+quarto-extend | D-L3 | Published |
+| [2.7](chapters/27-shiny-reactive.qmd) | Shiny Reactive Design | shiny-r(2025)+level-up-shiny | E-L1→2 | Published |
+| [2.8](chapters/28-pub-ready-reports.qmd) | Publication-Ready Reports (integration) | practical-quarto(2026)+quarto-brand | D-L2 | Published |

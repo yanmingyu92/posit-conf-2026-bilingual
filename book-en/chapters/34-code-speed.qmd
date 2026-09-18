@@ -1,0 +1,223 @@
+---
+title: "3.4 Code Speed and Benchmarking"
+author: "Jaime Yan"
+objectives: |
+  Build credible performance evidence for packages with bench::mark(); rank
+  growing objects, row-wise work, and repeated file I/O by the value of fixing
+  them; revisit copy-on-modify with tracemem(); choose honestly between
+  data.table and dplyr; profile package functions; decide when parallelism pays.
+source-note: "Original material from this project (a partly original chapter), CC-BY-SA 4.0. bench usage follows https://bench.r-lib.org and profvis usage follows https://rstudio.github.io/profvis/. Complements chapter 1.3: that chapter builds script-level intuition; this chapter addresses packages and real workloads."
+---
+
+# 3.4 Code Speed and Benchmarking
+
+## Learning objectives
+
+By the end of this chapter, you can:
+
+1. **measure** credible package-level comparisons with `bench::mark()` (median, `itr/sec`, `mem_alloc`).
+2. **rank** and explain three common sources of slowness: growing objects in loops, row-wise calculations, and repeated file I/O.
+3. **explain** copy-on-modify through a live `tracemem()` demonstration, revisiting chapter 1.3.
+4. **compare** data.table and dplyr for a specific situation rather than choose a camp.
+5. **locate** real hotspots in package functions using profvis.
+6. **evaluate** parallelism's benefits and overhead for a particular task.
+
+## Prerequisite check (≤5 minutes)
+
+Complete chapter 1.3, covering copy-on-modify and a first benchmark, before continuing.
+
+::: {.callout-important}
+## Check In: prerequisites
+
+1. After `tracemem(y)`, you run `y <- x`, then `y[[1]] <- 9`. Which step prints a memory-copy message?
+2. Guess the speed ratio between `rowwise() |> mutate(z = max(a, b))` and `mutate(z = pmax(a, b))`. Write down your estimate and compare it in §2.
+:::
+
+## 1. Measure before optimizing: bench in a package context
+
+Chapter 1.3 developed intuition. Here the focus is **package development**: evidence should withstand questions from colleagues and reviewers. Put benchmarks in PRs and vignettes, not just chat screenshots. `bench::mark()` (<https://bench.r-lib.org>) remains our measuring instrument:
+
+::: {.callout-example}
+```r
+library(bench)
+scores <- runif(1e5, min = 0, max = 100)
+mark(
+  cut_default = as.character(cut(scores, c(0, 60, 70, 80, 90, 100),
+                    labels = c("F", "D", "C", "B", "A"),
+                    right = FALSE, include.lowest = TRUE)),
+  nested_ifelse = ifelse(scores >= 90, "A", ifelse(scores >= 80, "B",
+                   ifelse(scores >= 70, "C", ifelse(scores >= 60, "D", "F")))),
+  iterations = 50
+)
+```
+:::
+
+Read `median` (typical time), `itr/sec` (throughput), and `mem_alloc` (memory). Three rules: ① Focus on **relative ratios**; absolute times vary by machine. ② The default `check = TRUE` verifies **equivalent results**. Comparing how quickly two different answers are calculated is an expensive benchmarking mistake. ③ Change one variable at a time.
+
+::: {.callout-caution collapse="true"}
+## Just Our Opinion
+Much allegedly slow R code is another language's approach translated literally. Start by thinking in R: vectors and whole columns. Most remaining problems worth your effort fall into the three categories below.
+:::
+
+## 2. Three common sources of slowness
+
+| Rank | Source | Mechanism | Short remedy |
+|---|---|---|---|
+| 1 | Growing objects in loops: `out <- c(out, x)` | Allocate a longer vector and copy each time, roughly n²/2 total work | Preallocate or accumulate vectorially |
+| 2 | Row-wise calculations | Pay R interpreter overhead for every row | Ask for a whole-column operation: `pmax`, `rowSums`, `ifelse` |
+| 3 | Repeated file I/O | Millisecond disk access is roughly 10⁵ times slower than memory; often combined with repeated rbind | Read once, read in batches, or scan lazily |
+
+The standard comparison for source 2 also checks your prerequisite prediction:
+
+::: {.callout-example}
+```r
+library(dplyr)
+df <- tibble(a = runif(1e5), b = runif(1e5))
+mark(
+  rowwise_max = df |> rowwise() |> mutate(z = max(a, b)) |> ungroup(),
+  vectorized  = df |> mutate(z = pmax(a, b)),
+  iterations = 20
+)   # Typical difference: 50–150 times
+```
+:::
+
+A common instance of source 3, with two alternatives:
+
+```r
+# Slow: read one file and rbind at a time (sources 3 and 1 together)
+out <- NULL
+for (f in files) {
+  d <- utils::read.csv(f)
+  out <- rbind(out, d)
+}
+# Faster: batch reading, or an Arrow lazy scan for data larger than memory
+out <- vroom::vroom(files)
+# out <- arrow::open_dataset("data/scores_dir/")
+```
+
+Move I/O out of loops whenever possible. When that is impossible, as with logging, accumulate records and write batches rather than one line at a time.
+
+::: {.callout-warning}
+## Common mistake: I/O benchmarks fail check = TRUE
+`read.csv()` returns a data.frame and `vroom()` a tibble, so `mark()` may report unequal results. Only when you have verified **different containers, same contents** should you use `check = FALSE`. Explain the reason in your report, as in chapter 1.3.
+:::
+
+## 3. tracemem: a one-minute copy-on-modify refresher
+
+Chapter 1.3 provides the full explanation. Replay the key observation: **modifying a named object can involve copying it**.
+
+::: {.callout-example}
+```r
+df <- data.frame(x = 1:5)
+tracemem(df)
+df$y <- 2          # A copy message when modifying the named object
+df$z <- df$x * 2   # Another modification
+untracemem(df)
+```
+:::
+
+Two implications for packages: ① **Receiving** a large object as an argument does not itself copy it. ② Repeatedly modifying a named large object in a loop can produce costly copying, the underlying concern in source 1. For modification by reference, data.table's `:=` is a prominent alternative, introduced next.
+
+## 4. data.table versus dplyr: choose honestly
+
+::: {.callout-example}
+```r
+library(dplyr); library(data.table)
+flights <- nycflights13::flights
+# dplyr: filter, group, summarize; compose verbs step by step
+flights |> filter(month == 1) |>
+  group_by(carrier) |> summarise(delay = mean(dep_delay, na.rm = TRUE))
+# data.table: rows where month == 1; calculate delay for each carrier
+as.data.table(flights)[month == 1,
+  .(delay = mean(dep_delay, na.rm = TRUE)),
+  by = carrier]
+```
+:::
+
+| Dimension | dplyr | data.table |
+|---|---|---|
+| Mental model | Composable pipeline verbs | One `DT[i, j, by]` expression |
+| Speed/memory | Sufficient for everyday in-memory analysis | Fast grouping and large-table work; `:=` reduces copying |
+| Ecosystem | Integrates with tidyverse | Self-contained, no dependencies |
+| Learning curve | Gentle | Steeper, but concise once familiar |
+
+Three practical considerations: ① **What the team knows** often matters more than raw speed; people must read the code. ② With truly large data, I/O and query design (1.3 §6) often dominate verb overhead. ③ Choose package dependencies carefully: do not import both libraries for one small function.
+
+::: {.callout-important}
+## Check In: a three-second choice
+① Group 100 million rows with limited memory. ② A team of tidyverse users analyzes less than 1 GB. ③ A small package only cleans strings. Choose dplyr, data.table, or “either” for each, and justify it in one sentence using §4.
+:::
+
+## 5. profvis: examine a package's pulse
+
+A benchmark asks how much faster A is than B. profvis (<https://rstudio.github.io/profvis/>) asks **where the time goes**. It applies directly to package functions:
+
+::: {.callout-example}
+```r
+library(profvis)
+profvis({
+  dat  <- vroom::vroom("scores_big.csv")
+  grade <- scorekit::grade_letter(dat$score)
+  table(grade)
+})
+```
+:::
+
+Read the display in three ways: ① Wide flame-graph bars identify hotspots to investigate. ② Drill into per-line time and memory in the Data view. ③ Run in an **interactive session**; knitting does not open the viewer. Include a flame-graph screenshot in performance PRs so a fivefold slowdown is visible before merging.
+
+::: {.callout-note}
+The full cycle remains: find the hotspot with profvis → change that section → compare before and after with `mark()`. Changing code without measurement is simply a different form of guessing.
+:::
+
+## 6. A brief introduction to parallelism
+
+Consider parallel work when independent tasks take **seconds**, such as parsing 500 files. `future` chooses the execution strategy; `furrr` supplies parallel map operations:
+
+```r
+library(furrr)
+plan(multisession, workers = 4)
+results <- future_map(files, ~heavy_parse(.x))   # Preserve result order
+```
+
+Three cautions: ① Process startup and data transfer cost time; millisecond tasks may become **slower**. ② Vectorized code already running efficiently in C may gain little. ③ Manage random seeds; future provides dedicated mechanisms. As a beginner's rule of thumb, if a single-call median is below one second, look for vectorization before parallelism.
+
+::: {.callout-important}
+## Practice Exercise 1 (copy)
+
+Rerun the §1 and §2 benchmarks: cut versus nested ifelse, and rowwise versus `pmax`. Record median, `itr/sec`, and `mem_alloc` in a table. Repeat ten minutes later or on another machine. In two lines, distinguish stable relative ratios from variable absolute times. Was your prerequisite prediction correct?
+:::
+
+::: {.callout-important}
+## Practice Exercise 2 (adapt)
+
+Generate 50 small CSVs of about 2000 rows each. Compare looping `read.csv()` plus `rbind()`, `vroom::vroom(files)`, and `arrow::open_dataset()`. Handle `check` as discussed in §2 and state how results were aligned. Use fewer iterations, such as 5. Which is fastest, and which uses least memory?
+:::
+
+::: {.callout-important}
+## Practice Exercise 3 (create · AI integration)
+
+**Round 1 (AI off):** Choose your package's heaviest function, or the class repository's `profile-me.R`, which contains all three slow patterns. Find hotspots with profvis → diagnose using §2 → rewrite the largest bottleneck → compare before and after with `mark()`, including `mem_alloc`.
+**Round 2 (AI allowed):** Give Posit Assistant both versions and a profiling summary. Ask only: “Which hidden copies, row-wise operations, or repeated I/O remain?” Record and fix one issue that **you confirm by measurement**.
+:::
+
+## Capstone
+
+**Task: “Performance dossier 1.0.”** Choose real slow code, or use the class repository's `slow-registry.R`, containing all three patterns. Submit a Quarto audit: flame graph with hotspots marked → diagnosis using the ranking → optimize only the most expensive item → before/after benchmark table with median and `mem_alloc` → selection rationale. Why use or avoid data.table? Why is parallelism worthwhile or not? Cite §4 and §6 criteria.
+
+| Dimension | Meets expectations | Good | Excellent |
+|---|---|---|---|
+| Measurement | Before/after benchmark | Median, fixed iterations, repeated check | Machine/workload differences and applicability stated |
+| Diagnosis | Identifies a bottleneck | profvis evidence and classified cause | Rules out a plausible but insignificant suspect |
+| Verification | Measured improvement | Explains copying/interpreter/I/O costs | Finds other instances of the same pattern |
+| Honest selection | Includes rationale | Uses §4/§6 criteria rather than slogans | Discusses readability, team, dependencies, and why to stop |
+
+## SOURCES · Attribution
+
+| Section | Material | Use |
+|---|---|---|
+| Structure, slow-pattern ranking, selection guidance, exercises, capstone, rubric, and division of topics with 1.3 | This project | Original |
+| `bench::mark()` and output interpretation | Official bench documentation, <https://bench.r-lib.org> | Reference |
+| profvis | Official documentation, <https://rstudio.github.io/profvis/> | Reference |
+| data.table / dplyr comparison | Official Getting started documentation and vignettes | Reference |
+
+This chapter is published under CC-BY-SA 4.0.

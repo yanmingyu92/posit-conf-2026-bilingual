@@ -1,0 +1,62 @@
+# Companion training and practice {.unnumbered}
+
+Author: **Jaime Yan**.
+
+Reading develops understanding; training asks you to deliver independently. The materials are organized around tasks, with data, starter scripts, acceptance checks, and a reference implementation. You do not need to download a conference workshop first.
+
+There is currently **one complete integrated lab**. Every chapter already has progressive exercises and a capstone, but separate data packages and reference solutions are not yet available for all of them.
+
+## Multi-site data quality and analysis handoff {#handoff-lab .unnumbered}
+
+Three sites have submitted simulated quality-score observations. Your task is to deliver a summary table, a chart, and a record of how each input row was handled, so that a recipient can reproduce the outputs in a fresh R session.
+
+The task covers exact duplicates, conflicting duplicates, missing scores, out-of-range values, and empty sites. Specify the rule for each case and explain the denominator used for each mean. A site can represent a business location; research analysts can also use the exercise to practice multi-site data intake and quality checks.
+
+The records are artificially constructed business-quality observations. They contain no patient records and represent neither clinical endpoints nor treatment effects.
+
+[Download the complete English lab](downloads/analysis-handoff.zip){.btn .btn-primary}
+[Read the task and rubric online](https://github.com/yanmingyu92/posit-conf-2026-bilingual/blob/main/training/en/analysis-handoff/README.md){.btn .btn-outline-primary}
+
+| Item | Details |
+|---|---|
+| Prerequisites | CSV files, data frames, functions, and basic plotting; R ≥ 4.1; no additional packages |
+| Suggested time | 90–120 minutes, optionally split into two sessions |
+| Included files | Simulated CSV, starter.R, solution.R, check.R, and the full task guide |
+| Sequence | Predict and inspect the data, implement functions, then generate the deliverables |
+| Acceptance | Input contract, duplicate and missing-value handling, boundaries, summary denominators, and export read-back |
+| Deliverables | Source code, summary CSV, audit CSV, PNG chart, and a one-page handoff note |
+
+## Getting started {.unnumbered}
+
+Extract the download and open a terminal in `training/analysis-handoff/`. Read the README first. For the first 60 minutes, work without AI and keep the reference solution closed.
+
+```bash
+Rscript starter.R
+```
+
+Save your implementations of the four functions as `learner.R`, then run the acceptance checks:
+
+```bash
+Rscript check.R output-check learner.R
+```
+
+After an independent attempt, run the reference implementation and compare the designs:
+
+```bash
+Rscript solution.R output-reference
+Rscript check.R output-reference-check
+```
+
+When a check fails, identify the violated data contract, write a minimal example, and then correct the function. After the checks pass, review the chart labels and handoff note to ensure the recipient can understand the data's limitations.
+
+## Connecting practice to the chapters {.unnumbered}
+
+| Question from the lab | Return to |
+|---|---|
+| Which arguments does a function need, and how do you reduce hidden dependencies? | [1.1 Writing functions](chapters/01-functions.qmd) |
+| How can the same process handle a second batch? | [1.2 Iteration](chapters/12-iteration.qmd) |
+| How should observed counts and missingness be displayed? | [1.6 Tables](chapters/16-great-tables.qmd), [1.8 Plots](chapters/18-styled-plots.qmd) |
+| How should boundary inputs be checked? | [3.2 Unit testing](chapters/32-unit-testing.qmd) |
+| How will the recipient know the data source and execution conditions? | [2.8 Reports](chapters/28-pub-ready-reports.qmd), [4.8 Environments and reproducibility](chapters/48-regulated-gxp.qmd) |
+
+For teaching, use the AI-off period for independent work, then arrange a peer handoff. The recipient should use only the README and outputs, attempt a rerun, and identify one remaining uncertainty. Use the reference solution to compare approaches; identical code is not the grading criterion.
