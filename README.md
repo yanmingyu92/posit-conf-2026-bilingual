@@ -1,109 +1,141 @@
-# 现代 R 进阶 · 书籍、训练与参考资料库
+# Modern R in Practice · 现代 R 进阶
 
-**《现代 R 进阶》作者：Jaime Yan。** 面向已有 R 基础、需要提升分析与交付能力的读者，并提供临床研究与制药领域的阅读路径。
+<img src="book-en/assets/cover.svg" align="right" width="200" alt="Modern R in Practice · 现代 R 进阶 — book cover">
 
-本仓库维护三个独立入口：[书籍](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/)、[配套训练](https://yanmingyu92.github.io/posit-conf-2026-bilingual/training.html)与[会议资料库](https://yanmingyu92.github.io/posit-conf-2026-bilingual/catalog.html)。书籍按学习成果组织，训练按交付任务组织，资料库按原始来源检索。
+A bilingual (English / 中文) book for R users moving from analysis to delivery —
+plus companion practice labs and a curated posit::conf (2024–2026) materials archive.
 
-*Modern R in Practice*, by Jaime Yan, combines an authored learning narrative with practice labs. The posit::conf archive remains a separate source catalog; further reading also draws on established R books and official documentation.
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/) [![Render and deploy](https://github.com/yanmingyu92/posit-conf-2026-bilingual/actions/workflows/quarto-gh-pages.yml/badge.svg)](https://github.com/yanmingyu92/posit-conf-2026-bilingual/actions/workflows/quarto-gh-pages.yml) [![Made with Quarto](https://img.shields.io/badge/Made%20with-Quarto-blue.svg)](https://quarto.org/)
 
-Read the [English edition](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/) or [中文版](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/). Both contain the same 28 chapters, with a language switch on each page.
+## Read the book
 
-> 📚 中文版说明见下方 [中文简介](#中文简介)。
+| Edition | Link |
+|---|---|
+| English edition | <https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/> |
+| 中文版 | <https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/> |
+| Author's site mirror | <https://jaimeyan.com/books/modern-r-in-practice/en/index.html> |
+
+## About the book
+
+*Modern R in Practice* / 《现代 R 进阶》 is an authored learning narrative, not a
+materials archive: 28 chapters in 4 units, written as a single progressive path with
+exercises, capstones, and source attribution in every chapter. It is for R users who
+already work with data and want to level up from analysis to professional delivery —
+including readers in clinical research and pharma, who get a dedicated unit and
+reading paths.
+
+- **Unit 1 · Complex Analyses (8 ch)** — functions, iteration, efficient code, JSON/APIs, web scraping, and modern table/plot tooling.
+- **Unit 2 · Professional Deliverables (8 ch)** — interactive graphics, animation, static and dynamic dashboards, maps, ggplot extensions, Shiny reactivity, publication-ready reports.
+- **Unit 3 · Package Development (4 ch)** — package structure, unit testing, debugging, and code performance.
+- **Unit 4 · AI & Domain Applications (8 ch)** — LLM programming in R, structured output, agents, skills, RAG/MCP, LLM-powered Shiny, clinical reporting with pharmaverse, and regulated GxP environments.
+
+Quality evidence: both editions contain the same 28 chapters; all 134 static R code
+blocks were extracted and executed with **0 unexpected failures** (2 intentional
+errors verified, API/IDE-dependent examples explicitly bounded). See
+[book-en/QA-REPORT.md](book-en/QA-REPORT.md).
+
+## Screenshots
+
+| 中文版首页 | English chapter |
+|---|---|
+| <img src=".github/images/book-zh-home.png" width="420" alt="Chinese edition home page"> | <img src=".github/images/book-en-chapter.png" width="420" alt="English edition chapter page"> |
+| Chinese edition home, with unit navigation. | An English edition chapter with exercises and callouts. |
+
+## Also in this repo
+
+- **`training/`** — companion practice labs: standalone tasks, simulated data, starter scripts, reference implementations, and automated acceptance checks.
+- **`curriculum/`** — the underlying course matrix: 5-domain × 3-level competency map, learner personas, module blueprints (start with `curriculum/MATRIX.md`).
+- **`content/en/` + [ARCHIVE-CATALOG.md](ARCHIVE-CATALOG.md)** — the posit::conf (2024–2026) workshop archive the book draws on: 2026 materials mirrored, prior years cataloged.
+- **`translations/zh/`** — Chinese translation layer for the archive (learning plan, glossary, per-module translations; in progress).
+- **`website/`** — the Quarto hub site tying these together, auto-deployed to GitHub Pages.
+
+## Cite this book
+
+> Yan, J. (2026). *Modern R in Practice / 现代 R 进阶*.
+> <https://jaimeyan.com/books/modern-r-in-practice/en/index.html>
+
+```bibtex
+@book{yan2026modernr,
+  author    = {Yan, Jaime},
+  title     = {Modern R in Practice / 现代 R 进阶},
+  year      = {2026},
+  url       = {https://jaimeyan.com/books/modern-r-in-practice/en/index.html},
+  note      = {Bilingual English--Chinese edition}
+}
+```
+
+## Author
+
+**Jaime Yan** — personal site [jaimeyan.com](https://jaimeyan.com) — GitHub
+[@yanmingyu92](https://github.com/yanmingyu92).
+
+## Repository tour
+
+- `book/` — Chinese edition 《现代 R 进阶》 (Quarto book source)
+- `book-en/` — English edition *Modern R in Practice* (Quarto book source, QA report, cover assets)
+- `training/` — companion practice labs (`en/` for the English lab guides)
+- `curriculum/` — course design matrix and module blueprints
+- `content/en/` — mirrored posit::conf(2026) workshop materials with provenance manifest
+- `translations/zh/` — Chinese translation layer for the archive
+- `website/` — Quarto hub site
+- `scripts/` — build, sync, and book-QA tooling
+- Root docs — `ARCHIVE-CATALOG.md` (archive topic map), `ATTRIBUTION.md` (credits & licenses), `CONTRIBUTING.md` (translation workflow), `PROMOTION.md` (launch playbook)
+
+### Build locally
+
+```bash
+python scripts/build_training_download.py   # companion-lab download ZIP
+quarto render book                          # Chinese edition
+quarto render book-en                       # English edition
+quarto render website                       # hub site
+```
+
+Generated HTML stays outside version control; pushing to `main` triggers the GitHub
+Actions rebuild and deploy. For code QA, `QA_BOOK_DIR` / `QA_EVIDENCE_DIR` select the
+edition and evidence directory (defaults: Chinese edition; use `QA_BOOK_DIR=book-en`
+for English). See [CONTRIBUTING.md](CONTRIBUTING.md) for the full QA pipeline.
+
+## License & attribution
+
+Adapted workshop materials are [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/),
+© their original instructors (Hadley Wickham, Jenny Bryan, Mine Çetinkaya-Rundel,
+Garrick Aden-Buie, Daniel D. Sjoberg, and others). The book text is original work by
+Jaime Yan. Full credits, licenses, and snapshot SHAs: [ATTRIBUTION.md](ATTRIBUTION.md).
+This repository is not affiliated with Posit, PBC.
 
 ---
 
-## English
+## 中文读者指引
 
-### What's inside
+### 这是一本什么书？
 
-| Layer | Location | Description |
-|---|---|---|
-| **The Book** 📖 | `book/` | **《现代 R 进阶》**：Jaime Yan，四单元 28 章，含封面、前言、阅读指南和多来源阅读地图 |
-| **English book** | `book-en/` | *Modern R in Practice*, by Jaime Yan: all 28 chapters, cover, preface, reading paths, sources, and companion practice |
-| **Practice labs** | `training/` | 独立任务、模拟数据、起始脚本、参考实现与自动验收；当前 1 套完整综合实验 |
-| **Original curriculum** | `curriculum/` | **Our own course system** built on the corpus: 5-domain × 3-level competency matrix, learner personas, module blueprints (start with `curriculum/MATRIX.md`) |
-| Mirrored 2026 materials | `content/en/` | Verbatim copies of all 8 official 2026 workshop repos, organized by track, with provenance manifest |
-| Prior-year catalog | `ARCHIVE-CATALOG.md` | Topic map of 19 curated 2024/2025 workshops that fill gaps 2026 didn't cover (Shiny, pkg-dev, ggplot2, tidymodels, causal, databases, …) |
-| Chinese translations | `translations/zh/` | Bilingual learning plan + per-module Chinese translations (in progress, contributions welcome) |
-| Website | `website/` | Quarto site rendering the hub, auto-deployed to GitHub Pages |
-
-### Source library: the 9 tracks
-
-1. R Language Foundations · R 语言基础
-2. IDE & Tooling (Positron, production) · 开发环境
-3. Quarto & Publishing · 文档出版
-4. Data Engineering (DuckDB, Arrow, Polars) · 数据工程
-5. Visualization & Tables (ggplot2, plotnine, Great Tables) · 可视化与表格
-6. Shiny & Interactive Apps · 交互应用
-7. Statistics & Machine Learning (tidymodels, scikit-learn, causal, vetiver) · 统计与机器学习
-8. LLM & AI Programming (ellmer, agents, skills, MCP) · 大模型编程
-9. Pharma & Regulated (pharmaverse, GxP) · 制药与合规
-
-### Quick start
-
-Read the [English book](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/) or start the [English practice lab](training/en/analysis-handoff/README.md). To build locally:
-
-```bash
-python scripts/build_training_download.py
-quarto render book
-quarto render book-en
-quarto render website
-```
-
-Generated HTML stays outside version control; GitHub Actions rebuilds the book, training download and website from source.
-
-For code QA, `QA_BOOK_DIR=book-en` and `QA_EVIDENCE_DIR=.qa/en` select English sources and separate evidence in the `qa_book` scripts; defaults retain the Chinese edition. Run `python scripts/qa_book_english.py` for edition completeness and structural parity. Model-service examples retain their credential and execution limitations.
-
-```bash
-git clone https://github.com/yanmingyu92/posit-conf-2026-bilingual.git
-# Read the plan: translations/zh/LEARNING-PLAN.zh.md (中文) — or start from ARCHIVE-CATALOG.md (EN)
-```
-
-### Update from upstream
-
-```powershell
-powershell -File scripts/sync-from-upstream.ps1   # re-mirrors 2026 repos + refreshes manifests
-```
-
-### License & attribution
-
-All adapted workshop materials are [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/),
-© their original instructors (Hadley Wickham, Jenny Bryan, Mine Çetinkaya-Rundel, Garrick
-Aden-Buie, Daniel D. Sjoberg, and others — full list in [ATTRIBUTION.md](ATTRIBUTION.md)).
-This repository is not affiliated with Posit, PBC. See [ATTRIBUTION.md](ATTRIBUTION.md) for
-per-repository credits, licenses, and snapshot SHAs.
-
----
-
-## 中文简介
-
-### 这是什么？
-
-posit::conf 是 Posit 公司（RStudio、Shiny、Quarto、Positron 的缔造者）的年度数据科学大会，
-其工作坊材料全部开源开放。本仓库把这些散落在 3 届、30+ 个仓库的材料按主题重组为 9 条学习
-轨道，并提供中文学习计划与逐模块中文翻译（翻译进行中，欢迎参与）。
+《现代 R 进阶》(*Modern R in Practice*) 是一本原创编写的双语 R 进阶图书，
+不是资料汇编：4 个单元、28 章，按一条循序渐进的学习路径组织，每章配有练习、
+综合项目与来源署名。中文版与英文版章节完全对应，每页可切换语言。
 
 ### 适合谁？
 
-- 想系统学习现代 R / Python 数据科学栈的医学生物统计、临床研究从业者
-- 想跟进 2026 最新主题（Positron、AI 辅助工作流、LLM 编程、pharmaverse）的 R 用户
-- 需要英文原文 + 中文讲解双语对照的学习者
+已有 R 基础、希望从「会做分析」提升到「能专业交付」的读者；临床研究与制药
+领域的读者有专门单元与阅读路径。四个单元：复杂分析（8 章）→ 专业交付
+（8 章）→ R 包开发（4 章）→ AI 与领域应用（8 章）。
 
 ### 怎么开始？
 
-1. 想系统学：读 [原创课程体系](curriculum/CURRICULUM-DESIGN.md)——基于全部材料设计的
-   「5 能力域 × 3 水平」课程矩阵 + 4 类学员画像 + 逐模块教学设计
-2. 想自己找材料：[ARCHIVE-CATALOG.md](ARCHIVE-CATALOG.md) 轨道总目录
-3. 想按周打卡：[中文学习计划](translations/zh/LEARNING-PLAN.zh.md)
-4. 想参与翻译：规范见 [CONTRIBUTING.md](CONTRIBUTING.md)；想写课：见
-   [curriculum/modules/TEMPLATE.md](curriculum/modules/TEMPLATE.md)
+从 [中文版入口](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/) 开始阅读；
+配套动手实验见 `training/`，底层课程矩阵见 `curriculum/`。
+
+### 质量说明
+
+中英双版共 28 章，全部 134 个静态 R 代码块经实际执行验证，无意外失败
+（2 处故意报错已确认，依赖 API/IDE 的示例有明确边界）。详见
+[book-en/QA-REPORT.md](book-en/QA-REPORT.md)。
 
 ### 许可与署名
 
-所有改编的工作坊材料均为 [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
-协议，© 原讲师所有；本仓库与 Posit, PBC 无官方关联。完整署名清单、各仓库协议与快照 SHA
-见 [ATTRIBUTION.md](ATTRIBUTION.md)。
+改编的工作坊材料采用 [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+协议，© 原讲师所有；书籍正文为 Jaime Yan 原创。完整署名见
+[ATTRIBUTION.md](ATTRIBUTION.md)。本仓库与 Posit, PBC 无官方关联。
 
-### Star History / 走势
+---
 
-如果这个仓库对你有帮助，欢迎 Star ⭐ / 推荐 / 参与翻译，让更多中文用户受益。
+如果这个项目对你有帮助，欢迎 Star ⭐ / Watch 关注更新。 · If this project helps you, a star is appreciated.

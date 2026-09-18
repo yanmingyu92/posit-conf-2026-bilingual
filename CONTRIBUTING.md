@@ -46,7 +46,7 @@ status: draft | review | final
 
 ## Workflow / 流程
 
-1. 在 [issues](../../issues) 的翻译看板认领一个模块（`translation: <repo>/<file>`）。
+1. 在 [issues](https://github.com/yanmingyu92/posit-conf-2026-bilingual/issues) 的翻译看板认领一个模块（`translation: <repo>/<file>`）。
 2. 复制 `TEMPLATE.module.zh.md`，按对应规则建文件并翻译。
 3. 提 PR，标题 `zh: translate <repo>/<file>`。
 4. 审查要点：术语一致、代码块未译、frontmatter 的 source/sha 正确、状态标 `review`。
@@ -57,3 +57,29 @@ status: draft | review | final
 - 修复目录、链接、清单错误：直接提 PR。
 - 新增往届仓库编目：先读 `ARCHIVE-CATALOG.md` 的 backlog 节，开 issue 讨论。
 - 学习心得/本地化案例：放 `translations/zh/notes/`，不与译文混放。
+
+## Book QA & rendering / 书籍 QA 与渲染
+
+书籍（`book/` 中文版、`book-en/` 英文版）有独立的检查与渲染流程：
+
+```bash
+python scripts/qa_book_structure.py    # 书籍结构检查
+python scripts/qa_book_english.py      # 英文版完整性与中英结构一致性
+python scripts/qa_book.py              # 执行全部静态 R 代码块并生成 QA 报告
+```
+
+`qa_book.py` 默认检查中文版；用环境变量选择版本与证据目录，如
+`QA_BOOK_DIR=book-en QA_EVIDENCE_DIR=.qa/en python scripts/qa_book.py`。
+依赖模型服务的示例在没有凭据时会跳过，属预期行为。
+
+本地渲染与构建：
+
+```bash
+quarto render book                      # 中文版
+quarto render book-en                   # 英文版
+quarto render website                   # 中心站点
+python scripts/build_training_download.py  # 配套实验下载包
+```
+
+推送到 `main` 分支会触发 GitHub Actions 自动重新渲染并部署到 GitHub Pages，
+无需提交生成的 HTML。

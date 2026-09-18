@@ -1,11 +1,11 @@
-﻿# Promotion Playbook · 推广手册（双语）
+# Promotion Playbook · 推广手册（双语）
 
 > Launch plan for the bilingual hub. Execute in order; each channel has a ready-to-use
 > template. 双语中心发布方案：按顺序执行，每个渠道都有现成模板。
 
 ## 0. Launch checklist · 发布前检查
 
-- [ ] 替换 README/_quarto.yml 中的 `yanmingyu92` 为真实 GitHub 用户名
+- [x] ~~替换 README/_quarto.yml 中的 `yanmingyu92` 为真实 GitHub 用户名~~（已完成：仓库已以 `yanmingyu92` 上线）
 - [ ] `gh repo create <name> --public --source . --push` 推送
 - [ ] 仓库 Settings → Pages → Source: GitHub Actions
 - [ ] 本地 `quarto preview website` 确认站点正常，Actions 部署成功
