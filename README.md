@@ -5,6 +5,7 @@
 A bilingual (English / 中文) book for R users moving from analysis to delivery —
 plus companion practice labs and a curated posit::conf (2024–2026) materials archive.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22832959.svg)](https://doi.org/10.5281/zenodo.22832959)
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/) [![Render and deploy](https://github.com/yanmingyu92/posit-conf-2026-bilingual/actions/workflows/quarto-gh-pages.yml/badge.svg)](https://github.com/yanmingyu92/posit-conf-2026-bilingual/actions/workflows/quarto-gh-pages.yml) [![Made with Quarto](https://img.shields.io/badge/Made%20with-Quarto-blue.svg)](https://quarto.org/)
 
 ## Read the book
