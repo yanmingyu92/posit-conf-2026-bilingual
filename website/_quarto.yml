@@ -1,11 +1,16 @@
 project:
   type: website
   output-dir: _site
+  resources:
+    - google12fbe61c9152a163.html
 
 website:
   title: "现代 R · 学习与实践"
   site-url: "https://yanmingyu92.github.io/posit-conf-2026-bilingual/"
   description: "Jaime Yan 的《现代 R 进阶》与配套训练；面向分析交付、临床研究及制药领域。会议资料目录独立保留为参考资料库。"
+  image: "https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/assets/cover.png"
+  open-graph: true
+  twitter-card: true
   navbar:
     left:
       - text: "书籍"
@@ -29,7 +34,7 @@ website:
         href: "https://github.com/yanmingyu92/posit-conf-2026-bilingual"
   page-footer:
     center: |
-      《现代 R 进阶》作者 Jaime Yan · 第三方素材保留原作者署名 · 本站与 Posit, PBC 无官方关联
+      《现代 R 进阶》作者 [Jaime Yan](https://jaimeyan.com) · 第三方素材保留原作者署名 · 本站与 Posit, PBC 无官方关联
 
 format:
   html:
