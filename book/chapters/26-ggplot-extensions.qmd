@@ -108,7 +108,7 @@ p2 + scale_x_continuous(labels = scales::label_number(scale_cut = scales::cut_sh
 p1 + scales::label_percent()  # 故意错误：标签函数不能直接加到 ggplot 对象
 ```
 应将标签函数传给 `scale_*_continuous(labels = ...)`。此外，
-`scales::label_percent()` 只对**比例标度**有意义；柱数直方图的 x 轴是
+`scales::label_percent()` 只对**比例标度**有意义；箱线图的 y 轴是
 原始毫米数，强行贴百分比标签会得到荒谬结果（或直接报错）。
 **排查口诀：先问轴上是什么数，再选 label 函数。**
 :::

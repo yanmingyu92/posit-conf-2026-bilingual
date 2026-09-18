@@ -44,7 +44,7 @@ The smallest data unit on a web map is a **point**: a coordinate pair consisting
 ::: {.callout-example}
 ```r
 head(quakes)
-# long ≈ 165–190 (east), lat ≈ -38 to -10 (south): 1000 earthquakes near Fiji
+# long ≈ 166–188, crossing the antimeridian near Fiji; lat ≈ -38 to -10 (south): 1000 earthquakes
 ```
 :::
 

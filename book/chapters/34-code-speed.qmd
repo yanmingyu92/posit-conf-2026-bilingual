@@ -28,7 +28,7 @@ source-note: "本章为本项目原创（半原创章）· CC-BY-SA 4.0；bench 
 ::: {.callout-important}
 ## Check In：前置自测
 
-1. `tracemem(y)` 后执行 `y <- x`、再 `y[[1]] <- 9`：哪一步打印内存迁移？
+1. 先执行 `y <- x`，再 `tracemem(y)`，最后 `y[[1]] <- 9`：哪一步打印内存迁移？
 2. 直觉猜：`rowwise() |> mutate(z = max(a, b))` 与 `mutate(z = pmax(a, b))`
    差多少倍？写下数字，§2 对账。
 :::

@@ -1,15 +1,237 @@
-:root { --book-ink: #153c46; --book-accent: #ad682b; }
-body { line-height: 1.8; }
-h1, h2, h3 { color: var(--book-ink); }
-#title-block-header .title { letter-spacing: .02em; }
-.quarto-cover-image { max-width: 300px; border-radius: 2px; box-shadow: 0 12px 30px #153c4620; }
-.btn { margin: .35rem .5rem .35rem 0; }
-.btn-primary { background: var(--book-ink); border-color: var(--book-ink); }
-.btn-outline-primary { color: var(--book-ink); border-color: var(--book-ink); }
-.sidebar-title { font-weight: 650; }
-@media (max-width: 600px) {
-  .quarto-cover-image { float: none !important; display: block; width: 240px; max-width: 80%; margin: 0 auto 1.5rem; }
+/* Modern R in Practice — book theme
+   Palette: deep teal ink, warm amber accent, cream paper. */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --book-ink: #143c46;
+  --book-ink-deep: #0d2b33;
+  --book-ink-soft: #40616b;
+  --book-accent: #b06a26;
+  --book-accent-soft: #d99a52;
+  --book-paper: #faf8f2;
+  --book-cream: #f4f0e6;
+  --book-line: #e3ddd0;
+  --book-serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --book-sans: "Inter", -apple-system, "Segoe UI", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --book-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --book-radius: 10px;
+  --book-shadow: 0 10px 30px rgba(20, 60, 70, .10);
 }
 
+::selection { background: #b06a2633; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--book-sans);
+  line-height: 1.8;
+  background: var(--book-paper);
+}
+
+/* ---------- Title banner (book + chapter headers) ---------- */
+
+#title-block-header {
+  position: relative;
+  margin: 0 0 2.2rem;
+  padding: 2.4rem 2.6rem 2rem;
+  border-radius: var(--book-radius);
+  background:
+    radial-gradient(1200px 300px at 85% -40%, #b06a2640, transparent 60%),
+    linear-gradient(135deg, var(--book-ink-deep) 0%, var(--book-ink) 55%, #1d525f 100%);
+  box-shadow: var(--book-shadow);
+  overflow: hidden;
+}
+#title-block-header::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--book-accent), var(--book-accent-soft), transparent);
+}
+#title-block-header .title {
+  font-family: var(--book-serif);
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: #f7f3e9;
+  margin-bottom: .35rem;
+}
+#title-block-header .subtitle {
+  font-family: var(--book-serif);
+  font-size: 1.15em;
+  font-weight: 500;
+  color: #d8c9ae;
+  opacity: 1;
+}
+#title-block-header .quarto-title-meta-heading,
+#title-block-header .quarto-title-meta { color: #b9cdd2; }
+#title-block-header .quarto-title-meta-author a,
+#title-block-header a { color: #ecd9b8; }
+#title-block-header .description {
+  color: #c9dade;
+  font-size: 1.02em;
+  max-width: 46rem;
+}
+
+/* ---------- Headings ---------- */
+
+h1, h2, h3, h4 {
+  font-family: var(--book-serif);
+  color: var(--book-ink);
+  font-weight: 600;
+}
+h2 {
+  margin-top: 2.2rem;
+  padding-bottom: .35rem;
+  border-bottom: 2px solid var(--book-cream);
+  position: relative;
+}
+h2::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -2px;
+  width: 3.2rem; height: 2px;
+  background: var(--book-accent);
+}
+h2 .header-section-number, h3 .header-section-number { color: var(--book-accent); }
+
+/* ---------- Links ---------- */
+
+main a { color: #155e70; text-decoration-color: #155e7044; text-underline-offset: 2px; }
+main a:hover { color: var(--book-accent); text-decoration-color: var(--book-accent); }
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  margin: .35rem .5rem .35rem 0;
+  border-radius: 999px;
+  padding: .5rem 1.2rem;
+  font-weight: 600;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(20, 60, 70, .18); }
+.btn-primary { background: var(--book-ink); border-color: var(--book-ink); }
+.btn-primary:hover { background: var(--book-ink-deep); border-color: var(--book-ink-deep); }
+.btn-outline-primary { color: var(--book-ink); border-color: var(--book-ink); }
+.btn-outline-primary:hover { background: var(--book-ink); border-color: var(--book-ink); color: #f7f3e9; }
+
+/* ---------- Code ---------- */
+
+code:not(pre code) {
+  font-family: var(--book-mono);
+  font-size: .88em;
+  background: #efe9db;
+  color: #7a4413;
+  padding: .12em .38em;
+  border-radius: 5px;
+}
+pre, pre.sourceCode, div.sourceCode {
+  font-family: var(--book-mono);
+  background: #fbf9f4;
+  border: 1px solid var(--book-line);
+  border-left: 3px solid var(--book-accent-soft);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(20, 60, 70, .05);
+}
+div.sourceCode { overflow: hidden; }
+div.sourceCode pre.sourceCode { border: none; box-shadow: none; margin: 0; }
+
+/* ---------- Callouts ---------- */
+
+.callout {
+  border-radius: 8px;
+  border: 1px solid var(--book-line);
+  box-shadow: 0 2px 10px rgba(20, 60, 70, .05);
+}
+.callout .callout-header { font-family: var(--book-sans); font-weight: 600; }
+
+/* ---------- Tables ---------- */
+
+main table { border-radius: 8px; overflow: hidden; }
+main thead th {
+  background: var(--book-ink);
+  color: #f4f0e6;
+  font-family: var(--book-sans);
+  font-weight: 600;
+  border: none;
+}
+main tbody tr:nth-child(even) { background: #f4f1e9; }
+main tbody tr:hover { background: #eee7d6; }
+main th, main td { border-color: var(--book-line); }
+
+/* ---------- Blockquotes ---------- */
+
+blockquote {
+  border-left: 3px solid var(--book-accent-soft);
+  background: #f7f3e8;
+  padding: .8rem 1.2rem;
+  border-radius: 0 8px 8px 0;
+  color: var(--book-ink-soft);
+  font-style: italic;
+}
+
+/* ---------- Cover image ---------- */
+
+.quarto-cover-image {
+  max-width: 300px;
+  border-radius: 6px;
+  box-shadow: 0 18px 44px rgba(13, 43, 51, .28);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.quarto-cover-image:hover { transform: translateY(-4px); box-shadow: 0 26px 56px rgba(13, 43, 51, .34); }
+
+/* ---------- Sidebar ---------- */
+
+.sidebar-title { font-weight: 700; font-family: var(--book-serif); font-size: 1.15rem; }
+.sidebar nav[role=navigation] .sidebar-item .sidebar-item-text { border-radius: 6px; }
+.sidebar nav[role=navigation] .sidebar-item .sidebar-item-container > .sidebar-item-text {
+  padding: .2rem .5rem;
+  transition: background .12s ease;
+}
+.sidebar nav[role=navigation] .sidebar-item .sidebar-item-text:hover { background: #143c460f; }
+.sidebar nav[role=navigation] .sidebar-item .sidebar-item-text.active {
+  background: #143c4614;
+  color: var(--book-ink);
+  font-weight: 600;
+  border-left: 3px solid var(--book-accent);
+  padding-left: calc(.5rem - 3px);
+}
+.sidebar nav[role=navigation] .chapter-number { color: var(--book-accent); font-weight: 600; }
+.sidebar-section .sidebar-item-text { font-family: var(--book-serif); font-weight: 600; color: var(--book-ink); }
+
+/* ---------- Right-hand TOC ---------- */
+
+#quarto-margin-sidebar nav[role=doc-toc] > ul a.nav-link.active {
+  border-left-color: var(--book-accent);
+  color: var(--book-ink);
+  font-weight: 600;
+}
+
+/* ---------- Language switch ---------- */
+
 .book-language { padding: .6rem 1rem; text-align: right; font-size: .95rem; }
-.book-language a { color: var(--book-ink); font-weight: 600; }
+.book-language a {
+  display: inline-block;
+  color: var(--book-ink);
+  font-weight: 600;
+  border: 1px solid var(--book-line);
+  border-radius: 999px;
+  padding: .18rem .9rem;
+  background: #fff;
+  text-decoration: none;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.book-language a:hover { background: var(--book-ink); border-color: var(--book-ink); color: #f4f0e6; }
+
+/* ---------- Figures ---------- */
+
+.figure-caption, .figcaption { color: var(--book-ink-soft); font-size: .92em; }
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 600px) {
+  #title-block-header { padding: 1.6rem 1.3rem 1.3rem; }
+  .quarto-cover-image { float: none !important; display: block; width: 240px; max-width: 80%; margin: 0 auto 1.5rem; }
+  main table { display: block; max-width: 100%; overflow-x: auto; }
+  main th, main td { min-width: 9rem; }
+}

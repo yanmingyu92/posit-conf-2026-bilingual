@@ -171,7 +171,7 @@ Many APIs return only a few dozen records per page. Pagination uses `page`/`tota
 
 ::: {.callout-example}
 ```r
-# ReqRes now requires a key:https://reqres.in/docs
+# ReqRes now requires a key: https://reqres.in/docs
 library(purrr)
 reqres_key <- Sys.getenv("REQRES_API_KEY")
 if (!nzchar(reqres_key)) stop("Set REQRES_API_KEY in .Renviron first")
@@ -181,7 +181,7 @@ fetch_users <- function(page) {
     req_headers("x-api-key" = reqres_key) |>
     req_url_path("api", "users") |>
     req_url_query(page = page) |>
-    req_throttle(rate = 1) |>              # At most one request per second
+    req_throttle(capacity = 1, fill_time_s = 1) |>  # Token bucket: capacity 1, refills one token per second
     req_retry(max_seconds = 30) |>         # Retry transient failures
     req_perform() |>
     resp_body_json(simplifyVector = TRUE)
@@ -237,8 +237,8 @@ Wrap the request in `current_temp(lat, lon)`. Use `purrr::map2_dbl()` to retriev
 
 | Section | Material | Use |
 |---|---|---|
-| §1–§2: JSON structure and `fromJSON()` behavior | [Official jsonlite documentation](https://jeroen.r-lib.org/jsonlite/) | Referenced |
-| §3–§6: requests, errors, credentials, pagination | [Official httr2 documentation](https://httr2.tidyverse.org) | Referenced |
+| §1–§2: JSON structure and `fromJSON()` behavior | [Official jsonlite documentation](https://jeroen.r-universe.dev/jsonlite) | Referenced |
+| §3–§6: requests, errors, credentials, pagination | [Official httr2 documentation](https://httr2.r-lib.org) | Referenced |
 | Example choices (Open-Meteo and reqres.in), exercises, capstone, and rubric | This project | Original |
 
 This chapter is published under CC-BY-SA 4.0.

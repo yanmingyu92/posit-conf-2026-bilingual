@@ -75,7 +75,7 @@ This is **progressive disclosure**: a short, always-visible directory with full 
 
 ## 3. Turn a repeated prompt into a skill
 
-Suppose you have pasted the same letter-writing instructions five times. Applying the rule of three referenced in 4.1, it is time to extract them. ① Move the text into `skills/<job>/SKILL.md`. ② Summarize when to use and avoid it in description. ③ Give the agent a tool to read it. The wiring below is adapted from `21_skills-1`.
+Suppose you have pasted the same letter-writing instructions five times. Applying the rule of three from chapter 1.1, it is time to extract them. ① Move the text into `skills/<job>/SKILL.md`. ② Summarize when to use and avoid it in description. ③ Give the agent a tool to read it. The wiring below is adapted from `21_skills-1`.
 
 First place `skills/` and `blockbuster/` in your exercise project and run chapter 4.3's four file-tool definitions. Both directories can be copied from upstream `_solutions/21_skills-1/`.
 
@@ -144,7 +144,7 @@ The store needs more than letters. `22_skills-2/skills/` contains four jobs:
 | `tape-tracking` | Track unreturned tapes and write reminders |
 | `social-media-voice` | Write social posts in the store's voice |
 
-Use two levels. **Project `skills/`** travels with the repository and suits business-specific jobs; each workshop exercise keeps its own copy. **Repository/user `.agents/skills/`** is discovered by Positron Assistant and suits cross-project habits, such as `unslop` for removing generic AI prose or reviewing work.
+Use two levels. **Project `skills/`** travels with the repository and suits business-specific jobs; each workshop exercise keeps its own copy. **Repository/user `.agents/skills/`** is discovered by Posit Assistant and suits cross-project habits, such as `unslop` for removing generic AI prose or reviewing work.
 
 ::: {.callout-important}
 ## Check In: predict routing from descriptions

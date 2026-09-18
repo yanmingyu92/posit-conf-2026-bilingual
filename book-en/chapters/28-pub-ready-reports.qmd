@@ -86,8 +86,7 @@ The file must be named `_brand.yml`, with the leading underscore, and placed in 
 
 ```yaml
 # Project YAML can explicitly reference an external brand file
-brand:
-  brand: ../shared-brand/_brand.yml
+brand: ../shared-brand/_brand.yml
 ```
 
 Should the brand file be committed to every project repository? **Yes by default, for reproducibility**, but synchronize it from one upstream source with a script instead of manually editing copies.
@@ -143,7 +142,7 @@ format:
 ```yaml
 format:
   typst:
-    margin: [2cm, 2.5cm]   # x, y
+    margin: {x: 2cm, y: 2.5cm}
 ```
 
 For debugging, inspect the intermediate `.typ` file Quarto generates before compilation, or preserve it with `keep-typ: true`. It makes the source of an error easier to locate. More advanced customization uses Typst `set` / `show` rules in raw Typst blocks.

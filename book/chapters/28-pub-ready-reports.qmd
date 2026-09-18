@@ -91,8 +91,7 @@ format:
 
 ```yaml
 # 项目 YAML 也可显式指向外部品牌文件
-brand:
-  brand: ../shared-brand/_brand.yml
+brand: ../shared-brand/_brand.yml
 ```
 
 判断题：品牌文件该不该提交进每个项目仓库？——**默认要**（可复现优先），
@@ -152,7 +151,7 @@ format:
 ```yaml
 format:
   typst:
-    margin: [2cm, 2.5cm]   # x, y
+    margin: {x: 2cm, y: 2.5cm}
 ```
 
 排错技巧：Quarto 先生成中间 `.typ` 再编译，报错时打开中间 `.typ` 文件

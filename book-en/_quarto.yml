@@ -9,6 +9,7 @@ book:
   subtitle: "From Analysis Scripts to Reliable Deliverables"
   author: "Jaime Yan"
   cover-image: assets/cover.svg
+  favicon: assets/favicon.svg
   description: "A practical book for R users with foundational skills, connecting analysis, visualization, applications, and software engineering, with a clinical and pharmaceutical reading path."
   site-url: "https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/"
   repo-url: "https://github.com/yanmingyu92/posit-conf-2026-bilingual"

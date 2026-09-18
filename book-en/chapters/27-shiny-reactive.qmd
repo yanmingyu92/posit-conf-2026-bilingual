@@ -179,7 +179,7 @@ Aim to keep `app.R` under 100 lines. A practical rule: **split files when the ap
 ```r
 reactlog::reactlog_enable()   # ① Enable recording before starting the app
 shiny::runApp("myapp/")       # ② Use the app and change several inputs
-shiny::reactlogShow()         # ③ Replay the dependency graph after stopping the app
+reactlog::reactlog_show()       # ③ Replay the dependency graph after stopping the app
 ```
 Remember: **enable before starting; show after stopping**. Faded nodes indicate invalidation; illuminated nodes indicate recomputation.
 :::

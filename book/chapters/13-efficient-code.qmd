@@ -154,7 +154,7 @@ mark(grow(1e4), prealloc(1e4), iterations = 10)
 
 ## 5. 用 profvis 定位热点：别猜，量
 
-脚本慢，通常只有一个函数在吃掉 90% 时间。profvis（https://rstudio.github.io/profvis/）边跑边采样，把时间花在哪里画成火焰图：
+脚本慢，通常只有一个函数在吃掉 90% 时间。profvis（https://profvis.r-lib.org）边跑边采样，把时间花在哪里画成火焰图：
 
 ::: {.callout-example}
 ```r
@@ -257,7 +257,7 @@ slow_z <- function(df, group, value) {
 |---|---|---|
 | 全章结构、示例、练习、capstone、rubric | 本项目 | 原创 |
 | `bench::mark()` 用法与输出解读 | bench 官方文档 https://bench.r-lib.org | 引用 |
-| profvis 用法 | profvis 官方文档 https://rstudio.github.io/profvis/ | 引用 |
+| profvis 用法 | profvis 官方文档 https://profvis.r-lib.org | 引用 |
 | §6「查询先过滤」的大数据工程语境 | posit::conf(2024) databases 与 r-in-production 工作坊 README（Kirill Müller 等 · CC-BY 4.0） | 引用（旁证） |
 
 本章以 CC-BY-SA 4.0 发布。

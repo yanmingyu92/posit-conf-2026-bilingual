@@ -189,7 +189,7 @@ fetch_users <- function(page) {
     req_headers("x-api-key" = reqres_key) |>
     req_url_path("api", "users") |>
     req_url_query(page = page) |>
-    req_throttle(rate = 1) |>              # 每秒至多 1 次
+    req_throttle(capacity = 1, fill_time_s = 1) |>  # 令牌桶：容量 1，每秒补充 1 枚令牌
     req_retry(max_seconds = 30) |>         # 瞬时故障自动重试
     req_perform() |>
     resp_body_json(simplifyVector = TRUE)
@@ -258,8 +258,8 @@ reqres.in 不可用时，任何页码式 API 均可套用。
 
 | 讲义节 | 素材 | 性质 |
 |---|---|---|
-| §1–§2 JSON 结构与 `fromJSON()` 行为 | [jsonlite 官方文档](https://jeroen.r-lib.org/jsonlite/) | 引用 |
-| §3–§6 请求管道 / 错误 / 密钥 / 翻页 | [httr2 官方文档](https://httr2.tidyverse.org) | 引用 |
+| §1–§2 JSON 结构与 `fromJSON()` 行为 | [jsonlite 官方文档](https://jeroen.r-universe.dev/jsonlite) | 引用 |
+| §3–§6 请求管道 / 错误 / 密钥 / 翻页 | [httr2 官方文档](https://httr2.r-lib.org) | 引用 |
 | 示例选取（Open-Meteo、reqres.in）、练习、capstone、rubric | 本项目 | 原创 |
 
 本章以 CC-BY-SA 4.0 发布。

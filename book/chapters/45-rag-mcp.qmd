@@ -161,7 +161,7 @@ live_console(chat)
 ## 6. MCP：一个协议，很多服务器
 
 RAG 解决「模型读你的资料」；MCP（Model Context Protocol）解决「模型用你的
-工具」的接线标准化。心智模型：**USB 接口**——客户端（Positron Assistant、
+工具」的接线标准化。心智模型：**USB 接口**——客户端（Posit Assistant、
 Claude Desktop 等）是插座，任何实现了 MCP 的服务器插上来，它暴露的工具、
 资源就被客户端统一发现和调用。
 
@@ -176,7 +176,7 @@ Claude Desktop 等）是插座，任何实现了 MCP 的服务器插上来，它
 1. 命令面板运行 **MCP: Add Server...**，选 **HTTP**
 2. URL 填 `https://mcp.context7.com/mcp`，Server ID 填 `context7`
 3. 作用域选 Workspace（仅本项目）或 Global
-4. 打开 Positron Assistant，选中一段 polars 代码，提示词末尾加 `#context7`：
+4. 打开 Posit Assistant，选中一段 polars 代码，提示词末尾加 `#context7`：
    「把这段 polars 代码改写成 dplyr」——观察它调用 context7 的文档工具
    核对最新 API，而不是凭训练记忆写
 :::

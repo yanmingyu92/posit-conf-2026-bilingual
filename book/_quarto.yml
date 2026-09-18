@@ -9,6 +9,7 @@ book:
   subtitle: "Modern R in Practice · 从分析脚本到可信赖的交付物"
   author: "Jaime Yan"
   cover-image: assets/cover.svg
+  favicon: assets/favicon.svg
   description: "面向已有 R 基础的分析人员，以交付任务串联分析、可视化、应用与软件工程，并提供临床研究和制药领域的阅读路径。"
   site-url: "https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/"
   repo-url: "https://github.com/yanmingyu92/posit-conf-2026-bilingual"

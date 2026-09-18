@@ -144,7 +144,7 @@ The system prompt sets the discipline: retrieve first, distinguish sources, and 
 
 ## 6. MCP: one protocol, many servers
 
-RAG helps a model read your material. MCP, the Model Context Protocol, standardizes how it connects to **tools**. Think of a USB interface: clients such as Positron Assistant or Claude Desktop discover and invoke tools and resources exposed by compatible servers.
+RAG helps a model read your material. MCP, the Model Context Protocol, standardizes how it connects to **tools**. Think of a USB interface: clients such as Posit Assistant or Claude Desktop discover and invoke tools and resources exposed by compatible servers.
 
 - **HTTP server:** a remote process connected through a URL.
 - **stdio server:** a local child process communicates through standard input/output. To expose R functions, a server translates their signatures into MCP tools. This resembles chapter 4.3's `register_tool()`, but the tools can be **reused across clients**.
@@ -155,7 +155,7 @@ Connect the context7 documentation server in Positron, adapted from llms `52_mcp
 1. Run **MCP: Add Server...** in the Command Palette and select **HTTP**.
 2. Enter `https://mcp.context7.com/mcp` and the Server ID `context7`.
 3. Choose Workspace, for this project only, or Global.
-4. Open Positron Assistant, select polars code, and ask “Rewrite this polars code in dplyr”, adding `#context7`. Observe the documentation-tool calls checking current APIs rather than relying solely on training memory.
+4. Open Posit Assistant, select polars code, and ask “Rewrite this polars code in dplyr”, adding `#context7`. Observe the documentation-tool calls checking current APIs rather than relying solely on training memory.
 :::
 
 ::: {.callout-note}

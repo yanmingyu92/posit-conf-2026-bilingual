@@ -23,7 +23,7 @@ By the end of this chapter, you can:
 
 ## Prerequisite check (≤5 minutes)
 
-- Have used `git commit`; otherwise revisit chapter 3.1.
+- Have used `git commit`; if not, work through the Git chapter of R Packages (https://r-pkgs.org) or happygitwithr.com first.
 - Know that default `install.packages()` obtains currently available CRAN packages.
 
 ::: {.callout-important}
@@ -114,7 +114,7 @@ The reproducible-environments workshop examines two strategies:
 
 ## 4. Traceability and auditing: record each change
 
-- **Version control:** Put submission-related code in git. Branch protection and PR review implement change control using the tools from chapters 3.1–3.2.
+- **Version control:** Put submission-related code in git. Branch protection and PR review implement change control.
 - **Code review:** Require independent review before merging, complementing chapter 4.7's dual programming.
 - **QC records:** Retain comparisons, explanations of discrepancies, and release decisions.
 - **Platform auditing:** Enterprise platforms can log who ran what, when, and in which environment. These records are a starting point for an audit.

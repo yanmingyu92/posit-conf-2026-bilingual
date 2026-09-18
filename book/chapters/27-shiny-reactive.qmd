@@ -192,7 +192,7 @@ myapp/
 ```r
 reactlog::reactlog_enable()   # ① 打开记录（必须在启动 app 前）
 shiny::runApp("myapp/")       # ② 正常使用 app，操作几个输入
-shiny::reactlogShow()         # ③ 关掉 app 后回放依赖图
+reactlog::reactlog_show()       # ③ 关掉 app 后回放依赖图
 ```
 口诀：**先 enable 再启动，关掉 app 再 show**。灰化 = 失效，亮起 = 重算。
 :::

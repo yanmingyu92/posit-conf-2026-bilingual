@@ -98,7 +98,7 @@ p2 + scale_x_continuous(labels = scales::label_number(scale_cut = scales::cut_sh
 ```r
 p1 + scales::label_percent()  # Intentional error: a labeling function cannot be added directly to a ggplot
 ```
-Pass the labeling function to `scale_*_continuous(labels = ...)`. Also, `scales::label_percent()` makes sense only for **proportions**. The histogram's x-axis contains raw millimeters; forcing percentage labels onto it creates absurd results or an error. **Identify what the axis values represent before choosing a label function.**
+Pass the labeling function to `scale_*_continuous(labels = ...)`. Also, `scales::label_percent()` makes sense only for **proportions**. The boxplot's y-axis contains raw millimeters; forcing percentage labels onto it creates absurd results or an error. **Identify what the axis values represent before choosing a label function.**
 :::
 
 ## 3. Finding extensions: The official gallery and three checks

@@ -82,7 +82,7 @@ token 花在刀刃上。
 
 ## 3. 演练：把一段重复的提示词移植成 skill
 
-假设你已经第五次把「写信要领」整段粘进对话框——按 4.1 的三次法则，该抽象了。
+假设你已经第五次把「写信要领」整段粘进对话框——按 1.1 章的三次法则，该抽象了。
 移植三步：① 原话搬进 `skills/<job>/SKILL.md` 正文；② 提炼「何时用/何时不用」
 写进 description；③ 给 agent 一个读它的工具。第③步接线（改编自 llms `21_skills-1`）：
 先在练习项目中放好 `skills/` 与 `blockbuster/`，并运行 4.3 的四件文件工具定义。
@@ -158,7 +158,7 @@ system prompt（这就是「目录」）；打印 `chat` 可见完整工具调�
 
 布局两层：**项目内 `skills/`** 跟着仓库走，适合业务专属工种（上面四个都是），
 工作坊每个练习目录自带一份、互不污染；**仓库/用户级 `.agents/skills/`** 会被
-Positron Assistant 自动发现，适合跨项目习惯（`unslop` 去 AI 腔、审作业）。
+Posit Assistant 自动发现，适合跨项目习惯（`unslop` 去 AI 腔、审作业）。
 
 ::: {.callout-important}
 ## Check In：只读 description，预测路由

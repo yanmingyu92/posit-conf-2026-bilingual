@@ -29,7 +29,7 @@ Complete chapter 1.3, covering copy-on-modify and a first benchmark, before cont
 ::: {.callout-important}
 ## Check In: prerequisites
 
-1. After `tracemem(y)`, you run `y <- x`, then `y[[1]] <- 9`. Which step prints a memory-copy message?
+1. You run `y <- x`, then call `tracemem(y)`, then run `y[[1]] <- 9`. Which step prints a memory-copy message?
 2. Guess the speed ratio between `rowwise() |> mutate(z = max(a, b))` and `mutate(z = pmax(a, b))`. Write down your estimate and compare it in §2.
 :::
 

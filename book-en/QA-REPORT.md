@@ -67,3 +67,21 @@ Local publication checks passed with Quarto 1.10.18: both 42-page editions and t
 Run `python scripts/build_training_download.py`, `python scripts/qa_book_structure.py`, and `python scripts/qa_book_english.py`. Set `QA_BOOK_DIR=book-en` and `QA_EVIDENCE_DIR=.qa/en` for `qa_book.py` and the projects, focused, and AI R scripts. Run `Rscript scripts/qa_book_code_parity.R` for code structure comparison. Supply `--rscript` and `--library` to the Python runner as documented in that script.
 
 Render `book`, `book-en`, and `website` with Quarto. The English deployment path is `/book/en/`; chapter filenames match the Chinese edition so language switching preserves the chapter. Generated output and raw evidence stay outside version control.
+
+## Addendum: 2026-09-18 content review and visual restyle
+
+A full five-way editorial review of all 42 English pages found 16 issues; all were fixed in both editions (code-token changes applied identically to preserve parity):
+
+- Dead URLs replaced: profvis (2), jsonlite, httr2 (13-efficient-code, 14-json-apis, both editions).
+- Chapter 1.4: `req_throttle(rate = 1)` updated to the current httr2 token-bucket API `req_throttle(capacity = 1, fill_time_s = 1)`, with the comment corrected (the legacy `rate` argument permits bursts, so "one request per second" was inaccurate).
+- Chapter 2.5: quakes longitude description corrected (166–188, crossing the antimeridian).
+- Chapter 2.6: explanation realigned with the `p1` boxplot code.
+- Chapter 2.7: deprecated `shiny::reactlogShow()` replaced with `reactlog::reactlog_show()`.
+- Chapter 2.8: brand YAML example fixed (`brand: <path>`, not a nested key); Typst `margin` changed from an invalid array to the `{x:, y:}` mapping.
+- Chapter 3.4: prerequisite `tracemem()` question reordered so the traced object is the one modified.
+- Chapters 4.4/4.8: wrong chapter cross-references corrected (rule of three → 1.1; git prerequisites → R Packages / Happy Git; branch-protection bullet no longer cites 3.1–3.2).
+- Product naming standardized on **Posit Assistant** throughout (Positron Assistant is superseded per the posit::conf 2026 workshop materials).
+
+Visual restyle (both editions): new `assets/book.css` (Fraunces/Inter/JetBrains Mono typography, gradient title banner, styled code blocks, callouts, tables, sidebar, buttons, language-switch pill), added `assets/favicon.svg` and the `favicon:` book option.
+
+Re-verification: `qa_book_structure.py` and `qa_book_english.py` report zero errors; `qa_book_code_parity.R` compared 134 blocks with 0 structural differences; both editions and the website re-rendered with Quarto 1.10.18 with zero errors. Browser checks on the nested production layout covered the title banner, chapter pages, callouts, same-chapter switching in both directions, the ZIP download (HTTP 200), and a 390-pixel viewport with no horizontal overflow. The full `qa_book.py` R-block harness was re-run against the English edition; results are recorded in `.qa/en`.

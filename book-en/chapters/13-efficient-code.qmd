@@ -145,7 +145,7 @@ When `n == 0`, `for (i in 1:n)` uses `1:0` and **takes two descending steps**. E
 
 ## 5. Find hotspots with profvis: measure instead of guessing
 
-A slow script often spends 90% of its time in one function. profvis (https://rstudio.github.io/profvis/) samples execution and displays where time goes as a flame graph:
+A slow script often spends 90% of its time in one function. profvis (https://profvis.r-lib.org) samples execution and displays where time goes as a flame graph:
 
 ::: {.callout-example}
 ```r
@@ -240,7 +240,7 @@ Use profvis to locate its hotspots: it has at least three sources of slowness. R
 |---|---|---|
 | Chapter structure, examples, exercises, capstone, and rubric | This project | Original |
 | `bench::mark()` usage and output | Official bench documentation, https://bench.r-lib.org | Referenced |
-| profvis usage | Official profvis documentation, https://rstudio.github.io/profvis/ | Referenced |
+| profvis usage | Official profvis documentation, https://profvis.r-lib.org | Referenced |
 | §6: filtering early in larger-than-memory workflows | posit::conf(2024) databases and r-in-production workshop READMEs (Kirill Müller and colleagues · CC-BY 4.0) | Supporting reference |
 
 This chapter is published under CC-BY-SA 4.0.
