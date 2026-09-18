@@ -2,7 +2,7 @@
 
 ## Authorship and editorial responsibility {.unnumbered}
 
-The author of *Modern R in Practice* is **Jaime Yan**. The book's selection, organization, explanations, and training materials are maintained as an independent textbook.
+The author of *Modern R in Practice* is **[Jaime Yan](https://jaimeyan.com)**. The book's selection, organization, explanations, and training materials are maintained as an independent textbook.
 
 Book authorship and source attribution serve different purposes. Third-party material quoted, adapted, or retained in the book remains attributed to its original authors. The book's byline does not claim that every piece of code, illustration, or teaching design originated with one person. Chapter SOURCES sections distinguish original work, adaptations, and quotations.
 

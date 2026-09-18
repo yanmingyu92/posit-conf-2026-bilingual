@@ -42,6 +42,6 @@ This edition provides a dedicated book entry point, reading guide, companion tra
 
 The English edition follows the same chapter structure and exercises as the Chinese edition. Use the language link to move between corresponding pages.
 
-Jaime Yan
+[Jaime Yan](https://jaimeyan.com)
 
 September 2026

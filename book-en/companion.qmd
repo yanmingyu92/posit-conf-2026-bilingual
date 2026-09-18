@@ -1,6 +1,6 @@
 # Companion training and practice {.unnumbered}
 
-Author: **Jaime Yan**.
+Author: **[Jaime Yan](https://jaimeyan.com)**.
 
 Reading develops understanding; training asks you to deliver independently. The materials are organized around tasks, with data, starter scripts, acceptance checks, and a reference implementation. You do not need to download a conference workshop first.
 

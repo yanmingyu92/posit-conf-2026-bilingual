@@ -1,10 +1,14 @@
+---
+image: https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/assets/cover.png
+---
+
 # 扉页 {.unnumbered}
 
 一本面向实际分析与交付的 R 进阶教材。
 
 从重复脚本到可复用函数，从一张图到可以交给他人的报告与应用，从“在我的电脑上能跑”到可测试、可追溯的代码。本书以这些具体转变组织学习，让技术选择服务于分析任务。
 
-**作者：Jaime Yan** · 在线实践版
+**作者：[Jaime Yan](https://jaimeyan.com)** · 在线实践版
 
 [阅读前言](preface.qmd){.btn .btn-primary}
 [选择阅读路径](reading-guide.qmd){.btn .btn-outline-primary}

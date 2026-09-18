@@ -1,0 +1,21 @@
+{
+  "upload_type": "publication",
+  "publication_type": "book",
+  "title": "Modern R in Practice / 现代 R 进阶",
+  "creators": [
+    {
+      "name": "Yan, Jaime"
+    }
+  ],
+  "description": "A free bilingual (Chinese/English) 28-chapter R book restructured from posit::conf 2026 workshop materials, organized around analysis-to-delivery tasks with dedicated clinical and pharmaceutical reading paths.",
+  "license": "CC-BY-SA-4.0",
+  "keywords": [
+    "R",
+    "Quarto",
+    "data science",
+    "clinical trials",
+    "pharmaceutical programming",
+    "bilingual book"
+  ],
+  "access_right": "open"
+}

@@ -3,6 +3,7 @@ project:
   output-dir: _book
   resources:
     - downloads/
+    - assets/cover.png
 
 book:
   title: "Modern R in Practice"
@@ -10,9 +11,14 @@ book:
   author: "Jaime Yan"
   cover-image: assets/cover.svg
   favicon: assets/favicon.svg
+  image: https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/assets/cover.png
   description: "A practical book for R users with foundational skills, connecting analysis, visualization, applications, and software engineering, with a clinical and pharmaceutical reading path."
   site-url: "https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/"
   repo-url: "https://github.com/yanmingyu92/posit-conf-2026-bilingual"
+  page-footer:
+    left: "Author: [Jaime Yan](https://jaimeyan.com)"
+  open-graph: true
+  twitter-card: true
   chapters:
     - index.qmd
     - preface.qmd

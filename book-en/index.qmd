@@ -1,10 +1,14 @@
+---
+image: https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/en/assets/cover.png
+---
+
 # Title page {.unnumbered}
 
 A practical book for R users ready to develop their analysis and delivery skills.
 
 Move from repeated scripts to reusable functions, from a single chart to a report or application that others can use, and from “it runs on my machine” to code that can be tested and traced. These transitions organize the book: technical choices serve a concrete analytical task.
 
-**Author: Jaime Yan** · Online practice edition
+**Author: [Jaime Yan](https://jaimeyan.com)** · Online practice edition
 
 [Read the preface](preface.qmd){.btn .btn-primary}
 [Choose a reading path](reading-guide.qmd){.btn .btn-outline-primary}

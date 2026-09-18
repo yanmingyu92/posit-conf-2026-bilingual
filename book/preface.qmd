@@ -40,6 +40,6 @@ AI 可以协助解释代码、生成备选方案和扩展检查清单。它也�
 
 本版建立独立的书籍入口、阅读指南、配套训练和多来源阅读地图。后续内容完善将优先补齐概念之间的解释、可复用的练习数据和参考解答，而不是单纯增加章节数量。发现内容或代码问题时，欢迎通过[书籍仓库](https://github.com/yanmingyu92/posit-conf-2026-bilingual/issues)提出具体的复现信息。
 
-Jaime Yan
+[Jaime Yan](https://jaimeyan.com)
 
 2026 年 9 月
