@@ -1,11 +1,10 @@
-# posit::conf Workshop Hub · 中英双语学习中心 (2024–2026)
+# 现代 R 进阶 · 书籍、训练与参考资料库
 
-A bilingual (English / 中文) learning hub that **combines, reorganizes, and translates**
-official [posit::conf](https://conf.posit.co/) workshop materials across three conference
-years (2024–2026), organized into 9 topic tracks with guided learning paths.
+**《现代 R 进阶》作者：Jaime Yan。** 面向已有 R 基础、需要提升分析与交付能力的读者，并提供临床研究与制药领域的阅读路径。
 
-一个将 2024–2026 三届 **posit::conf** 官方工作坊材料**合并、重组并翻译**的中英双语学习中心，
-按 9 大主题轨道组织，并配有推荐学习路线。
+本仓库维护三个独立入口：[书籍](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/)、[配套训练](https://yanmingyu92.github.io/posit-conf-2026-bilingual/training.html)与[会议资料库](https://yanmingyu92.github.io/posit-conf-2026-bilingual/catalog.html)。书籍按学习成果组织，训练按交付任务组织，资料库按原始来源检索。
+
+*Modern R in Practice*, by Jaime Yan, combines an authored learning narrative with practice labs. The posit::conf archive remains a separate source catalog; further reading also draws on established R books and official documentation.
 
 > 📚 中文版说明见下方 [中文简介](#中文简介)。
 
@@ -17,14 +16,15 @@ years (2024–2026), organized into 9 topic tracks with guided learning paths.
 
 | Layer | Location | Description |
 |---|---|---|
-| **The Book** 📖 | `book/` | **《现代 R 进阶》**：四单元成书（STAT 541 结构 × posit::conf 素材），旗舰章 1.1 函数、4.1 LLM 编程已发布，其余 26 章按地图推进 |
+| **The Book** 📖 | `book/` | **《现代 R 进阶》**：Jaime Yan，四单元 28 章，含封面、前言、阅读指南和多来源阅读地图 |
+| **Practice labs** | `training/` | 独立任务、模拟数据、起始脚本、参考实现与自动验收；当前 1 套完整综合实验 |
 | **Original curriculum** | `curriculum/` | **Our own course system** built on the corpus: 5-domain × 3-level competency matrix, learner personas, module blueprints (start with `curriculum/MATRIX.md`) |
 | Mirrored 2026 materials | `content/en/` | Verbatim copies of all 8 official 2026 workshop repos, organized by track, with provenance manifest |
 | Prior-year catalog | `ARCHIVE-CATALOG.md` | Topic map of 19 curated 2024/2025 workshops that fill gaps 2026 didn't cover (Shiny, pkg-dev, ggplot2, tidymodels, causal, databases, …) |
 | Chinese translations | `translations/zh/` | Bilingual learning plan + per-module Chinese translations (in progress, contributions welcome) |
 | Website | `website/` | Quarto site rendering the hub, auto-deployed to GitHub Pages |
 
-### The 9 tracks
+### Source library: the 9 tracks
 
 1. R Language Foundations · R 语言基础
 2. IDE & Tooling (Positron, production) · 开发环境
@@ -38,8 +38,18 @@ years (2024–2026), organized into 9 topic tracks with guided learning paths.
 
 ### Quick start
 
+Read the [book](https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/) or start the [practice lab](training/analysis-handoff/README.md). To build locally:
+
 ```bash
-git clone https://github.com/<you>/posit-conf-2026-bilingual.git
+python scripts/build_training_download.py
+quarto render book
+quarto render website
+```
+
+Generated HTML stays outside version control; GitHub Actions rebuilds the book, training download and website from source.
+
+```bash
+git clone https://github.com/yanmingyu92/posit-conf-2026-bilingual.git
 # Read the plan: translations/zh/LEARNING-PLAN.zh.md (中文) — or start from ARCHIVE-CATALOG.md (EN)
 ```
 

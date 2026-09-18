@@ -1,16 +1,23 @@
 ﻿project:
   type: book
   output-dir: _book
+  resources:
+    - downloads/
 
 book:
-  title: "Advanced R, Modernized · 现代 R 进阶"
-  subtitle: "复杂分析 · 专业交付 · 包开发 · AI 与领域应用"
-  author: " posit::conf Corpus Team"
+  title: "现代 R 进阶"
+  subtitle: "Modern R in Practice · 从分析脚本到可信赖的交付物"
+  author: "Jaime Yan"
+  cover-image: assets/cover.svg
+  description: "面向已有 R 基础的分析人员，以交付任务串联分析、可视化、应用与软件工程，并提供临床研究和制药领域的阅读路径。"
   site-url: "https://yanmingyu92.github.io/posit-conf-2026-bilingual/book/"
   repo-url: "https://github.com/yanmingyu92/posit-conf-2026-bilingual"
   chapters:
     - index.qmd
-    - part: "Unit 1 · Complex Analyses 复杂分析"
+    - preface.qmd
+    - reading-guide.qmd
+    - companion.qmd
+    - part: unit-1.qmd
       chapters:
         - chapters/01-functions.qmd
         - chapters/12-iteration.qmd
@@ -20,7 +27,7 @@ book:
         - chapters/16-great-tables.qmd
         - chapters/17-alt-geoms.qmd
         - chapters/18-styled-plots.qmd
-    - part: "Unit 2 · Professional Deliverables 专业交付物"
+    - part: unit-2.qmd
       chapters:
         - chapters/21-interactive-graphics.qmd
         - chapters/22-animation.qmd
@@ -30,13 +37,13 @@ book:
         - chapters/26-ggplot-extensions.qmd
         - chapters/27-shiny-reactive.qmd
         - chapters/28-pub-ready-reports.qmd
-    - part: "Unit 3 · Package Development 包开发"
+    - part: unit-3.qmd
       chapters:
         - chapters/31-pkg-structure.qmd
         - chapters/32-unit-testing.qmd
         - chapters/33-debugging.qmd
         - chapters/34-code-speed.qmd
-    - part: "Unit 4 · AI & Domain Applications AI 与领域应用"
+    - part: unit-4.qmd
       chapters:
         - chapters/41-llm-basics.qmd
         - chapters/42-structured-output.qmd
@@ -48,10 +55,12 @@ book:
         - chapters/48-regulated-gxp.qmd
     - part: "Appendix · 附录"
       chapters:
+        - further-reading.qmd
         - unit-1-map.qmd
         - unit-2-map.qmd
         - unit-3-map.qmd
         - unit-4-map.qmd
+        - acknowledgments.qmd
   sidebar:
     style: floating
 
@@ -61,3 +70,5 @@ format:
     lang: zh-CN
     toc: true
     callout-icon: true
+    number-sections: false
+    css: assets/book.css

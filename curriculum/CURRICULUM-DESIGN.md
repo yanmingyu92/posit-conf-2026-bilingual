@@ -1,9 +1,9 @@
 # Curriculum Design · 课程总体设计
 
-> **从「材料汇编」到「自有课程」**：本文件定义如何基于三届 posit::conf 材料（27 个
-> 仓库的矿藏），设计出一套**原创的、有教学论依据的 R 学习课程**。
-> This document defines how we turn the combined posit::conf corpus into an
-> **original, pedagogically grounded R curriculum**.
+> 编写者：**Jaime Yan**。本文件维护《现代 R 进阶》及其训练配套的教学设计。
+> 课程围绕学习成果组织；posit::conf 工作坊、经典教材和官方文档按知识需求提供支撑，
+> 来源目录不决定课程边界。当前主要读者是已有 R 基础的分析人员，以及临床研究和制药领域使用者。
+> 独立训练见 [training/](https://github.com/yanmingyu92/posit-conf-2026-bilingual/tree/main/training)，教材化扩充计划见 [EDITORIAL-PLAN.md](https://github.com/yanmingyu92/posit-conf-2026-bilingual/blob/main/book/EDITORIAL-PLAN.md)。
 
 ---
 

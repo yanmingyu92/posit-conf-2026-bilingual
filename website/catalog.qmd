@@ -1,5 +1,7 @@
 ---
-title: "Track Catalog · 轨道总目录"
+title: "参考资料库 · posit::conf Track Catalog"
 ---
+
+本页按会议来源与主题检索原始工作坊，是独立的参考资料目录。连续阅读请进入[《现代 R 进阶》](book/index.html)，动手实践请进入[配套训练](training.qmd)。
 
 {{< include ../ARCHIVE-CATALOG.md >}}

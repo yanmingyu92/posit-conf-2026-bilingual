@@ -1,0 +1,74 @@
+---
+title: "延伸阅读 · 从会用到理解"
+author: "Jaime Yan"
+---
+
+这份阅读地图面向已经会用 R 整理数据、希望把分析交付给他人的读者。每个单元只选三条阅读线：遇到相应问题再读，读完带回一个小产物。你不需要先读完这些书，才开始本书的练习。
+
+下列“带着问题读”和练后任务由本书作者原创。它们是阅读引导，不是所链接书籍的摘要、翻译或习题改编。
+
+## 单元一：让分析过程可靠
+
+**1. 把重复操作变成稳定接口。** 读 R for Data Science（第 2 版，Hadley Wickham、Mine Çetinkaya-Rundel、Garrett Grolemund）的 [Functions](https://r4ds.hadley.nz/functions.html) 与 [Iteration](https://r4ds.hadley.nz/iteration.html)，重点看数据框函数与迭代结果的组织。配合本书 1.1–1.2，补上“会写函数”到“别人能放心调用”的连接。
+
+带着问题读：一批文件中只有一份失败时，返回一个空表会不会让总结果看似完整？读后给自己的批量汇总设计三列记录：输入标识、处理状态、结果位置；另写出空输入与失败输入的不同处理方式。
+
+**2. 解释变量究竟从哪里来。** 读 Advanced R（第 2 版，Hadley Wickham）的 [Functions](https://adv-r.hadley.nz/functions.html) 与 [Environments](https://adv-r.hadley.nz/environments.html)，聚焦函数参数、词法作用域和环境。配合本书 1.1、1.3；不必此时通读元编程部分。
+
+带着问题读：同一个函数换到干净会话为什么结果变了？从自己的脚本中找一个引用外部变量的函数，画出它依赖的三个对象，再决定哪些应成为参数、哪些应留在项目配置里。
+
+**3. 把网络响应变成可检验的数据。** 读 [httr2 官方入门](https://httr2.r-lib.org/articles/httr2.html)中的请求、执行与响应处理。配合本书 1.4–1.5，补上“请求成功”和“取得了所需数据”之间的区别。
+
+带着问题读：HTTP 成功但结果为空、字段消失或类型改变时，你如何发现？为一个不含秘密信息的 JSON 样例写三条输入检查，并保存它作为离线测试数据；不要把实时网站的可用性当作练习正确性的唯一依据。
+
+## 单元二：让结果容易理解和复用
+
+**1. 理解图层，而不只记住图形名称。** 读 ggplot2: Elegant Graphics for Data Analysis（第 3 版在线稿，Hadley Wickham、Danielle Navarro、Thomas Lin Pedersen）的 [Build a plot layer by layer](https://ggplot2-book.org/layers.html) 与 [Themes](https://ggplot2-book.org/themes.html)。配合本书 1.7–1.8、2.6，分别辨认数据表达与外观设置。
+
+带着问题读：这次改图究竟改变了统计含义，还是只改变阅读顺序？为同一份汇总做“供分析者检查”与“供业务读者决策”两个版本，保留相同数值，并说明三个设计差异。在线第 3 版仍在编写中，章节内容可能更新。
+
+**2. 在运行应用前画出依赖。** 读 Mastering Shiny（Hadley Wickham）的 [The reactive graph](https://mastering-shiny.org/reactive-graph.html)，再按需读 [Shiny modules](https://mastering-shiny.org/scaling-modules.html)。配合本书 2.4、2.7，补上响应式更新和模块边界的理解。
+
+带着问题读：修改标题为什么触发了昂贵的数据计算？画出一个输入、一个数据筛选结果和两个输出之间的依赖，标出哪些计算应共享。模块化前先写清模块接收什么、返回什么。
+
+**3. 区分重新计算与重新排版。** 读 [Quarto 官方 Managing Execution](https://quarto.org/docs/projects/code-execution.html)，重点看项目执行、缓存与 freeze。配合本书 2.3、2.8：本书展示的是静态教学代码，你交付的分析项目还需要明确执行策略。
+
+带着问题读：输入 CSV 更新后，交付报告中的数字如何保证更新？给自己的报告列一张“数据变更／参数变更／样式变更 → 应重跑什么”的表，再用一次实际变更检查，而不是只确认 HTML 能打开。
+
+## 单元三：让代码经得住交接
+
+**1. 做一个真的能安装的小包。** 读 R Packages（第 2 版，Hadley Wickham、Jennifer Bryan）的 [The Whole Game](https://r-pkgs.org/whole-game.html) 与 [Designing your test suite](https://r-pkgs.org/testing-design.html)。配合本书 3.1–3.2，把函数、文档、依赖与测试放进同一个交付单元。
+
+带着问题读：测试是否只检查了你已经知道的正确输入？选一个分析函数，为正常值、缺失值、非法值各写一个预期；再让同事只看文档调用它，记录接口里让人猜测的地方。
+
+**2. 先定位，再修复或加速。** 读 Advanced R 的 [Debugging](https://adv-r.hadley.nz/debugging.html) 与 [Measuring performance](https://adv-r.hadley.nz/perf-measure.html)。配合本书 3.3–3.4，分开回答“哪里错了”和“时间花在哪里”。
+
+带着问题读：优化前后是在算同一个结果吗？留下一份最小复现、一个结果一致性检查和一次测量记录；速度改进必须建立在结果仍正确的基础上。
+
+**3. 交付环境，也说明环境工具的边界。** 读 [renv 官方入门](https://rstudio.github.io/renv/articles/renv.html)，先看 snapshot／restore，再看 Caveats。配合本书 3.1 与 4.8，理解项目包库与锁文件的作用。
+
+带着问题读：有了 renv.lock，换一台机器就一定能生成相同 PDF 吗？为项目列出 R、R 包、系统库、字体、数据五类依赖，并注明哪一类已有恢复记录。临床与制药读者可把这张表作为技术交接材料；它本身不代表项目已完成验证。
+
+## 单元四：让 AI 与领域应用有证据可查
+
+**1. 分清输出形状与内容正确性。** 读 ellmer 官方 [Structured data](https://ellmer.tidyverse.org/articles/structured-data.html) 与 [Tool/function calling](https://ellmer.tidyverse.org/articles/tool-calling.html)。配合本书 4.1–4.4、4.6，核对已安装版本的方法和参数，再考虑真实模型调用。
+
+带着问题读：返回对象类型正确，但原文根本没给这个数字，哪一层应拒绝它？用三段自己编写的短文本设计提取合同，分别包含完整信息、缺失信息和相互矛盾的信息；先人工写预期，再决定是否需要模型。
+
+**2. 检查检索过程，不只看最终回答。** 读 [ragnar 官方文档](https://ragnar.tidyverse.org/)中的文档处理、切块、检索与会话接入。配合本书 4.5，把检索到的材料当作可检查的中间结果。
+
+带着问题读：命中了有关主题的段落，就足够支持答案吗？使用自己有权使用的三份短文，写两个有答案、一个没有答案的问题；逐题记录命中片段是否真的支持结论。练习无需复制本阅读地图中的整本书。
+
+**3. 回到表里的每一个分母。** 读 [gtsummary 官方 tbl_summary 教程](https://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html)，重点看变量类型、缺失值和统计量设置。配合本书 4.7，把格式化表格与可核对的汇总规则连起来。
+
+带着问题读：一位受试者有多条记录时，表中的 n 是人数还是记录数？用自己构造的六行假数据手算一个百分比，明确纳入范围、分母和缺失处理，再与程序输出对照。这里练的是编程与核对；分析人群、插补和统计方法应依据项目事先约定的规则。
+
+## 怎么选一条最短路线
+
+以分析交付为主，先读“稳定接口 → 图层 → 测试设计 → 环境交接”；正在做 Shiny，优先响应式图；临床与制药读者先把“测试设计 → 分母核对 → 环境交接”连起来，AI 阅读放在确定性流程之后。每完成一条阅读线，给自己的项目增加一项可检验的产物，再决定是否继续。
+
+## 来源与使用方式
+
+链接于 2026-09-17 在作者或维护者官方站点核验。R4DS 2e、R Packages 2e、Mastering Shiny 的书籍许可包含 NC／ND 条件，Advanced R 的整体许可包含 NC 条件；各书具体声明见其 [R4DS](https://r4ds.hadley.nz/)、[R Packages](https://r-pkgs.org/)、[Mastering Shiny](https://mastering-shiny.org/) 与 [Advanced R](https://adv-r.hadley.nz/) 首页。本页仅新增链接推荐和原创阅读引导，不将这些书的正文、图片或习题改编进本项目。包文档与书籍各自保留原有许可。
+
+本页原创阅读引导由 Jaime Yan 撰写，以 CC-BY-SA 4.0 发布。

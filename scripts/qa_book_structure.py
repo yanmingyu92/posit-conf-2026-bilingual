@@ -64,6 +64,18 @@ for unit in range(1,5):
     positions=[toc.find('chapters/'+f) for _,f in links]
     if any(n<0 for n in positions) or positions!=sorted(positions):errors.append(f'{p.name}: TOC mismatch')
 result=dict(chapters=len(paths),errors=errors,checks=evidence)
+book_config=(ROOT/'book/_quarto.yml').read_text(encoding='utf-8-sig')
+if 'author: "Jaime Yan"' not in book_config or 'Corpus Team' in book_config:
+    errors.append('book/_quarto.yml: incorrect author attribution')
+for name in ('index','preface','reading-guide','companion','further-reading','acknowledgments','unit-1','unit-2','unit-3','unit-4'):
+    page=ROOT/f'book/{name}.qmd'
+    if not page.exists():
+        errors.append(f'{name}: missing book front/back matter')
+        continue
+    content='\n'.join(line for _,line in prose_lines(page.read_text(encoding='utf-8'),page.name))
+    for _,target in re.findall(r'\[([^\]]+)\]\(([^)]+)\)',content):
+        if '://' in target or target.startswith('#'):continue
+        if not (page.parent/target.split('#')[0]).resolve().exists():errors.append(f'{page.name}: broken local link {target}')
 (ROOT/'.qa').mkdir(exist_ok=True)
 (ROOT/'.qa/structure.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
 print(json.dumps(dict(chapters=len(paths),errors=errors),ensure_ascii=False))

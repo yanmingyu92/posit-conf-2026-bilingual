@@ -20,6 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Build training download and check book structure
+        run: |
+          python scripts/build_training_download.py
+          python scripts/qa_book_structure.py
+
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 

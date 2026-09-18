@@ -18,6 +18,7 @@ __pycache__/
 
 # Local book QA fixtures, rendered test artifacts and logs
 /.qa/
+/.playwright-cli/
 
 # OS / editor
 .Thumbs.db

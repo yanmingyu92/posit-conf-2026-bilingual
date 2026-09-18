@@ -1,0 +1,62 @@
+# 配套训练与实践 {.unnumbered}
+
+作者：**Jaime Yan**。
+
+阅读负责建立理解，训练要求你独立交付。训练材料按任务组织，包含数据、起始脚本、验收检查和参考实现，不需要先下载某个会议工作坊。
+
+当前提供 **1 套完整综合实验**。正文各章已有分层练习和压轴项目，但它们尚未全部配有独立数据包和参考解答。
+
+## 多中心数据质量与分析交付 {#handoff-lab .unnumbered}
+
+三个中心提交了一份模拟质量评分数据。你要向接收人交付一张汇总表、一张图以及逐行处置记录，并使接收人能在新 R 会话中复跑。
+
+任务会遇到完全重复、内容冲突的重复、缺失评分、越界值与空中心。你需要明确每种情况的处理规则，并解释均值使用的分母。中心可以理解为业务站点；研究分析人员也可用它练习多中心数据接收与质量检查。
+
+数据是人工构造的业务质量观测，不含患者记录，不代表临床终点或疗效。
+
+[下载完整训练包](downloads/analysis-handoff.zip){.btn .btn-primary}
+[在线查看任务与评分量规](https://github.com/yanmingyu92/posit-conf-2026-bilingual/blob/main/training/analysis-handoff/README.md){.btn .btn-outline-primary}
+
+| 项目 | 内容 |
+|---|---|
+| 前置知识 | CSV、数据框、函数和基础绘图；R ≥ 4.1，无额外包依赖 |
+| 建议时间 | 90–120 分钟，可分两次完成 |
+| 配套文件 | 模拟 CSV、starter.R、solution.R、check.R、完整任务说明 |
+| 学习顺序 | 先预测并检查数据，再实现函数，最后生成交付物 |
+| 验收 | 输入契约、重复与缺失处理、边界值、汇总分母、导出回读 |
+| 交付物 | 源码、汇总 CSV、审计 CSV、PNG 图、一页交付说明 |
+
+## 如何开始 {.unnumbered}
+
+下载解压后，在 `training/analysis-handoff/` 中打开终端。先阅读 README，前 60 分钟不使用 AI，也不打开参考解答。
+
+```bash
+Rscript starter.R
+```
+
+将自己的四个函数实现保存为 `learner.R`，然后运行验收：
+
+```bash
+Rscript check.R output-check learner.R
+```
+
+完成独立尝试后，可以运行参考实现并比较设计：
+
+```bash
+Rscript solution.R output-reference
+Rscript check.R output-reference-check
+```
+
+检查失败时，先找到违反的数据契约，补写一个最小示例，再修正函数。通过检查后，仍要审阅图表文字和交付说明是否让接收人理解数据限制。
+
+## 与正文怎样配合 {.unnumbered}
+
+| 训练中的问题 | 回到正文 |
+|---|---|
+| 函数需要哪些参数，怎样减少隐藏依赖？ | [1.1 写函数](chapters/01-functions.qmd) |
+| 第二批数据怎样复用同一处理过程？ | [1.2 迭代](chapters/12-iteration.qmd) |
+| 怎样展示有效观测数与缺失情况？ | [1.6 表格](chapters/16-great-tables.qmd)、[1.8 图表](chapters/18-styled-plots.qmd) |
+| 边界输入应如何检查？ | [3.2 单元测试](chapters/32-unit-testing.qmd) |
+| 接收人如何知道数据来源和执行条件？ | [2.8 报告](chapters/28-pub-ready-reports.qmd)、[4.8 环境与复现](chapters/48-regulated-gxp.qmd) |
+
+授课时可把禁 AI 阶段用作独立练习，随后安排同伴交接：接收人只看 README 和输出，尝试复跑并提出一个尚不清楚的问题。参考解答用于比较方案，不以代码逐行相同作为评分标准。

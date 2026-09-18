@@ -1,46 +1,32 @@
-﻿---
-title: "posit::conf Workshop Hub · 中英双语学习中心"
+---
+title: "现代 R：学习与实践"
+toc: false
 ---
 
-# Welcome · 欢迎
+## 从分析脚本，到可以交付的成果
 
-This hub **combines, reorganizes, and translates** official
-[posit::conf](https://conf.posit.co/) workshop materials from three conference years
-(2024–2026) into **9 topic tracks** with guided bilingual learning paths.
+面向已有 R 基础的分析人员，以及临床研究与制药领域的 R 使用者。
 
-本中心将 **2024–2026 三届 posit::conf 官方工作坊材料**合并、重组并翻译，按 **9 大主题
-轨道**组织，配中英双语学习路线。
+### 读一本书
 
-## 9 Tracks · 九大轨道
+**《现代 R 进阶》 · Jaime Yan**
 
-| # | Track · 轨道 | Anchor workshop · 核心材料 |
-|---|---|---|
-| 1 | R Language Foundations · R 语言基础 | r-programming (2025), pkg-dev (2025) |
-| 2 | IDE & Tooling · 开发环境 | positron, modern-r-workflow (2026) |
-| 3 | Quarto & Publishing · 文档出版 | practical-quarto (2026), quarto-intro (2024) |
-| 4 | Data Engineering · 数据工程 | databases, arrow (2024), Polars (2026) |
-| 5 | Visualization & Tables · 可视化与表格 | ggplot2 (2025), Great Tables (2026) |
-| 6 | Shiny & Interactive Apps · 交互应用 | shiny-r (2025), level-up-shiny (2024) |
-| 7 | Statistics & ML · 统计与机器学习 | tidymodels (2025), causal (2025), vetiver (2024) |
-| 8 | LLM & AI Programming · 大模型编程 | llms (2026): ellmer/chatlas, agents, skills, MCP |
-| 9 | Pharma & Regulated · 制药与合规 | pharmaverse, r-pharma-regulated (2026) |
+四个单元、28 章，围绕数据处理、专业报告、可维护代码与领域应用展开。按学习目标选择章节，结合示例、练习与压轴项目形成自己的交付能力。
 
-## Start here · 从这里开始
+[进入书籍](book/index.html){.btn .btn-primary}
+[阅读前言](book/preface.html){.btn .btn-outline-primary}
+[选择学习路径](book/reading-guide.html){.btn .btn-outline-primary}
 
-- 📖 [Full track catalog · 轨道总目录](catalog.qmd)
-- 🗓️ [Bilingual learning plan · 中文学习计划](plan.qmd)
-- ⚖️ [Attribution & licenses · 署名与协议](attribution.qmd)
+### 完成一次训练
 
-## Featured for 2026 · 2026 年亮点
+配套训练单独提供任务说明、模拟数据、起始脚本、参考实现和验收检查。第一套综合实验是“从原始数据到可交接的分析”：处理缺失与重复记录，输出汇总表、图和审计记录，并说明自己的处理规则。
 
-- **Programming with LLMs** — ellmer (R) / chatlas (Python)，从会话解剖到 agents、
-  agent skills、RAG 与 MCP（21 组练习含全套答案）
-- **Modern R Workflow** — Hadley Wickham & Jenny Bryan 亲授，Positron × AI 工作流
-- **AI-Powered Clinical Reporting with the pharmaverse** — SDTM→ADaM→ARD→TFL 临床
-  报告全链路
+[打开训练中心](training.qmd){.btn .btn-outline-primary}
 
-## Contribute · 参与贡献
+### 按需查找来源
 
-翻译进行中（translations welcome）！流程见仓库
-[CONTRIBUTING.md](https://github.com/yanmingyu92/posit-conf-2026-bilingual)，从
-`translations/zh/modules/` 认领一个模块即可起步。
+posit::conf 2024–2026 的 Track Catalog 保留为独立资料库，按九个主题检索原始工作坊。它是教材的来源之一，也可以独立使用。
+
+[会议资料目录](catalog.qmd) · [资料库学习计划](plan.qmd) · [素材署名](attribution.qmd)
+
+本书还提供[经典教材与官方文档阅读地图](book/further-reading.html)，说明每项资源补充什么知识、阅读时应回答什么问题。

@@ -1,0 +1,12 @@
+:root { --book-ink: #153c46; --book-accent: #ad682b; }
+body { line-height: 1.8; }
+h1, h2, h3 { color: var(--book-ink); }
+#title-block-header .title { letter-spacing: .02em; }
+.quarto-cover-image { max-width: 300px; border-radius: 2px; box-shadow: 0 12px 30px #153c4620; }
+.btn { margin: .35rem .5rem .35rem 0; }
+.btn-primary { background: var(--book-ink); border-color: var(--book-ink); }
+.btn-outline-primary { color: var(--book-ink); border-color: var(--book-ink); }
+.sidebar-title { font-weight: 650; }
+@media (max-width: 600px) {
+  .quarto-cover-image { float: none !important; display: block; width: 240px; max-width: 80%; margin: 0 auto 1.5rem; }
+}

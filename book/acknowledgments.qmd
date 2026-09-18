@@ -1,0 +1,25 @@
+# 署名、来源与致谢 {.unnumbered}
+
+## 作者与编写责任 {.unnumbered}
+
+《现代 R 进阶》的作者署名为 **Jaime Yan**。本书的选题、内容编排、讲解与训练材料以独立教材为目标维护。
+
+作者署名与素材来源承担不同的说明责任。书中引用、改编或保留的第三方内容仍归其原作者署名；本书署名不表示其中所有代码、图示和教学设计均由一人首创。各章 SOURCES 区分原创、改编和引用。
+
+## 致谢 {.unnumbered}
+
+感谢 posit::conf 工作坊讲师公开分享课程资料与实践案例。感谢 Kelly Bodwin 与 Allison Theobold 的 STAT 541 *Advanced R* 课程为单元组织和教学标注提供参照。本书在三单元基础上增加 AI 与领域应用单元。
+
+各工作坊的具体作者、仓库、版本与许可声明列于[完整来源记录](https://github.com/yanmingyu92/posit-conf-2026-bilingual/blob/main/ATTRIBUTION.md)。本书与 Posit, PBC、相关讲师所属机构及 Cal Poly 无官方隶属或背书关系。
+
+## 如何使用其他来源 {.unnumbered}
+
+本书也提供经典教材和官方文档的阅读入口。[参考与延伸阅读](further-reading.qmd)说明各项资源补充什么知识。列为阅读资源不意味着本书复制或改编了该资源，其原文继续由原网站提供。
+
+后续新增内容会在相应章节说明依据；直接使用第三方文字、图示或代码时，需保留相应来源和适用许可。
+
+## 本书许可与版本 {.unnumbered}
+
+本项目现有原创及改编内容按 [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 发布；第三方素材的具体声明及上游 README / LICENSE 分歧见完整来源记录。外链资料适用其自身声明。
+
+这是持续维护的在线实践版。代码和内容修订可通过[版本记录](https://github.com/yanmingyu92/posit-conf-2026-bilingual/commits/main/)追溯，问题可在[勘误入口](https://github.com/yanmingyu92/posit-conf-2026-bilingual/issues)反馈。

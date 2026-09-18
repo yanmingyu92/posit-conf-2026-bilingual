@@ -1,0 +1,63 @@
+# 阅读与学习指南 {.unnumbered}
+
+你可以按顺序阅读，也可以从当前需要交付的成果出发。每条路径都应包含一次独立实践；只看完章节不作为完成标准。
+
+## 通用分析与交付路径 {#analysis-path .unnumbered}
+
+| 阶段 | 建议章节 | 完成标志 |
+|---|---|---|
+| 把脚本整理清楚 | [1.1 函数](chapters/01-functions.qmd)、[1.2 迭代](chapters/12-iteration.qmd)、[1.3 效率](chapters/13-efficient-code.qmd) | 同一函数可以处理两批数据，边界输入有检查 |
+| 让结果易读 | [1.6 表格](chapters/16-great-tables.qmd)、[1.8 图表](chapters/18-styled-plots.qmd)、[2.8 报告](chapters/28-pub-ready-reports.qmd) | 读者不打开源码也能理解结果、单位与来源 |
+| 让交付可以维护 | [3.1 包结构](chapters/31-pkg-structure.qmd)、[3.2 测试](chapters/32-unit-testing.qmd)、[3.3 调试](chapters/33-debugging.qmd) | 从新会话运行检查，可以发现你故意放入的一处错误 |
+| 按需增加功能 | [2.3 静态仪表盘](chapters/23-dashboards-static.qmd)、[2.7 Shiny](chapters/27-shiny-reactive.qmd)、[4.1 LLM](chapters/41-llm-basics.qmd) | 能说明新增交互或 AI 功能解决了什么实际问题 |
+
+第一次实践可从[分析交接训练](companion.qmd#handoff-lab)开始。训练完成后，再补读与实际问题相关的地图、动画、数据接口或工具调用章节。
+
+## 临床研究与制药路径 {#clinical-path .unnumbered}
+
+先完成通用路径中的函数、表格、报告与测试，再进入领域案例。不要跳过通用部分：临床输出中的许多问题，首先是数据定义、程序行为或交付检查的问题。
+
+| 关注点 | 建议章节 | 阅读时要回答的问题 |
+|---|---|---|
+| 数据处理的可解释性 | [1.1](chapters/01-functions.qmd)、[1.2](chapters/12-iteration.qmd)、[3.2](chapters/32-unit-testing.qmd) | 缺失值、重复记录和边界日期如何处理？预期结果由谁定义？ |
+| 临床表格与报告 | [1.6](chapters/16-great-tables.qmd)、[2.8](chapters/28-pub-ready-reports.qmd)、[4.7](chapters/47-clinical-reporting.qmd) | 分析人群、分母、变量类型和显示精度是否清楚？ |
+| 环境与复现 | [3.1](chapters/31-pkg-structure.qmd)、[3.2](chapters/32-unit-testing.qmd)、[4.8](chapters/48-regulated-gxp.qmd) | 别人能否识别数据、代码和环境版本，并复现结果？ |
+| 有检查环节的 AI 应用 | [4.1](chapters/41-llm-basics.qmd)、[4.2](chapters/42-structured-output.qmd)、[4.6](chapters/46-shinychat.qmd) | 哪些内容来自原始资料，哪些由模型生成，如何独立核对？ |
+
+配套训练使用模拟数据。将训练方法应用于真实研究时，需要用实际研究定义和所属机构流程重新确定验收标准。
+
+## 一章的学习循环 {.unnumbered}
+
+1. **先判断。** 完成前置自测，记录自己不确定的概念。
+2. **再复现。** 在新 R 会话中依次运行示例，先预测关键输出。
+3. **改变条件。** 换数据、换变量，加入空输入、缺失值或错误类型。
+4. **独立交付。** 完成 create 练习或压轴项目，按量规自评。
+5. **解释与复核。** 写下设计理由；开放 AI 的环节再用 AI 扩展检查清单。
+
+遇到前置知识缺口时，使用[参考与延伸阅读](further-reading.qmd)补读相应主题，随后回到当前任务。
+
+## 代码与环境 {.unnumbered}
+
+书中的 `r` 围栏展示教学代码，出版时不执行。按章启动新会话，并按正文顺序运行；需要的文件、包或服务应在运行前准备好。故意报错的例子用于分析错误，不应直接当作正常程序的一部分。
+
+第 2.3、2.4 章的完整仪表盘模板需复制到独立 `.qmd` 文件，并把该文件中的 R 围栏语言标记从 `r` 改为 `{r}` 才会执行。本书源文件保持静态围栏。
+
+需要 API 凭据或外部服务的章节可以先做设计和静态阅读，再在环境齐备后验证。没有调用服务时，不应把示例标记为端到端运行成功。
+
+## 教学标注与术语 {.unnumbered}
+
+| 标注 | 用法 |
+|---|---|
+| Example / 示例 | 观察输入、过程和输出，动手复现 |
+| Check In / 随堂小检 | 检查当前理解，尽量先独立回答 |
+| Practice Exercise / 练习 | copy → adapt → create，逐步减少提示 |
+| Warning / 当心；Note / 澄清 | 区分错误做法与容易混淆的概念 |
+| Required Reading / Video | 按章节要求补充阅读或观看 |
+| Learn More / 延伸；Opinion / 作者观点 | 可选拓展，以及需要结合情境判断的经验意见 |
+
+| English | 本书用语 |
+|---|---|
+| chat / conversation | 会话 |
+| reactive | 响应式 |
+| skills | 技能包 |
+| capstone | 压轴项目 |

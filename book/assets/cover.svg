@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1120" viewBox="0 0 800 1120" role="img" aria-labelledby="title desc">
+  <title id="title">现代 R 进阶 — Jaime Yan</title>
+  <desc id="desc">米白与深青色的书籍封面，四个相连的节点象征分析、表达、工程与应用。</desc>
+  <rect width="800" height="1120" fill="#f4f0e6"/>
+  <rect width="18" height="1120" fill="#bd773b"/>
+  <g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" fill="#153c46">
+    <text x="78" y="105" font-size="21" letter-spacing="4">MODERN R IN PRACTICE</text>
+    <path d="M78 137H720" stroke="#153c46" stroke-width="2"/>
+    <text x="72" y="280" font-size="90" font-weight="700">现代 R</text>
+    <text x="72" y="397" font-size="102" font-weight="700">进阶</text>
+    <text x="78" y="465" font-size="26">从分析脚本到可信赖的交付物</text>
+    <text x="78" y="517" font-size="19" fill="#536a6e">数据分析 · 专业交付 · 软件工程 · 领域实践</text>
+  </g>
+  <rect x="78" y="601" width="642" height="282" rx="3" fill="#153c46"/>
+  <g stroke="#f4f0e6" stroke-width="2" fill="none">
+    <path d="M145 783L300 720L457 755L644 661"/>
+    <path d="M145 816V646M300 816V646M457 816V646M644 816V646" stroke-opacity=".16"/>
+    <path d="M116 690H680M116 750H680M116 810H680" stroke-opacity=".16"/>
+  </g>
+  <g fill="#dfa564" stroke="#153c46" stroke-width="4">
+    <circle cx="145" cy="783" r="11"/><circle cx="300" cy="720" r="11"/>
+    <circle cx="457" cy="755" r="11"/><circle cx="644" cy="661" r="11"/>
+  </g>
+  <g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" fill="#f4f0e6" font-size="18" text-anchor="middle">
+    <text x="145" y="854">分析</text><text x="300" y="854">表达</text>
+    <text x="457" y="854">工程</text><text x="644" y="854">应用</text>
+  </g>
+  <g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" fill="#153c46">
+    <text x="78" y="984" font-size="33" font-weight="600">Jaime Yan</text>
+    <text x="78" y="1030" font-size="18">在线实践版 · 2026</text>
+  </g>
+</svg>
