@@ -3,7 +3,9 @@ title: "4.7 临床报告 · Clinical Reporting with pharmaverse"
 objectives: |
   学完本章你能：画出 SDTM → ADaM → ARD → TLG 的受监管报告流水线并说明分层理由；
   用 admiral 做声明式派生；解释 ARD 如何解耦「计算」与「呈现」；
-  用 gtsummary 构建人口学表；描述双编程验证文化；判断 AI 在流水线中的合法位置。
+  用 gtsummary 构建人口学表；用 r2rtf 渲染申报级 RTF 表；
+  描述双编程验证文化；判断 AI 在流水线中的合法位置；
+  说明 SAS 与 R 共存时「一份元数据、两种语言」的落地模式。
 source-note: "教学结构与练习设计改编自 posit::conf(2026) pharmaverse 工作坊（Daniel D. Sjoberg & Becca Krouse · CC-BY-SA 4.0）；讲义文字为本项目原创"
 ---
 
@@ -19,6 +21,8 @@ source-note: "教学结构与练习设计改编自 posit::conf(2026) pharmaverse
 4. **construct** 用 gtsummary 从模拟临床数据构建人口学基线表，并取出其内部 ARD
 5. **critique** 双编程（dual programming）与 QC 独立性文化
 6. **judge** AI 助手在流水线各环节「能碰什么、不能碰什么」
+7. **render** 用 r2rtf 渲染申报级 RTF 表——字体、版面、标题全部代码化控制
+8. **describe** SAS 与 R 的共存模式：一份元数据源、一套规范栈，两种语言共用
 
 ## 前置自测（≤5 分钟）
 
@@ -138,7 +142,7 @@ ard_tabulate(
 ARD 不是换一种存表的方式，而是**把结果纳入数据治理**：它可 diff、可版本控制、可被任何呈现工具（gtsummary、tfrmt、ggplot2）二次消费。
 :::
 
-## 4. 表格：gtsummary 起步，tfrmt 接力
+## 4. 表格：gtsummary 起步，tfrmt 接力，r2rtf 交付
 
 有了 §3 的数据，一张最短的人口学（demographics）基线表只要：
 
@@ -174,6 +178,31 @@ gtsummary 与 ARD 的关系：新版 gtsummary 的统计引擎就是 {cards}—�
 :::
 
 tfrmt 的分工在另一头：当表格规范（spec）要在数据锁库**之前**评审时，tfrmt 把**版式写成代码**——`group/label/column/param/value` 五个映射定义表结构，`body_plan()` 定义单元格格式（如 `n (p%)`），配合 mock 打印即可**不需要真实数据**渲染出表壳（table shell）给审阅人签字；同一份 spec，数据到了再灌真值。
+
+当交付物是申报包本身时，R Consortium 提交试点反复使用的工具族是 r2rtf 加 rtables。r2rtf 用可链式调用的动词函数把数据框渲染成 RTF，字体、版面、边框、分页、标题块全部显式可控——正好对应 SAS ODS RTF 样式模板暴露的那些旋钮。它的设计纪律值得照抄：**只管格式化**，数据处理全部留在上游的普通 R 代码里。
+
+::: {.callout-example}
+```r
+library(r2rtf)
+
+tbl <- data.frame(
+  ARM      = c("Placebo", "Active"),
+  N        = c(4, 4),
+  AGE_MEAN = c(65.0, 65.0)
+)
+
+tbl |>
+  rtf_title("Table 1. Demographic Summary by Treatment Group") |>
+  rtf_colheader("Treatment | N | Age (Mean)") |>
+  rtf_body() |>
+  rtf_encode() |>
+  write_rtf(tempfile(fileext = ".rtf"))
+```
+:::
+
+::: {.callout-note}
+在以 SAS 为主的组织里，RTF 规范本身——页幅、表格正文 Courier New 9 磅、编号标题块——通常早已被 SAS 一侧定死。把它**一次性**编码成 R 侧的规范库，而不是在每个程序里复述，双语言交付才维护得动。R Consortium R submissions 工作组（https://rconsortium.github.io/submissions-wg/）发布的提交试点系列，是 r2rtf 与 rtables 申报地位的出处。
+:::
 
 ## 5. 验证文化：双编程与 QC 独立性
 
@@ -216,6 +245,18 @@ tfrmt 的分工在另一头：当表格规范（spec）要在数据锁库**之�
 
 不必全会：先认领你工作流的一两层，其余按需取用。
 
+## 8. 与 SAS 共存：一份元数据，两种语言
+
+多数组织不是「换到 R」，而是「加上 R」。已经在用 SAS 大规模跑临床编程的部门，需要的是能与 SAS 产出并排进入同一份申报的 R 产出，以及在两种语言之间切换而无需重新适应环境的程序员。让这件事在生产中成立的，是三个模式：
+
+| 模式 | 共享什么 | 换来什么 |
+|---|---|---|
+| 共享产出元数据 | 标题、脚注、产出清单放在同一个数据库；SAS 宏与 R 函数都读它 | SAS 与 R 产出的标题块逐字符一致 |
+| 集中式 R 环境 | 服务器级、版本锁定的 R 配置自动生效，对齐 SAS autoexec 的体验 | 程序员零配置地继承路径与包版本 |
+| 一份代码、两种模式 | 同一套 builder 函数同时服务定时批量生产与交互式 Shiny 预览 | 交互探索不再偏离申报产出 |
+
+更深一层的原则：**共存先是元数据问题，才是语言问题。** 当标题、规范与环境成为共享资产，每个程序用什么语言写就成了局部决定，不再需要审阅人仲裁。4.8 章补上让这套共享环境保持受验证的治理层。
+
 ::: {.callout-important}
 ## Practice Exercise 1（copy 档）
 
@@ -254,6 +295,8 @@ tfrmt 的分工在另一头：当表格规范（spec）要在数据锁库**之�
 | §2 派生示例 | 工作坊 `exercises/03-ADaM.R`（日期插补 / MAP 派生） | 改编 |
 | §3 ARD 结构与分层汇总 | 工作坊 `exercises/04-ARD.R` | 改编 |
 | §4–§6 表格练习与 AI 定位 | 工作坊 `exercises/05-tables-gtsummary.R`、`06-tables-tfrmt.R` | 改编 |
+| §4 r2rtf 渲染 | r2rtf 包文档（Merck，https://merck.github.io/r2rtf/）与 R Consortium submissions 工作组试点报告 | 引用 |
+| §8 SAS 共存模式 | 本项目（作者生产环境经验） | 原创 |
 | mock 人口学数据、双编程表、家族地图、rubric | 本项目 | 原创 |
 
 本章以 CC-BY-SA 4.0 发布。
