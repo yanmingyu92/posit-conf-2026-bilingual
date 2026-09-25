@@ -5,7 +5,8 @@ objectives: |
   Explain traceability, change control, and validation evidence for analysis
   environments; choose validation depth by risk; pin environments with renv
   and dated CRAN-like snapshots; design minimum viable governance from
-  research through development to GxP; specify guardrails for AI use.
+  research through development to GxP; specify guardrails for AI use;
+  harden production rendering with process isolation and bounded retries.
 source-note: "Themes and structure adapted from posit::conf(2026) r-pharma-regulated (Mike Smith, Casey Johnson, Satish Murthy, Nicole Jones, Michael Mayer) and posit::conf(2025) reproducible-environments, under CC-BY-SA 4.0. Explanatory prose is original to this project."
 ---
 
@@ -20,6 +21,7 @@ By the end of this chapter, you can:
 3. **configure** renv lockfiles and dated CRAN-like repository snapshots for restorable environments.
 4. **design** minimum viable governance across research → dev → GxP.
 5. **justify** AI guardrails: human accountability, recorded prompts and outputs, and no PHI sent to external models.
+6. **harden** production rendering with child-process isolation and bounded retries.
 
 ## Prerequisite check (≤5 minutes)
 
@@ -129,6 +131,37 @@ When an environment must move intact to production or reviewers, common approach
 
 For now, remember the layers: **lockfiles track packages, containers capture the runtime environment, and platforms support governance**.
 
+::: {.callout-note}
+## Where the industry is heading
+The R Consortium submission pilot series keeps expanding what an R-based submission can contain. Beyond the validated tables of the early pilots, later pilots have explored packaging interactive Shiny applications for regulatory review (through WebAssembly- and container-based bundling) and demonstrating Dataset-JSON as an exchange format for submission datasets. Treat these as direction rather than settled practice: read the current pilot reports before relying on either in a filing.
+:::
+
+Reliability is part of deployment. A fatal crash in native code — for example, a segmentation fault while a graphics device resolves fonts — cannot be caught by `tryCatch()` in the parent session, because it kills the process instead of raising an R condition. The production pattern is to isolate the risky step in a child process and retry within a bound:
+
+::: {.callout-example}
+```r
+render_plot_isolated <- function(path, attempts = 3) {
+  for (i in seq_len(attempts)) {
+    ok <- tryCatch({
+      callr::r(
+        function(path) {
+          png(path); plot(mtcars$wt, mtcars$mpg); dev.off()
+          TRUE
+        },
+        args = list(path = path)
+      )
+    }, error = function(e) FALSE)
+    if (ok) return(path)
+  }
+  stop("rendering failed after ", attempts, " attempts")
+}
+
+render_plot_isolated(tempfile(fileext = ".png"))
+```
+
+A child process converts "the session died" into an ordinary R error the parent can handle; the bound converts "retry forever" into a documented failure. In regulated work, record both the attempt count and the final status alongside the output's metadata.
+:::
+
 ## 6. Minimum viable governance: research → dev → GxP
 
 A central r-pharma-regulated exercise asks how organizations of different sizes can apply sufficient controls at different stages of use:
@@ -193,6 +226,8 @@ Classify your five most-used packages as high, medium, or low risk using §2. Fo
 | §1–§2 production-environment attributes and risk validation | posit::conf(2026) r-pharma-regulated materials: `01_AttributesOfProductionEnvironments.pdf`, `03_Validation and risk.pdf`; thematic alignment, not page-by-page quotation | Adapted |
 | §3 rolling/frozen; §5 containers and base images | posit::conf(2025) reproducible-environments (James Black, Orla Doyle, Doug Kelkhoff, Michael Mayer, Rafael Pereira) | Adapted |
 | §6 progression framework | r-pharma-regulated minimum-viable-approach topic in the workshop description | Adapted |
+| §5 trend notes | R Consortium submissions working group public pilot reports | Referenced |
+| §5 reliability pattern (callr isolation, bounded retry) | This project, from the author's production experience | Original |
 | renv/repository usage, detailed progression table, AI guardrails, rubric | This project | Original |
 
 This chapter is published under CC-BY-SA 4.0.

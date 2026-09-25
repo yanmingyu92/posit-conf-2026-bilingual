@@ -3,7 +3,8 @@ title: "4.8 受监管环境 · R in GxP Environments"
 objectives: |
   学完本章你能：说出 GxP 对分析环境的三项证据要求（可追溯/变更控制/验证证据）；
   按风险分层决定验证深度；用 renv 与固定日期的 CRAN-like 快照钉死环境；
-  设计 research → dev → GxP 的最小可行治理梯度；给出监管下使用 AI 的护栏清单。
+  设计 research → dev → GxP 的最小可行治理梯度；给出监管下使用 AI 的护栏清单；
+  用进程隔离与有上限重试加固生产渲染。
 source-note: "主题与结构改编自 posit::conf(2026) r-pharma-regulated 工作坊（Mike Smith, Casey Johnson, Satish Murthy, Nicole Jones, Michael Mayer）与 posit::conf(2025) reproducible-environments 工作坊 · CC-BY-SA 4.0；讲义文字为本项目原创"
 ---
 
@@ -22,6 +23,7 @@ source-note: "主题与结构改编自 posit::conf(2026) r-pharma-regulated 工�
 4. **design** research → dev → GxP 的最小可行治理环境（梯度表）
 5. **justify** 监管下使用 AI 的护栏：人类问责、提示词与输出留痕、
    不向外部模型发送 PHI
+6. **harden** 用子进程隔离与有上限的重试加固生产渲染
 
 ## 前置自测（≤5 分钟）
 
@@ -147,6 +149,37 @@ options(repos = c(CRAN = "https://packagemanager.posit.co/cran/latest"))
 
 本节只需建立层级意识：**lockfile 锁包，容器锁整机，平台管治理**。
 
+::: {.callout-note}
+## 行业下一步
+R Consortium 提交试点系列在不断扩展「R 申报包」的边界：早期试点验证了表格产出，后续试点探索了把交互式 Shiny 应用打包交给监管审阅（基于 WebAssembly 与容器），并演示了 Dataset-JSON 作为申报数据的交换格式。把它们当作**方向**而不是定论：真要用于申报，先读最新的试点报告。
+:::
+
+可靠性也是部署的一部分。原生代码里的致命崩溃——比如图形设备解析字体时的段错误（segmentation fault）——**无法**被父会话的 `tryCatch()` 捕获：它杀死整个进程，而不是抛出一个 R condition。生产级的做法是把高危步骤隔离进子进程，并在有上限的重试内完成：
+
+::: {.callout-example}
+```r
+render_plot_isolated <- function(path, attempts = 3) {
+  for (i in seq_len(attempts)) {
+    ok <- tryCatch({
+      callr::r(
+        function(path) {
+          png(path); plot(mtcars$wt, mtcars$mpg); dev.off()
+          TRUE
+        },
+        args = list(path = path)
+      )
+    }, error = function(e) FALSE)
+    if (ok) return(path)
+  }
+  stop("rendering failed after ", attempts, " attempts")
+}
+
+render_plot_isolated(tempfile(fileext = ".png"))
+```
+
+子进程把「会话死了」变成父进程可处理的普通 R 错误；重试上限把「无限重试」变成有记录的失败。在受监管场景中，尝试次数与最终状态都要随产出元数据一起留痕。
+:::
+
 ## 6. 最小可行治理环境：research → dev → GxP 梯度表
 
 r-pharma-regulated 工作坊的核心练习是：不同规模的组织，如何为不同成熟度
@@ -228,6 +261,8 @@ R 环境治理方案：组织画像 → 梯度表（§6 按组织规模裁剪）
 | §1–§2 生产环境属性与风险验证主题 | posit::conf(2026) r-pharma-regulated 工作坊 materials（`01_AttributesOfProductionEnvironments.pdf`、`03_Validation and risk.pdf`，按文件主题对齐，未逐页引用） | 改编 |
 | §3 rolling vs frozen、§5 容器与基础镜像议题 | posit::conf(2025) reproducible-environments 工作坊（James Black, Orla Doyle, Doug Kelkhoff, Michael Mayer, Rafael Pereira） | 改编 |
 | §6 梯度表框架 | r-pharma-regulated「最小可行方法」议题（工作坊描述） | 改编 |
+| §5 趋势注记 | R Consortium submissions 工作组公开试点报告 | 引用 |
+| §5 可靠性模式（callr 隔离、有上限重试） | 本项目（作者生产环境经验） | 原创 |
 | renv/仓库用法、梯度表具体内容、AI 护栏清单、rubric | 本项目 | 原创 |
 
 本章以 CC-BY-SA 4.0 发布。

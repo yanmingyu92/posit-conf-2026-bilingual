@@ -4,8 +4,10 @@ author: "Jaime Yan"
 objectives: |
   Map SDTM → ADaM → ARD → TLG and explain the layers; perform declarative
   derivations with admiral; explain how ARD separates computation from
-  presentation; create a demographics table with gtsummary; describe
-  independent programming; judge AI's appropriate place in the pipeline.
+  presentation; create a demographics table with gtsummary; render a
+  submission-grade RTF table with r2rtf; describe independent programming;
+  judge AI's appropriate place in the pipeline; explain SAS-R coexistence
+  patterns that keep one metadata source across two languages.
 source-note: "Teaching structure and exercises adapted from the posit::conf(2026) pharmaverse workshop (Daniel D. Sjoberg and Becca Krouse; CC-BY-SA 4.0). Explanatory prose is original to this project."
 ---
 
@@ -21,6 +23,8 @@ By the end of this chapter, you can:
 4. **construct** a demographics table from simulated clinical data with gtsummary and extract its internal ARD.
 5. **critique** dual programming and the independence of quality control (QC).
 6. **judge** which parts of the pipeline AI assistants may and may not handle.
+7. **render** a submission-grade RTF table with r2rtf, controlling fonts, page geometry, and titles in code.
+8. **describe** coexistence patterns that let SAS and R share one metadata source and one convention stack.
 
 ## Prerequisite check (≤5 minutes)
 
@@ -140,7 +144,7 @@ For hierarchical summaries, such as adverse events by system organ class and pre
 ARD brings **results into data governance**: they can be compared, versioned, and reused by gtsummary, tfrmt, or ggplot2. It is more than another table storage format.
 :::
 
-## 4. Tables: start with gtsummary, extend with tfrmt
+## 4. Tables: gtsummary for review, tfrmt for layout, r2rtf for submission
 
 Using §3's data, a compact baseline demographics table is:
 
@@ -176,6 +180,31 @@ Change the `all_continuous()` statistic to `"{median} ({p25}, {p75})"`. **First 
 :::
 
 tfrmt serves a different stage. When table specifications need review **before database lock**, it expresses **layout as code**. The `group/label/column/param/value` mappings define structure; `body_plan()` defines cell formats such as `n (p%)`. Mock printing produces a **table shell without real data** for review. The same specification receives actual results later.
+
+When the deliverable is the submission package itself, the tool family used across the R Consortium submission pilots is r2rtf together with rtables. r2rtf renders a data frame to RTF through chainable verb functions, with explicit control of fonts, page geometry, borders, pagination, and title blocks — the same knobs a SAS ODS RTF style template exposes. Its design rule is worth copying even if you never file an eCTD: it only formats; all data manipulation stays in ordinary R code upstream.
+
+::: {.callout-example}
+```r
+library(r2rtf)
+
+tbl <- data.frame(
+  ARM      = c("Placebo", "Active"),
+  N        = c(4, 4),
+  AGE_MEAN = c(65.0, 65.0)
+)
+
+tbl |>
+  rtf_title("Table 1. Demographic Summary by Treatment Group") |>
+  rtf_colheader("Treatment | N | Age (Mean)") |>
+  rtf_body() |>
+  rtf_encode() |>
+  write_rtf(tempfile(fileext = ".rtf"))
+```
+:::
+
+::: {.callout-note}
+In SAS-centric organizations, the RTF conventions themselves — page size, Courier New 9 pt table text, numbered title blocks — are usually already fixed by the SAS side. Encoding them once as an R convention library, instead of restating them in every program, is what makes dual-language delivery maintainable. The R Consortium R submissions working group (https://rconsortium.github.io/submissions-wg/) publishes the pilot series that established r2rtf and rtables in regulatory use.
+:::
 
 ## 5. Independent programming and QC
 
@@ -218,6 +247,18 @@ Transparency, reproducibility, and reviewability still apply. Another person mus
 
 You do not need to master every package. Start with the one or two layers you own and consult the rest as needed.
 
+## 8. Coexisting with SAS: one metadata source, two languages
+
+Most organizations do not switch to R; they add it. Clinical programming shops that already run SAS at scale need R outputs that can sit beside SAS outputs in the same submission, and programmers who move between languages without relearning the environment. Three patterns make this work in production:
+
+| Pattern | What stays shared | What it buys |
+|---|---|---|
+| Shared output metadata | Titles, footnotes, and the output inventory live in one database; SAS macros and R functions both read it | SAS and R outputs carry character-identical title blocks |
+| Centralized R environment | One server-level, version-locked R configuration activates automatically, mirroring the SAS autoexec experience | Programmers inherit paths and package versions with zero per-user setup |
+| One code path, two modes | The same builder functions serve scheduled batch production and interactive Shiny preview | Interactive exploration can no longer drift from submission output |
+
+The deeper principle: **coexistence is a metadata problem before it is a language problem.** When titles, conventions, and the environment are shared assets, the choice of language for each program becomes a local decision that reviewers do not have to arbitrate. Chapter 4.8 adds the governance layer that keeps such a shared environment validated.
+
 ::: {.callout-important}
 ## Practice Exercise 1 (copy)
 
@@ -255,6 +296,8 @@ Adapt §2's MAP derivation to BMI. Use `derive_param_computed()` to derive `BMID
 | §2 derivations | Workshop `exercises/03-ADaM.R`, date imputation and MAP | Adapted |
 | §3 ARD and hierarchical summaries | Workshop `exercises/04-ARD.R` | Adapted |
 | §4–§6 table exercises and AI's role | Workshop `exercises/05-tables-gtsummary.R`, `06-tables-tfrmt.R` | Adapted |
+| §4 r2rtf rendering | r2rtf package documentation (Merck, https://merck.github.io/r2rtf/) and R Consortium submissions working group pilot reports | Referenced |
+| §8 SAS coexistence patterns | This project, from the author's production experience | Original |
 | Mock demographics, independent-programming table, package map, rubric | This project | Original |
 
 This chapter is published under CC-BY-SA 4.0.

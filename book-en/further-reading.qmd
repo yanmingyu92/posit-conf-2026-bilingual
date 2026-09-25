@@ -3,7 +3,7 @@ title: "Further Reading: From Using Tools to Understanding Them"
 author: "Jaime Yan"
 ---
 
-This reading map is for readers who can already manipulate data in R and want to deliver analyses to others. Each unit has three reading paths. Follow one when the corresponding problem arises, and return with a small practical artifact. You do not need to finish these books before starting the exercises here.
+This reading map is for readers who can already manipulate data in R and want to deliver analyses to others. Each unit has three or four reading paths. Follow one when the corresponding problem arises, and return with a small practical artifact. You do not need to finish these books before starting the exercises here.
 
 The questions and follow-up tasks below are original contributions by this book's author. They guide reading; they are not summaries, translations, or adaptations of exercises from the linked books.
 
@@ -20,6 +20,10 @@ Read with a question: Why does the same function produce a different result in a
 **3. Turn network responses into checkable data.** Read the request, execution, and response sections of the [official httr2 introduction](https://httr2.r-lib.org/articles/httr2.html). Alongside Chapters 1.4–1.5, distinguish a successful request from obtaining the data you need.
 
 Read with a question: How will you detect an empty result, disappearing field, or changed type after an HTTP success? Write three input checks for a JSON example containing no secrets, and save it as an offline fixture. A live website's availability should not be your only evidence that the exercise is correct.
+
+**4. Let the pipeline remember what already ran.** Read the [Introduction](https://books.ropensci.org/targets/) and [walkthrough](https://books.ropensci.org/targets/walkthrough.html) chapters of the official {targets} user manual by Will Landau. Alongside Chapters 1.2–1.3, connect functions-as-interface thinking to a pipeline tool that skips work whose inputs have not changed.
+
+Read with a question: After a data fix, which outputs actually need to recompute? Sketch a ten-step analysis as a dependency list, mark the steps your current script re-runs needlessly, and describe how a pipeline tool would detect each skip. This book's exercises stay script-based on purpose; reach for {targets} when the rerun cost starts to hurt.
 
 ## Unit 2: Make results understandable and reusable
 
@@ -61,7 +65,11 @@ Read with a question: Is a passage about the right topic sufficient evidence for
 
 **3. Return to every denominator in the table.** Read the official [gtsummary tbl_summary tutorial](https://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html), focusing on variable types, missing values, and statistical settings. Alongside Chapter 4.7, connect formatted tables to checkable summary rules.
 
-Read with a question: When one participant has several records, does n count people or records? Construct six fictional rows and calculate a percentage by hand. Define inclusion, the denominator, and missing-value handling, then compare against the program. This practices programming and checking; analysis populations, imputation, and statistical methods must follow the project's agreed rules.
+Read with a question: When one participant has several records, does n count people or records? Construct six fictional rows and calculate a percentage by hand. Define inclusion, the denominator, and missing-value handling, then compare against the program. This practices programming and checking; analysis populations, imputation, and statistical methods must follow your project's agreed rules.
+
+**4. Grade package risk before you rely on it.** Read the R Validation Hub white paper, [A Risk-based Approach for Assessing R package Accuracy within a Validated Infrastructure](https://www.pharmar.org/white-paper/). Alongside Chapter 4.8, connect its two risk axes — intended use and package quality — to your own dependency list.
+
+Read with a question: Which two packages in your current project would land in the high-risk quadrant, and what evidence would a reviewer ask for? Draft the two validation activities you would perform first, and note which {riskmetric} signals could partly automate them.
 
 ## Choosing a short path
 
@@ -69,6 +77,6 @@ For analysis delivery, start with stable interfaces, layers, test design, and en
 
 ## Sources and use
 
-Links were checked on the authors' or maintainers' official sites on 2026-09-17. The book licenses for R4DS 2e, R Packages 2e, and Mastering Shiny include NC/ND conditions; the overall license for Advanced R includes an NC condition. See the individual statements on the [R4DS](https://r4ds.hadley.nz/), [R Packages](https://r-pkgs.org/), [Mastering Shiny](https://mastering-shiny.org/), and [Advanced R](https://adv-r.hadley.nz/) homepages. This page provides links and original reading guidance; it does not adapt those books' text, images, or exercises into this project. Package documentation and books retain their own licenses.
+Links were checked on the authors' or maintainers' official sites; the most recent check was 2026-09-25. The book licenses for R4DS 2e, R Packages 2e, and Mastering Shiny include NC/ND conditions; the overall license for Advanced R includes an NC condition. See the individual statements on the [R4DS](https://r4ds.hadley.nz/), [R Packages](https://r-pkgs.org/), [Mastering Shiny](https://mastering-shiny.org/), and [Advanced R](https://adv-r.hadley.nz/) homepages. This page provides links and original reading guidance; it does not adapt those books' text, images, or exercises into this project. Package documentation and books retain their own licenses.
 
 Original reading guidance on this page is by Jaime Yan and is published under CC-BY-SA 4.0.

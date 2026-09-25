@@ -3,7 +3,7 @@ title: "延伸阅读 · 从会用到理解"
 author: "Jaime Yan"
 ---
 
-这份阅读地图面向已经会用 R 整理数据、希望把分析交付给他人的读者。每个单元只选三条阅读线：遇到相应问题再读，读完带回一个小产物。你不需要先读完这些书，才开始本书的练习。
+这份阅读地图面向已经会用 R 整理数据、希望把分析交付给他人的读者。每个单元选三到四条阅读线：遇到相应问题再读，读完带回一个小产物。你不需要先读完这些书，才开始本书的练习。
 
 下列“带着问题读”和练后任务由本书作者原创。它们是阅读引导，不是所链接书籍的摘要、翻译或习题改编。
 
@@ -20,6 +20,10 @@ author: "Jaime Yan"
 **3. 把网络响应变成可检验的数据。** 读 [httr2 官方入门](https://httr2.r-lib.org/articles/httr2.html)中的请求、执行与响应处理。配合本书 1.4–1.5，补上“请求成功”和“取得了所需数据”之间的区别。
 
 带着问题读：HTTP 成功但结果为空、字段消失或类型改变时，你如何发现？为一个不含秘密信息的 JSON 样例写三条输入检查，并保存它作为离线测试数据；不要把实时网站的可用性当作练习正确性的唯一依据。
+
+**4. 让流水线记住哪些步骤已经跑过。** 读 Will Landau 的 {targets} 官方用户手册的 [Introduction](https://books.ropensci.org/targets/) 与 [walkthrough](https://books.ropensci.org/targets/walkthrough.html) 两章。配合本书 1.2–1.3，把「函数即接口」的思维接到一个能跳过「输入未变」步骤的流水线工具上。
+
+带着问题读：一次数据修复之后，哪些产出真的需要重算？把自己的十步分析画成依赖清单，标出当前脚本在无谓重跑的步骤，并说明流水线工具如何判定每一次跳过。本书的练习刻意保持脚本形态；当重跑成本开始疼了，再上手 {targets}。
 
 ## 单元二：让结果容易理解和复用
 
@@ -63,12 +67,16 @@ author: "Jaime Yan"
 
 带着问题读：一位受试者有多条记录时，表中的 n 是人数还是记录数？用自己构造的六行假数据手算一个百分比，明确纳入范围、分母和缺失处理，再与程序输出对照。这里练的是编程与核对；分析人群、插补和统计方法应依据项目事先约定的规则。
 
+**4. 依赖一个包之前，先给它定风险级。** 读 R Validation Hub 白皮书 [A Risk-based Approach for Assessing R package Accuracy within a Validated Infrastructure](https://www.pharmar.org/white-paper/)。配合本书 4.8，把它的两条风险轴——用途风险与包质量——接到你自己的依赖清单上。
+
+带着问题读：你当前项目里哪两个包会落进高风险象限？审阅人会要什么证据？先起草你会最先做的两项验证活动，并注明哪些 {riskmetric} 信号可以部分自动化这两项。
+
 ## 怎么选一条最短路线
 
 以分析交付为主，先读“稳定接口 → 图层 → 测试设计 → 环境交接”；正在做 Shiny，优先响应式图；临床与制药读者先把“测试设计 → 分母核对 → 环境交接”连起来，AI 阅读放在确定性流程之后。每完成一条阅读线，给自己的项目增加一项可检验的产物，再决定是否继续。
 
 ## 来源与使用方式
 
-链接于 2026-09-17 在作者或维护者官方站点核验。R4DS 2e、R Packages 2e、Mastering Shiny 的书籍许可包含 NC／ND 条件，Advanced R 的整体许可包含 NC 条件；各书具体声明见其 [R4DS](https://r4ds.hadley.nz/)、[R Packages](https://r-pkgs.org/)、[Mastering Shiny](https://mastering-shiny.org/) 与 [Advanced R](https://adv-r.hadley.nz/) 首页。本页仅新增链接推荐和原创阅读引导，不将这些书的正文、图片或习题改编进本项目。包文档与书籍各自保留原有许可。
+链接在作者或维护者官方站点核验，最近一次核验日期为 2026-09-25。R4DS 2e、R Packages 2e、Mastering Shiny 的书籍许可包含 NC／ND 条件，Advanced R 的整体许可包含 NC 条件；各书具体声明见其 [R4DS](https://r4ds.hadley.nz/)、[R Packages](https://r-pkgs.org/)、[Mastering Shiny](https://mastering-shiny.org/) 与 [Advanced R](https://adv-r.hadley.nz/) 首页。本页仅新增链接推荐和原创阅读引导，不将这些书的正文、图片或习题改编进本项目。包文档与书籍各自保留原有许可。
 
 本页原创阅读引导由 Jaime Yan 撰写，以 CC-BY-SA 4.0 发布。
